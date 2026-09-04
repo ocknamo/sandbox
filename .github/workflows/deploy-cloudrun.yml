@@ -96,9 +96,9 @@ jobs:
         run: |
           URL="${{ steps.deploy.outputs.url }}"
           for i in $(seq 1 10); do
-            code=$(curl -s -o /dev/null -w '%{http_code}' "$URL/healthz" || true)
+            code=$(curl -s -o /dev/null -w '%{http_code}' "$URL/health" || true)
             if [ "$code" = "200" ]; then
-              echo "healthz OK"
+              echo "health OK"
               curl -s "$URL/"
               echo "### Deployed: $URL" >> "$GITHUB_STEP_SUMMARY"
               exit 0
@@ -107,4 +107,8 @@ jobs:
             sleep 5
           done
           echo "Service did not become healthy at $URL"
+          # Dump the final response so the failure is diagnosable from the log:
+          # a body from Google Front End rather than the app means the request
+          # never reached the container.
+          curl -s -i "$URL/health" | head -30
           exit 1

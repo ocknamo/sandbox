@@ -13,9 +13,9 @@ func newTestHandler() http.Handler {
 	return New(slog.New(slog.NewJSONHandler(io.Discard, nil)))
 }
 
-func TestHealthz(t *testing.T) {
+func TestHealth(t *testing.T) {
 	rec := httptest.NewRecorder()
-	newTestHandler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/healthz", nil))
+	newTestHandler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/health", nil))
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)

@@ -8,7 +8,7 @@ authenticating with Workload Identity Federation (no service account keys).
 | Method | Path       | Response                                          |
 | ------ | ---------- | ------------------------------------------------- |
 | GET    | `/`        | JSON greeting with `K_SERVICE` / `K_REVISION`     |
-| GET    | `/healthz` | `{"status":"ok"}`                                 |
+| GET    | `/health`  | `{"status":"ok"}`                                 |
 
 The server reads `PORT` (Cloud Run injects it, defaults to `8080`), logs
 requests as JSON on stdout so they land in Cloud Logging, and shuts down
@@ -53,7 +53,7 @@ The image is multi-stage on top of `distroless/static` and runs as `nonroot`
    `go-cloudrun-app/` to `main`.
 
 The workflow runs the tests, builds and pushes the image, deploys the revision,
-then polls `/healthz` on the live URL and fails if it never returns 200. The
+then polls `/health` on the live URL and fails if it never returns 200. The
 service URL is printed in the job summary.
 
 ## Notes
@@ -65,3 +65,6 @@ service URL is printed in the job summary.
 - The runtime service account starts with no project roles. Grant it only what
   the service needs as you add integrations (Firestore, Pub/Sub, and so on).
 - Cost: `--min-instances=0` means the service scales to zero and idles for free.
+- The health endpoint is `/health`, not the more usual `/healthz`: Google Front
+  End intercepts the exact path `/healthz` on `*.run.app` and answers it with
+  its own 404 page, so the request never reaches the container.
