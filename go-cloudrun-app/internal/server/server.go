@@ -12,12 +12,14 @@ import (
 // New returns the service handler.
 func New(logger *slog.Logger) http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /healthz", handleHealthz)
+	// Not /healthz: Google Front End intercepts that exact path on *.run.app
+	// and returns its own 404 without ever forwarding to the container.
+	mux.HandleFunc("GET /health", handleHealth)
 	mux.HandleFunc("GET /{$}", handleRoot)
 	return withLogging(logger, mux)
 }
 
-func handleHealthz(w http.ResponseWriter, r *http.Request) {
+func handleHealth(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 
