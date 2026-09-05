@@ -49,8 +49,11 @@ The image is multi-stage on top of `distroless/static` and runs as `nonroot`
    Settings > Secrets and variables > Actions > Variables:
    `GCP_PROJECT_ID`, `GCP_WIF_PROVIDER`, `GCP_DEPLOY_SA`, `GCP_RUNTIME_SA`.
 
-4. Trigger `Deploy to Cloud Run` from the Actions tab, or push a change under
+4. Trigger `Deploy go-cloudrun-app` from the Actions tab, or push a change under
    `go-cloudrun-app/` to `main`.
+
+The same setup covers every service in this repository — see the repository root
+README for how services share it.
 
 The workflow runs the tests, builds and pushes the image, deploys the revision,
 then polls `/health` on the live URL and fails if it never returns 200. The
@@ -59,7 +62,7 @@ service URL is printed in the job summary.
 ## Notes
 
 - The service is deployed with `--allow-unauthenticated`, so the URL is public.
-  Drop that flag in `.github/workflows/deploy-cloudrun.yml` to require IAM auth.
+  Drop that flag in `.github/workflows/deploy-service.yml` to require IAM auth.
   If your organization enforces the "Domain restricted sharing" policy, the flag
   will be rejected and must be removed.
 - The runtime service account starts with no project roles. Grant it only what
