@@ -1,0 +1,23 @@
+name: Deploy go-cloudrun-echo
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'go-cloudrun-echo/**'
+      - '.github/workflows/deploy-go-cloudrun-echo.yml'
+      - '.github/workflows/deploy-service.yml'
+  workflow_dispatch:
+
+# Required for Workload Identity Federation: the job mints a GitHub OIDC token
+# that Google exchanges for short-lived credentials. No service account key.
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy-service.yml
+    with:
+      service: go-cloudrun-echo
+      directory: go-cloudrun-echo

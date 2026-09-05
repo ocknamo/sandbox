@@ -1,22 +1,28 @@
-name: go-cloudrun-app CI
+name: Go services CI
 
 on:
   pull_request:
     paths:
       - 'go-cloudrun-app/**'
+      - 'go-cloudrun-echo/**'
       - '.github/workflows/go-cloudrun-ci.yml'
   push:
     branches: [main]
     paths:
       - 'go-cloudrun-app/**'
+      - 'go-cloudrun-echo/**'
       - '.github/workflows/go-cloudrun-ci.yml'
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [go-cloudrun-app, go-cloudrun-echo]
     defaults:
       run:
-        working-directory: go-cloudrun-app
+        working-directory: ${{ matrix.service }}
     steps:
       - uses: actions/checkout@v4
 

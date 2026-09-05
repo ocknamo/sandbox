@@ -1,34 +1,52 @@
-name: Deploy to Cloud Run
+# Reusable deployment for one Cloud Run service in this repository.
+# Callers live in deploy-<service>.yml and supply the service name and directory;
+# everything else (project, WIF provider, service accounts) comes from repository
+# variables shared by every service.
+name: Deploy service
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'go-cloudrun-app/**'
-      - '.github/workflows/deploy-cloudrun.yml'
-  workflow_dispatch:
-
-# Required for Workload Identity Federation: the job mints a GitHub OIDC token
-# that Google exchanges for short-lived credentials. No service account key.
-permissions:
-  contents: read
-  id-token: write
-
-env:
-  REGION: asia-northeast1
-  SERVICE: go-cloudrun-app
-  AR_REPO: apps
-
-concurrency:
-  group: deploy-cloudrun
-  cancel-in-progress: false
+  workflow_call:
+    inputs:
+      service:
+        description: Cloud Run service name, also used as the image name.
+        required: true
+        type: string
+      directory:
+        description: Directory holding the service's source and Dockerfile.
+        required: true
+        type: string
+      runtime_sa:
+        description: >-
+          Runtime service account for this service. Defaults to the shared
+          GCP_RUNTIME_SA variable; override to give a service its own identity.
+        required: false
+        default: ''
+        type: string
+      region:
+        required: false
+        default: asia-northeast1
+        type: string
+      ar_repo:
+        description: Artifact Registry repository holding every service's images.
+        required: false
+        default: apps
+        type: string
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # Keyed by service so deployments of different services never queue behind
+    # one another, while repeated pushes to the same service still serialize.
+    concurrency:
+      group: deploy-${{ inputs.service }}
+      cancel-in-progress: false
+    env:
+      SERVICE: ${{ inputs.service }}
+      REGION: ${{ inputs.region }}
+      AR_REPO: ${{ inputs.ar_repo }}
     defaults:
       run:
-        working-directory: go-cloudrun-app
+        working-directory: ${{ inputs.directory }}
     steps:
       - uses: actions/checkout@v4
 
@@ -42,7 +60,7 @@ jobs:
           if [ -n "$missing" ]; then
             echo "Missing repository variables:$missing"
             echo "Set them under Settings > Secrets and variables > Actions > Variables."
-            echo "scripts/setup-gcp.sh prints the exact values to use."
+            echo "go-cloudrun-app/scripts/setup-gcp.sh prints the exact values to use."
             exit 1
           fi
 
@@ -80,7 +98,7 @@ jobs:
             --project="${{ vars.GCP_PROJECT_ID }}" \
             --image="${{ steps.build.outputs.image }}" \
             --region="$REGION" \
-            --service-account="${{ vars.GCP_RUNTIME_SA }}" \
+            --service-account="${{ inputs.runtime_sa || vars.GCP_RUNTIME_SA }}" \
             --allow-unauthenticated \
             --min-instances=0 \
             --max-instances=3 \
@@ -100,7 +118,7 @@ jobs:
             if [ "$code" = "200" ]; then
               echo "health OK"
               curl -s "$URL/"
-              echo "### Deployed: $URL" >> "$GITHUB_STEP_SUMMARY"
+              echo "### Deployed \`$SERVICE\`: $URL" >> "$GITHUB_STEP_SUMMARY"
               exit 0
             fi
             echo "attempt $i: got $code, retrying"
