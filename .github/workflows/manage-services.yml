@@ -1,0 +1,191 @@
+# Manual controls for the deployed Cloud Run services, run from the Actions tab.
+#
+#   status  show each service's URL, whether it is publicly reachable, and probe it
+#   pause   remove the allUsers invoker binding, so the URL returns 403
+#   resume  put the binding back
+#   delete  remove the service entirely (one service at a time, with confirmation)
+#
+# Pausing costs nothing to undo: requests denied by IAM are not billed, and the
+# service keeps its configuration and revision history.
+name: Manage Cloud Run services
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: What to do
+        required: true
+        type: choice
+        options: [status, pause, resume, delete]
+        default: status
+      service:
+        description: Target service
+        required: true
+        type: choice
+        options: [all, go-cloudrun-app, go-cloudrun-echo]
+        default: all
+      confirm:
+        description: 'delete only: retype the service name to confirm'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  REGION: asia-northeast1
+
+concurrency:
+  group: manage-cloud-run
+  cancel-in-progress: false
+
+jobs:
+  manage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve targets and guard destructive input
+        id: plan
+        # Inputs go through env, never interpolated into the script: `confirm` is
+        # free text, and `${{ }}` expansion would splice it into the shell.
+        env:
+          ACTION: ${{ inputs.action }}
+          SERVICE: ${{ inputs.service }}
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          case "$SERVICE" in
+            all) services="go-cloudrun-app go-cloudrun-echo" ;;
+            *)   services="$SERVICE" ;;
+          esac
+
+          if [ "$ACTION" = "delete" ]; then
+            # Deleting everything from one dropdown is too easy to do by accident.
+            if [ "$SERVICE" = "all" ]; then
+              echo "::error::Refusing to delete every service in one run. Pick a single service."
+              exit 1
+            fi
+            if [ "$CONFIRM" != "$SERVICE" ]; then
+              echo "::error::To delete, retype the service name in the confirm field."
+              exit 1
+            fi
+          fi
+
+          echo "services=$services" >> "$GITHUB_OUTPUT"
+          echo "Action '$ACTION' on:$(printf ' %s' $services)"
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SA }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Apply
+        env:
+          PROJECT: ${{ vars.GCP_PROJECT_ID }}
+          SERVICES: ${{ steps.plan.outputs.services }}
+          ACTION: ${{ inputs.action }}
+        run: |
+          set -u
+
+          is_public() {
+            gcloud run services get-iam-policy "$1" \
+              --project="$PROJECT" --region="$REGION" \
+              --flatten="bindings[].members" --format="value(bindings.members)" 2>/dev/null \
+              | grep -qx allUsers
+          }
+
+          probe() {
+            curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$1/health" 2>/dev/null || echo 000
+          }
+
+          # IAM changes take a moment to reach the frontend, so poll rather than
+          # reading the status code once.
+          await_code() {
+            url="$1"; want="$2"   # want: "200" or "not200"
+            for _ in $(seq 1 12); do
+              code=$(probe "$url")
+              case "$want" in
+                200)     [ "$code" = "200" ] && { echo "$code"; return 0; } ;;
+                not200)  [ "$code" != "200" ] && { echo "$code"; return 0; } ;;
+              esac
+              sleep 5
+            done
+            echo "$code"
+            return 1
+          }
+
+          echo "| service | result | URL |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| --- | --- | --- |" >> "$GITHUB_STEP_SUMMARY"
+
+          failed=0
+          for s in $SERVICES; do
+            echo "::group::$s"
+
+            if ! gcloud run services describe "$s" --project="$PROJECT" --region="$REGION" >/dev/null 2>&1; then
+              echo "not deployed"
+              echo "| \`$s\` | not deployed | – |" >> "$GITHUB_STEP_SUMMARY"
+              echo "::endgroup::"
+              continue
+            fi
+
+            URL=$(gcloud run services describe "$s" --project="$PROJECT" --region="$REGION" --format='value(status.url)')
+
+            case "$ACTION" in
+              status)
+                if is_public "$s"; then public="public"; else public="private (allUsers not bound)"; fi
+                code=$(probe "$URL")
+                echo "$public / GET /health -> $code"
+                echo "| \`$s\` | $public, /health -> $code | $URL |" >> "$GITHUB_STEP_SUMMARY"
+                ;;
+
+              pause)
+                if is_public "$s"; then
+                  gcloud run services remove-iam-policy-binding "$s" \
+                    --project="$PROJECT" --region="$REGION" \
+                    --member=allUsers --role=roles/run.invoker --quiet
+                else
+                  echo "already private"
+                fi
+                if code=$(await_code "$URL" not200); then
+                  echo "paused, /health -> $code"
+                  echo "| \`$s\` | paused, /health -> $code | $URL |" >> "$GITHUB_STEP_SUMMARY"
+                else
+                  echo "::error::$s still answers 200 after pausing"
+                  echo "| \`$s\` | **still public (200)** | $URL |" >> "$GITHUB_STEP_SUMMARY"
+                  failed=1
+                fi
+                ;;
+
+              resume)
+                gcloud run services add-iam-policy-binding "$s" \
+                  --project="$PROJECT" --region="$REGION" \
+                  --member=allUsers --role=roles/run.invoker --quiet
+                if code=$(await_code "$URL" 200); then
+                  echo "resumed, /health -> $code"
+                  echo "| \`$s\` | resumed, /health -> 200 | $URL |" >> "$GITHUB_STEP_SUMMARY"
+                else
+                  echo "::error::$s did not come back (last code $code)"
+                  echo "| \`$s\` | **not reachable ($code)** | $URL |" >> "$GITHUB_STEP_SUMMARY"
+                  failed=1
+                fi
+                ;;
+
+              delete)
+                gcloud run services delete "$s" --project="$PROJECT" --region="$REGION" --quiet
+                code=$(probe "$URL")
+                echo "deleted, /health -> $code"
+                echo "| \`$s\` | deleted (/health -> $code) | – |" >> "$GITHUB_STEP_SUMMARY"
+                ;;
+            esac
+
+            echo "::endgroup::"
+          done
+
+          if [ "$ACTION" = "delete" ]; then
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "Pushing a change under the service's directory will deploy it again." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          exit $failed
