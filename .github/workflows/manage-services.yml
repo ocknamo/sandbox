@@ -100,20 +100,22 @@ jobs:
             curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$1/health" 2>/dev/null || echo 000
           }
 
-          # IAM changes take a moment to reach the frontend, so poll rather than
-          # reading the status code once.
+          # An IAM change reaches the frontend on its own schedule: Google documents
+          # 2 minutes as typical and "7 minutes or longer" as possible. Poll well
+          # past that rather than reading the status code once.
+          # https://docs.cloud.google.com/iam/docs/access-change-propagation
           await_code() {
             url="$1"; want="$2"   # want: "200" or "not200"
-            for _ in $(seq 1 12); do
+            deadline=$(( $(date +%s) + 600 ))
+            while :; do
               code=$(probe "$url")
               case "$want" in
-                200)     [ "$code" = "200" ] && { echo "$code"; return 0; } ;;
+                200)     [ "$code" = "200" ]  && { echo "$code"; return 0; } ;;
                 not200)  [ "$code" != "200" ] && { echo "$code"; return 0; } ;;
               esac
-              sleep 5
+              [ "$(date +%s)" -ge "$deadline" ] && { echo "$code"; return 1; }
+              sleep 10
             done
-            echo "$code"
-            return 1
           }
 
           echo "| service | result | URL |" >> "$GITHUB_STEP_SUMMARY"
@@ -148,13 +150,20 @@ jobs:
                 else
                   echo "already private"
                 fi
-                if code=$(await_code "$URL" not200); then
-                  echo "paused, /health -> $code"
+
+                # The IAM policy is what this action actually changes, so it -- not
+                # the status code -- decides success. The probe below only reports
+                # whether the change has reached the frontend yet.
+                if is_public "$s"; then
+                  echo "::error::$s: allUsers is still bound after removing it"
+                  echo "| \`$s\` | **failed: still public** | $URL |" >> "$GITHUB_STEP_SUMMARY"
+                  failed=1
+                elif code=$(await_code "$URL" not200); then
+                  echo "paused and confirmed, /health -> $code"
                   echo "| \`$s\` | paused, /health -> $code | $URL |" >> "$GITHUB_STEP_SUMMARY"
                 else
-                  echo "::error::$s still answers 200 after pausing"
-                  echo "| \`$s\` | **still public (200)** | $URL |" >> "$GITHUB_STEP_SUMMARY"
-                  failed=1
+                  echo "::warning::$s: allUsers is unbound but the URL still answers 200; IAM propagation can take 7 minutes or longer"
+                  echo "| \`$s\` | paused, still serving (200) while IAM propagates | $URL |" >> "$GITHUB_STEP_SUMMARY"
                 fi
                 ;;
 
@@ -162,13 +171,17 @@ jobs:
                 gcloud run services add-iam-policy-binding "$s" \
                   --project="$PROJECT" --region="$REGION" \
                   --member=allUsers --role=roles/run.invoker --quiet
-                if code=$(await_code "$URL" 200); then
-                  echo "resumed, /health -> $code"
+
+                if ! is_public "$s"; then
+                  echo "::error::$s: allUsers is still unbound after adding it"
+                  echo "| \`$s\` | **failed: still private** | $URL |" >> "$GITHUB_STEP_SUMMARY"
+                  failed=1
+                elif code=$(await_code "$URL" 200); then
+                  echo "resumed and confirmed, /health -> $code"
                   echo "| \`$s\` | resumed, /health -> 200 | $URL |" >> "$GITHUB_STEP_SUMMARY"
                 else
-                  echo "::error::$s did not come back (last code $code)"
-                  echo "| \`$s\` | **not reachable ($code)** | $URL |" >> "$GITHUB_STEP_SUMMARY"
-                  failed=1
+                  echo "::warning::$s: allUsers is bound but the URL still answers $code; IAM propagation can take 7 minutes or longer"
+                  echo "| \`$s\` | resumed, still $code while IAM propagates | $URL |" >> "$GITHUB_STEP_SUMMARY"
                 fi
                 ;;
 

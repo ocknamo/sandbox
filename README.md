@@ -34,9 +34,16 @@ target service, and needs no local tooling:
 | `delete` | Remove the service (one at a time, and the confirm field must repeat its name) |
 
 `pause` is the usual one: requests denied by IAM are not billed, the service
-keeps its configuration and revisions, and `resume` undoes it in one run. Each
-action verifies its own result by polling the live URL and fails the run if the
-service is still reachable after a pause, so a green run means it really stopped.
+keeps its configuration and revisions, and `resume` undoes it in one run.
+
+What each action changes is the IAM policy, so that is what decides success: the
+run re-reads the policy afterwards and fails if the binding did not actually
+change. It then polls the live URL for up to 10 minutes to confirm the change has
+reached the frontend. A URL that has not flipped yet is reported as a warning
+rather than a failure, because [IAM changes take about 2 minutes to propagate and
+can take 7 minutes or longer](https://docs.cloud.google.com/iam/docs/access-change-propagation).
+So a green run means the policy changed; the summary line says whether the URL
+was confirmed or is still catching up.
 
 Deleting is not permanent in practice: the next push under the service's
 directory deploys it again at the same URL.
