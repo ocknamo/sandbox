@@ -1,68 +1,71 @@
 # sandbox
 
-## Cloud Run services
+## Cloud Run サービス
 
-Each directory is a self-contained service with its own `go.mod` and
-`Dockerfile`, deployed to Cloud Run from GitHub Actions using Workload Identity
-Federation (no service account keys).
+各ディレクトリは、それぞれ独自の `go.mod` と `Dockerfile` を持つ独立したサービス
+です。GitHub Actions から Workload Identity 連携を使って Cloud Run にデプロイし
+ます（サービスアカウントキーは使いません）。
 
-| Directory | Cloud Run service | What it is |
+| ディレクトリ | Cloud Run サービス | 内容 |
 | --- | --- | --- |
-| [`go-cloudrun-app`](go-cloudrun-app) | `go-cloudrun-app` | Minimal JSON HTTP service |
-| [`go-cloudrun-echo`](go-cloudrun-echo) | `go-cloudrun-echo` | Echoes a request back as JSON |
+| [`go-cloudrun-app`](go-cloudrun-app) | `go-cloudrun-app` | 最小構成の JSON HTTP サービス |
+| [`go-cloudrun-echo`](go-cloudrun-echo) | `go-cloudrun-echo` | リクエストを JSON でそのまま返すサービス |
 
-### How the workflows fit together
+### ワークフローの構成
 
-`.github/workflows/deploy-service.yml` holds the whole deploy pipeline once —
-test, build, push, deploy, then poll `/health` on the live URL and fail if it
-never returns 200. Each service adds a thin caller
-(`deploy-<service>.yml`) that supplies its name and directory and restricts the
-`paths` trigger to its own files, so a push only redeploys what it touched.
-Concurrency is keyed per service, so one service's deploy never queues behind
-another's.
+`.github/workflows/deploy-service.yml` にデプロイのパイプライン全体を 1 か所にま
+とめています。テスト、ビルド、プッシュ、デプロイを行い、その後に公開 URL の
+`/health` をポーリングして、200 が返らなければ失敗させます。各サービスは薄い呼び
+出し側ワークフロー（`deploy-<service>.yml`）を追加し、自分のサービス名とディレク
+トリを渡したうえで、`paths` トリガーを自分のファイルだけに絞ります。これにより、
+プッシュで再デプロイされるのは変更のあったサービスだけになります。同時実行の制御
+はサービスごとにキーを分けているので、あるサービスのデプロイが別のサービスのデプ
+ロイを待たされることはありません。
 
-### Stopping and restarting a service
+### サービスの停止と再開
 
-Run **Manage Cloud Run services** from the Actions tab. It takes an action and a
-target service, and needs no local tooling:
+Actions タブから **Manage Cloud Run services** を実行します。アクションと対象サー
+ビスを指定するだけで、ローカルにツールを用意する必要はありません。
 
-| Action | Effect |
+| アクション | 効果 |
 | --- | --- |
-| `status` | Print each service's URL, whether `allUsers` is bound, and a live `/health` probe |
-| `pause` | Remove the `allUsers` invoker binding, so the URL answers 403 |
-| `resume` | Put the binding back |
-| `delete` | Remove the service (one at a time, and the confirm field must repeat its name) |
+| `status` | 各サービスの URL、`allUsers` がバインドされているか、`/health` の実際の応答を表示する |
+| `pause` | `allUsers` の invoker バインディングを外し、URL が 403 を返すようにする |
+| `resume` | バインディングを元に戻す |
+| `delete` | サービスを削除する（一度に 1 つだけ。確認用フィールドにサービス名を再入力する必要がある） |
 
-`pause` is the usual one: requests denied by IAM are not billed, the service
-keeps its configuration and revisions, and `resume` undoes it in one run. Each
-action verifies its own result by polling the live URL and fails the run if the
-service is still reachable after a pause, so a green run means it really stopped.
+通常は `pause` を使います。IAM で拒否されたリクエストは課金されず、サービスの設定
+とリビジョンはそのまま残り、`resume` を 1 回実行すれば元に戻せます。各アクション
+は公開 URL をポーリングして自分の結果を検証し、`pause` 後もサービスに到達できる場
+合は実行を失敗させます。したがって実行が成功していれば、本当に停止できていること
+を意味します。
 
-Deleting is not permanent in practice: the next push under the service's
-directory deploys it again at the same URL.
+削除も実質的には元に戻せます。そのサービスのディレクトリ配下に次のプッシュを行え
+ば、同じ URL に再びデプロイされます。
 
-Note that removing the workflows or the service's source does **not** stop a
-running service — the deployed revision lives in GCP, independent of this
-repository.
+なお、ワークフローやサービスのソースを削除しても、稼働中のサービスは停止**しませ
+ん**。デプロイ済みのリビジョンはこのリポジトリとは独立して GCP 上に存在します。
 
-### Adding a service
+### サービスの追加
 
-1. Add a directory with a `Dockerfile` and a `/health` endpoint returning 200.
-   Do **not** use `/healthz`: the Google Front End answers that exact path itself
-   and the request never reaches the container.
-2. Copy a `deploy-<service>.yml` caller and change the two `paths` entries and
-   the `service`/`directory` inputs.
-3. Add the directory to the matrix in `go-cloudrun-ci.yml`.
+1. `Dockerfile` と、200 を返す `/health` エンドポイントを持つディレクトリを追加し
+   ます。`/healthz` は使わ**ない**でください。このパスちょうどに対しては Google
+   Front End 自身が応答してしまい、リクエストがコンテナまで届きません。
+2. `deploy-<service>.yml` の呼び出し側ワークフローをコピーし、2 つの `paths` の
+   エントリと `service` / `directory` の入力を変更します。
+3. `go-cloudrun-ci.yml` のマトリクスにディレクトリを追加します。
 
-No GCP-side work is needed: the deployer service account holds `roles/run.admin`
-at the project level, and all images share one Artifact Registry repository.
-Services share `GCP_RUNTIME_SA` by default; to give one its own identity, create
-a service account, grant the deployer `roles/iam.serviceAccountUser` on it, and
-pass it as the `runtime_sa` input.
+GCP 側での作業は不要です。デプロイ用サービスアカウントはプロジェクトレベルで
+`roles/run.admin` を持っており、すべてのイメージは 1 つの Artifact Registry リポジ
+トリを共有します。サービスは既定で `GCP_RUNTIME_SA` を共有します。個別の ID を与
+えたい場合は、サービスアカウントを作成し、デプロイ用サービスアカウントにそのサー
+ビスアカウントに対する `roles/iam.serviceAccountUser` を付与したうえで、
+`runtime_sa` 入力として渡してください。
 
-One-time project setup lives in
-[`go-cloudrun-app/scripts/setup-gcp.sh`](go-cloudrun-app/scripts/setup-gcp.sh).
+プロジェクトの初回セットアップは
+[`go-cloudrun-app/scripts/setup-gcp.sh`](go-cloudrun-app/scripts/setup-gcp.sh)
+にあります。
 
-## Other
+## その他
 
-- [`svelte-voice-api`](svelte-voice-api) — Svelte + Web Speech API experiment.
+- [`svelte-voice-api`](svelte-voice-api) — Svelte + Web Speech API の実験。
