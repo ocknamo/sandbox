@@ -21,6 +21,30 @@ never returns 200. Each service adds a thin caller
 Concurrency is keyed per service, so one service's deploy never queues behind
 another's.
 
+### Stopping and restarting a service
+
+Run **Manage Cloud Run services** from the Actions tab. It takes an action and a
+target service, and needs no local tooling:
+
+| Action | Effect |
+| --- | --- |
+| `status` | Print each service's URL, whether `allUsers` is bound, and a live `/health` probe |
+| `pause` | Remove the `allUsers` invoker binding, so the URL answers 403 |
+| `resume` | Put the binding back |
+| `delete` | Remove the service (one at a time, and the confirm field must repeat its name) |
+
+`pause` is the usual one: requests denied by IAM are not billed, the service
+keeps its configuration and revisions, and `resume` undoes it in one run. Each
+action verifies its own result by polling the live URL and fails the run if the
+service is still reachable after a pause, so a green run means it really stopped.
+
+Deleting is not permanent in practice: the next push under the service's
+directory deploys it again at the same URL.
+
+Note that removing the workflows or the service's source does **not** stop a
+running service — the deployed revision lives in GCP, independent of this
+repository.
+
 ### Adding a service
 
 1. Add a directory with a `Dockerfile` and a `/health` endpoint returning 200.
