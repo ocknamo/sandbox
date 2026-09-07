@@ -52,6 +52,22 @@ Note that removing the workflows or the service's source does **not** stop a
 running service — the deployed revision lives in GCP, independent of this
 repository.
 
+### Runtime limits
+
+Every job sets `timeout-minutes` rather than relying on GitHub's six-hour
+default, and every `curl` against a deployed service passes `--max-time`, so a
+hung request cannot hold a runner open:
+
+| Job | Limit | Typical run |
+| --- | --- | --- |
+| `go-cloudrun-ci.yml` / `test` | 15 min | under a minute per matrix leg |
+| `deploy-service.yml` / `deploy` | 20 min | about two minutes |
+| `manage-services.yml` / `manage` | 30 min | seconds, unless it waits out IAM propagation |
+
+The deploy callers cannot carry their own limit — GitHub rejects
+`timeout-minutes` on a job that calls a reusable workflow — so theirs comes from
+`deploy-service.yml`.
+
 ### Adding a service
 
 1. Add a directory with a `Dockerfile` and a `/health` endpoint returning 200.

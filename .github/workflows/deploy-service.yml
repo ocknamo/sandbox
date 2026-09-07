@@ -35,6 +35,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # Build, push, deploy and smoke test take about two minutes; well short of
+    # this, but bounded so a hung step cannot sit on a runner for six hours.
+    timeout-minutes: 20
     # Keyed by service so deployments of different services never queue behind
     # one another, while repeated pushes to the same service still serialize.
     concurrency:
@@ -114,10 +117,10 @@ jobs:
         run: |
           URL="${{ steps.deploy.outputs.url }}"
           for i in $(seq 1 10); do
-            code=$(curl -s -o /dev/null -w '%{http_code}' "$URL/health" || true)
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$URL/health" || true)
             if [ "$code" = "200" ]; then
               echo "health OK"
-              curl -s "$URL/"
+              curl -s --max-time 20 "$URL/"
               echo "### Deployed \`$SERVICE\`: $URL" >> "$GITHUB_STEP_SUMMARY"
               exit 0
             fi
@@ -128,5 +131,5 @@ jobs:
           # Dump the final response so the failure is diagnosable from the log:
           # a body from Google Front End rather than the app means the request
           # never reached the container.
-          curl -s -i "$URL/health" | head -30
+          curl -s -i --max-time 20 "$URL/health" | head -30
           exit 1

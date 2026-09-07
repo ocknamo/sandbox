@@ -16,6 +16,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # Each matrix leg runs in well under a minute.
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
