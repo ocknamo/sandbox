@@ -1,91 +1,92 @@
 # sandbox
 
-## Cloud Run services
+## Cloud Run サービス
 
-Each directory is a self-contained service with its own `go.mod` and
-`Dockerfile`, deployed to Cloud Run from GitHub Actions using Workload Identity
-Federation (no service account keys).
+各ディレクトリは独立したサービスで、それぞれ専用の `go.mod` と `Dockerfile` を
+持ちます。デプロイは GitHub Actions から Workload Identity Federation を使って
+Cloud Run に対して行われます（サービスアカウントキーは不要です）。
 
-| Directory | Cloud Run service | What it is |
+| ディレクトリ | Cloud Run サービス | 内容 |
 | --- | --- | --- |
-| [`go-cloudrun-app`](go-cloudrun-app) | `go-cloudrun-app` | Minimal JSON HTTP service |
-| [`go-cloudrun-echo`](go-cloudrun-echo) | `go-cloudrun-echo` | Echoes a request back as JSON |
+| [`go-cloudrun-app`](go-cloudrun-app) | `go-cloudrun-app` | 最小構成の JSON HTTP サービス |
+| [`go-cloudrun-echo`](go-cloudrun-echo) | `go-cloudrun-echo` | リクエストを JSON でそのまま返すサービス |
 
-### How the workflows fit together
+### ワークフローの構成
 
-`.github/workflows/deploy-service.yml` holds the whole deploy pipeline once —
-test, build, push, deploy, then poll `/health` on the live URL and fail if it
-never returns 200. Each service adds a thin caller
-(`deploy-<service>.yml`) that supplies its name and directory and restricts the
-`paths` trigger to its own files, so a push only redeploys what it touched.
-Concurrency is keyed per service, so one service's deploy never queues behind
-another's.
+`.github/workflows/deploy-service.yml` にデプロイパイプライン全体を一箇所にまとめて
+あります。テスト、ビルド、プッシュ、デプロイを行い、その後デプロイ先 URL の
+`/health` をポーリングして 200 が返らなければ失敗させます。各サービスは、その
+サービス名とディレクトリを渡すだけの薄い呼び出し用ワークフロー
+（`deploy-<service>.yml`）を追加し、`paths` トリガーを自分のファイルだけに絞って
+います。これにより、プッシュで変更されたサービスだけが再デプロイされます。
+並行実行の制御（concurrency）はサービスごとにキーを分けているため、あるサービスの
+デプロイが別のサービスのデプロイを待たされることはありません。
 
-### Stopping and restarting a service
+### サービスの停止と再開
 
-Run **Manage Cloud Run services** from the Actions tab. It takes an action and a
-target service, and needs no local tooling:
+Actions タブから **Manage Cloud Run services** を実行します。アクションと対象
+サービスを指定するだけで、ローカルのツールは不要です。
 
-| Action | Effect |
+| アクション | 効果 |
 | --- | --- |
-| `status` | Print each service's URL, whether `allUsers` is bound, and a live `/health` probe |
-| `pause` | Remove the `allUsers` invoker binding, so the URL answers 403 |
-| `resume` | Put the binding back |
-| `delete` | Remove the service (one at a time, and the confirm field must repeat its name) |
+| `status` | 各サービスの URL、`allUsers` がバインドされているか、`/health` の実行結果を表示 |
+| `pause` | `allUsers` の invoker バインディングを削除し、URL が 403 を返すようにする |
+| `resume` | バインディングを元に戻す |
+| `delete` | サービスを削除（一度に 1 つだけ。確認用フィールドにサービス名の入力が必要） |
 
-`pause` is the usual one: requests denied by IAM are not billed, the service
-keeps its configuration and revisions, and `resume` undoes it in one run.
+通常使うのは `pause` です。IAM によって拒否されたリクエストは課金されず、サービスの
+設定やリビジョンはそのまま残り、`resume` の 1 回の実行で元に戻せます。
 
-What each action changes is the IAM policy, so that is what decides success: the
-run re-reads the policy afterwards and fails if the binding did not actually
-change. It then polls the live URL for up to 10 minutes to confirm the change has
-reached the frontend. A URL that has not flipped yet is reported as a warning
-rather than a failure, because [IAM changes take about 2 minutes to propagate and
-can take 7 minutes or longer](https://docs.cloud.google.com/iam/docs/access-change-propagation).
-So a green run means the policy changed; the summary line says whether the URL
-was confirmed or is still catching up.
+各アクションが変更するのは IAM ポリシーなので、成否の判断もそれで行います。実行後に
+ポリシーを読み直し、バインディングが実際に変わっていなければ失敗とします。その後、
+変更がフロントエンドまで反映されたことを確認するため、最大 10 分間ライブ URL を
+ポーリングします。まだ切り替わっていない URL は失敗ではなく警告として報告されます。
+これは [IAM の変更が反映されるまでに約 2 分、場合によっては 7 分以上かかる](https://docs.cloud.google.com/iam/docs/access-change-propagation)
+ためです。つまり、実行が成功（緑）ならポリシーは変更済みであり、URL が確認できたか
+まだ反映待ちかはサマリー行に表示されます。
 
-Deleting is not permanent in practice: the next push under the service's
-directory deploys it again at the same URL.
+削除は実質的には恒久的なものではありません。そのサービスのディレクトリ配下に次に
+プッシュすれば、同じ URL に再びデプロイされます。
 
-Note that removing the workflows or the service's source does **not** stop a
-running service — the deployed revision lives in GCP, independent of this
-repository.
+なお、ワークフローやサービスのソースを削除しても、稼働中のサービスは**停止しません**。
+デプロイ済みのリビジョンはこのリポジトリとは独立して GCP 上に存在し続けます。
 
-### Runtime limits
+### 実行時間の上限
 
-Every job sets `timeout-minutes` rather than relying on GitHub's six-hour
-default, and every `curl` against a deployed service passes `--max-time`, so a
-hung request cannot hold a runner open:
+GitHub のデフォルトの 6 時間に頼らず、すべてのジョブで `timeout-minutes` を設定し、
+デプロイ済みサービスに対する `curl` にはすべて `--max-time` を指定しています。
+これにより、応答しないリクエストがランナーを占有し続けることはありません。
 
-| Job | Limit | Typical run |
+| ジョブ | 上限 | 通常の実行時間 |
 | --- | --- | --- |
-| `go-cloudrun-ci.yml` / `test` | 15 min | under a minute per matrix leg |
-| `deploy-service.yml` / `deploy` | 20 min | about two minutes |
-| `manage-services.yml` / `manage` | 30 min | seconds, unless it waits out IAM propagation |
+| `go-cloudrun-ci.yml` / `test` | 15 分 | マトリクス 1 件あたり 1 分未満 |
+| `deploy-service.yml` / `deploy` | 20 分 | 約 2 分 |
+| `manage-services.yml` / `manage` | 30 分 | 数秒（IAM の反映待ちが発生する場合を除く） |
 
-The deploy callers cannot carry their own limit — GitHub rejects
-`timeout-minutes` on a job that calls a reusable workflow — so theirs comes from
-`deploy-service.yml`.
+デプロイの呼び出し側ワークフローには独自の上限を設定できません（再利用可能な
+ワークフローを呼び出すジョブに `timeout-minutes` を指定すると GitHub が拒否する
+ため）。そのため、上限は `deploy-service.yml` 側から適用されます。
 
-### Adding a service
+### サービスの追加手順
 
-1. Add a directory with a `Dockerfile` and a `/health` endpoint returning 200.
-   Do **not** use `/healthz`: the Google Front End answers that exact path itself
-   and the request never reaches the container.
-2. Copy a `deploy-<service>.yml` caller and change the two `paths` entries and
-   the `service`/`directory` inputs.
-3. Add the directory to the matrix in `go-cloudrun-ci.yml`.
+1. `Dockerfile` と、200 を返す `/health` エンドポイントを持つディレクトリを追加します。
+   `/healthz` は使わ**ない**でください。このパスは Google Front End 自身が応答して
+   しまい、リクエストがコンテナまで届きません。
+2. `deploy-<service>.yml` の呼び出し用ワークフローをコピーし、2 つの `paths` の
+   エントリと `service` / `directory` の入力値を変更します。
+3. `go-cloudrun-ci.yml` のマトリクスにディレクトリを追加します。
 
-No GCP-side work is needed: the deployer service account holds `roles/run.admin`
-at the project level, and all images share one Artifact Registry repository.
-Services share `GCP_RUNTIME_SA` by default; to give one its own identity, create
-a service account, grant the deployer `roles/iam.serviceAccountUser` on it, and
-pass it as the `runtime_sa` input.
+GCP 側の作業は不要です。デプロイ用サービスアカウントはプロジェクトレベルで
+`roles/run.admin` を持ち、すべてのイメージは 1 つの Artifact Registry リポジトリを
+共有します。各サービスはデフォルトで `GCP_RUNTIME_SA` を共有します。個別の
+アイデンティティを与えたい場合は、サービスアカウントを作成し、デプロイ用サービス
+アカウントにそのサービスアカウントへの `roles/iam.serviceAccountUser` を付与したうえ
+で、`runtime_sa` の入力として渡してください。
 
-One-time project setup lives in
-[`go-cloudrun-app/scripts/setup-gcp.sh`](go-cloudrun-app/scripts/setup-gcp.sh).
+プロジェクトの初期セットアップは
+[`go-cloudrun-app/scripts/setup-gcp.sh`](go-cloudrun-app/scripts/setup-gcp.sh)
+にあります。
 
-## Other
+## その他
 
-- [`svelte-voice-api`](svelte-voice-api) — Svelte + Web Speech API experiment.
+- [`svelte-voice-api`](svelte-voice-api) — Svelte + Web Speech API の実験。
