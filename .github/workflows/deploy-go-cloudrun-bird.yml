@@ -1,0 +1,23 @@
+name: Deploy go-cloudrun-bird
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'go-cloudrun-bird/**'
+      - '.github/workflows/deploy-go-cloudrun-bird.yml'
+      - '.github/workflows/deploy-service.yml'
+  workflow_dispatch:
+
+# Required for Workload Identity Federation: the job mints a GitHub OIDC token
+# that Google exchanges for short-lived credentials. No service account key.
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy-service.yml
+    with:
+      service: go-cloudrun-bird
+      directory: go-cloudrun-bird

@@ -22,7 +22,7 @@ on:
         description: Target service
         required: true
         type: choice
-        options: [all, go-cloudrun-app, go-cloudrun-echo]
+        options: [all, go-cloudrun-app, go-cloudrun-echo, go-cloudrun-bird]
         default: all
       confirm:
         description: 'delete only: retype the service name to confirm'
@@ -58,7 +58,7 @@ jobs:
           CONFIRM: ${{ inputs.confirm }}
         run: |
           case "$SERVICE" in
-            all) services="go-cloudrun-app go-cloudrun-echo" ;;
+            all) services="go-cloudrun-app go-cloudrun-echo go-cloudrun-bird" ;;
             *)   services="$SERVICE" ;;
           esac
 

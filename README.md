@@ -10,6 +10,7 @@ Cloud Run に対して行われます（サービスアカウントキーは不�
 | --- | --- | --- |
 | [`go-cloudrun-app`](go-cloudrun-app) | `go-cloudrun-app` | 最小構成の JSON HTTP サービス |
 | [`go-cloudrun-echo`](go-cloudrun-echo) | `go-cloudrun-echo` | リクエストを JSON でそのまま返すサービス |
+| [`go-cloudrun-bird`](go-cloudrun-bird) | `go-cloudrun-bird` | ランダムな鳥の画像を返す API（画像は Wikimedia Commons） |
 
 ### ワークフローの構成
 
