@@ -24,7 +24,13 @@
 | GET | `/api/bird/{group}/images/redirect` | そのグループからランダムな画像へリダイレクト |
 | GET | `/api/bird/{group}/images` | そのグループの画像をすべて |
 | GET | `/api/bird/{group}/{species}/images/...` | 上記と同じものを種単位で |
-| GET | `/` | 動作確認用のページ（ランダムな鳥を表示） |
+| GET | `/index.html` | 動作確認用のページ（ランダムな鳥を表示）。`/` でも同じものを返します |
+
+デプロイ後のページは `/` ではなく
+[`/index.html`](https://go-cloudrun-bird-329294726644.asia-northeast1.run.app/index.html)
+で開いてください。`*.run.app` では Google Front End が `/healthz` と同じように
+`/` をコンテナに転送せず、自前の 404 ページを返してしまいます（`/api/...` や
+`/health` は影響を受けません）。ローカル実行では `/` もそのまま使えます。
 
 `{group}` は `owl` や `penguin` のような大まかな分類、`{species}` はその中の種
 （`barn-owl` など）です。Dog API の breed / sub-breed と同じ関係で、大文字小文字は
@@ -116,7 +122,7 @@ $ curl "https://commons.wikimedia.org/w/api.php?action=query&format=json&titles=
 
 ```sh
 go test ./...
-go run .                       # http://localhost:8080
+go run .                       # http://localhost:8080/index.html
 
 docker build -t go-cloudrun-bird .
 docker run --rm -p 8080:8080 go-cloudrun-bird

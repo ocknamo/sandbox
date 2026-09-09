@@ -57,6 +57,11 @@ func New(svc *birds.Service, logger *slog.Logger) http.Handler {
 	mux.HandleFunc("GET /api/bird/{group}/{species}/images/redirect", h.redirect)
 	mux.HandleFunc("GET /api/bird/{group}/{species}/images", h.allImages)
 
+	// The page is served at /index.html as well as at /: Google Front End
+	// answers the bare "/" of a *.run.app service with its own 404 page
+	// without ever forwarding it to the container, the same way it does
+	// for /healthz, so "/" alone would leave the page unreachable.
+	mux.HandleFunc("GET /index.html", h.page)
 	mux.HandleFunc("GET /", h.index)
 
 	return withLogging(logger, withCORS(mux))
@@ -70,11 +75,17 @@ func (h *handlers) health(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 
+// index catches every path the mux has no pattern for, and serves the page for
+// the one path it does own.
 func (h *handlers) index(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
-		writeError(w, http.StatusNotFound, "no such endpoint: "+r.URL.Path)
+		writeError(w, http.StatusNotFound, "no such endpoint: "+r.URL.Path+" (see /index.html)")
 		return
 	}
+	h.page(w, r)
+}
+
+func (h *handlers) page(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "public, max-age=300")
 	_, _ = w.Write(indexHTML)
