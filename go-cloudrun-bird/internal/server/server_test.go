@@ -269,17 +269,34 @@ func TestUpstreamFailureIs502(t *testing.T) {
 	}
 }
 
-func TestIndexPageIsServedAtRoot(t *testing.T) {
+// The page has to answer on /index.html as well as on /, because Google Front
+// End never forwards the bare "/" of a *.run.app service to the container.
+func TestIndexPageIsServedAtRootAndIndexHTML(t *testing.T) {
 	h, _ := newTestHandler(t, &stubFetcher{})
-	rec := get(t, h, "/")
 
-	if rec.Code != http.StatusOK {
-		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+	for _, path := range []string{"/", "/index.html"} {
+		rec := get(t, h, path)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("%s: status = %d, want %d", path, rec.Code, http.StatusOK)
+		}
+		if ct := rec.Header().Get("Content-Type"); !strings.HasPrefix(ct, "text/html") {
+			t.Errorf("%s: Content-Type = %q, want HTML", path, ct)
+		}
+		if !strings.Contains(rec.Body.String(), "/api/birds/image/random") {
+			t.Errorf("%s: landing page does not mention the API", path)
+		}
 	}
-	if ct := rec.Header().Get("Content-Type"); !strings.HasPrefix(ct, "text/html") {
-		t.Errorf("Content-Type = %q, want HTML", ct)
+}
+
+func TestUnknownPathIsNotFound(t *testing.T) {
+	h, _ := newTestHandler(t, &stubFetcher{})
+	rec := get(t, h, "/no/such/thing")
+
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusNotFound)
 	}
-	if !strings.Contains(rec.Body.String(), "/api/birds/image/random") {
-		t.Error("landing page does not mention the API")
+	if body := decode[errorResponse](t, rec); body.Status != "error" {
+		t.Errorf("status field = %q, want %q", body.Status, "error")
 	}
 }
