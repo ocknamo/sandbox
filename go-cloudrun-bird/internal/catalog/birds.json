@@ -1,0 +1,212 @@
+{
+  "groups": [
+    {
+      "slug": "owl",
+      "name_en": "Owl",
+      "name_ja": "フクロウ",
+      "species": [
+        { "slug": "eurasian-eagle-owl", "name_en": "Eurasian eagle-owl", "name_ja": "ワシミミズク", "scientific_name": "Bubo bubo", "commons_category": "Category:Bubo bubo" },
+        { "slug": "barn-owl", "name_en": "Barn owl", "name_ja": "メンフクロウ", "scientific_name": "Tyto alba", "commons_category": "Category:Tyto alba" },
+        { "slug": "snowy-owl", "name_en": "Snowy owl", "name_ja": "シロフクロウ", "scientific_name": "Bubo scandiacus", "commons_category": "Category:Bubo scandiacus" },
+        { "slug": "ural-owl", "name_en": "Ural owl", "name_ja": "フクロウ", "scientific_name": "Strix uralensis", "commons_category": "Category:Strix uralensis" }
+      ]
+    },
+    {
+      "slug": "falcon",
+      "name_en": "Falcon",
+      "name_ja": "ハヤブサ",
+      "species": [
+        { "slug": "peregrine-falcon", "name_en": "Peregrine falcon", "name_ja": "ハヤブサ", "scientific_name": "Falco peregrinus", "commons_category": "Category:Falco peregrinus" },
+        { "slug": "common-kestrel", "name_en": "Common kestrel", "name_ja": "チョウゲンボウ", "scientific_name": "Falco tinnunculus", "commons_category": "Category:Falco tinnunculus" }
+      ]
+    },
+    {
+      "slug": "eagle",
+      "name_en": "Eagle",
+      "name_ja": "ワシ",
+      "species": [
+        { "slug": "golden-eagle", "name_en": "Golden eagle", "name_ja": "イヌワシ", "scientific_name": "Aquila chrysaetos", "commons_category": "Category:Aquila chrysaetos" },
+        { "slug": "bald-eagle", "name_en": "Bald eagle", "name_ja": "ハクトウワシ", "scientific_name": "Haliaeetus leucocephalus", "commons_category": "Category:Haliaeetus leucocephalus" },
+        { "slug": "stellers-sea-eagle", "name_en": "Steller's sea eagle", "name_ja": "オオワシ", "scientific_name": "Haliaeetus pelagicus", "commons_category": "Category:Haliaeetus pelagicus" }
+      ]
+    },
+    {
+      "slug": "penguin",
+      "name_en": "Penguin",
+      "name_ja": "ペンギン",
+      "species": [
+        { "slug": "emperor-penguin", "name_en": "Emperor penguin", "name_ja": "コウテイペンギン", "scientific_name": "Aptenodytes forsteri", "commons_category": "Category:Aptenodytes forsteri" },
+        { "slug": "king-penguin", "name_en": "King penguin", "name_ja": "オウサマペンギン", "scientific_name": "Aptenodytes patagonicus", "commons_category": "Category:Aptenodytes patagonicus" },
+        { "slug": "adelie-penguin", "name_en": "Adélie penguin", "name_ja": "アデリーペンギン", "scientific_name": "Pygoscelis adeliae", "commons_category": "Category:Pygoscelis adeliae" },
+        { "slug": "gentoo-penguin", "name_en": "Gentoo penguin", "name_ja": "ジェンツーペンギン", "scientific_name": "Pygoscelis papua", "commons_category": "Category:Pygoscelis papua" }
+      ]
+    },
+    {
+      "slug": "crane",
+      "name_en": "Crane",
+      "name_ja": "ツル",
+      "species": [
+        { "slug": "red-crowned-crane", "name_en": "Red-crowned crane", "name_ja": "タンチョウ", "scientific_name": "Grus japonensis", "commons_category": "Category:Grus japonensis" },
+        { "slug": "sandhill-crane", "name_en": "Sandhill crane", "name_ja": "カナダヅル", "scientific_name": "Antigone canadensis", "commons_category": "Category:Antigone canadensis" }
+      ]
+    },
+    {
+      "slug": "heron",
+      "name_en": "Heron",
+      "name_ja": "サギ",
+      "species": [
+        { "slug": "grey-heron", "name_en": "Grey heron", "name_ja": "アオサギ", "scientific_name": "Ardea cinerea", "commons_category": "Category:Ardea cinerea" },
+        { "slug": "great-egret", "name_en": "Great egret", "name_ja": "ダイサギ", "scientific_name": "Ardea alba", "commons_category": "Category:Ardea alba" }
+      ]
+    },
+    {
+      "slug": "kingfisher",
+      "name_en": "Kingfisher",
+      "name_ja": "カワセミ",
+      "species": [
+        { "slug": "common-kingfisher", "name_en": "Common kingfisher", "name_ja": "カワセミ", "scientific_name": "Alcedo atthis", "commons_category": "Category:Alcedo atthis" },
+        { "slug": "pied-kingfisher", "name_en": "Pied kingfisher", "name_ja": "ヒメヤマセミ", "scientific_name": "Ceryle rudis", "commons_category": "Category:Ceryle rudis" }
+      ]
+    },
+    {
+      "slug": "parrot",
+      "name_en": "Parrot",
+      "name_ja": "インコ・オウム",
+      "species": [
+        { "slug": "scarlet-macaw", "name_en": "Scarlet macaw", "name_ja": "コンゴウインコ", "scientific_name": "Ara macao", "commons_category": "Category:Ara macao" },
+        { "slug": "budgerigar", "name_en": "Budgerigar", "name_ja": "セキセイインコ", "scientific_name": "Melopsittacus undulatus", "commons_category": "Category:Melopsittacus undulatus" },
+        { "slug": "cockatiel", "name_en": "Cockatiel", "name_ja": "オカメインコ", "scientific_name": "Nymphicus hollandicus", "commons_category": "Category:Nymphicus hollandicus" }
+      ]
+    },
+    {
+      "slug": "swan",
+      "name_en": "Swan",
+      "name_ja": "ハクチョウ",
+      "species": [
+        { "slug": "mute-swan", "name_en": "Mute swan", "name_ja": "コブハクチョウ", "scientific_name": "Cygnus olor", "commons_category": "Category:Cygnus olor" },
+        { "slug": "whooper-swan", "name_en": "Whooper swan", "name_ja": "オオハクチョウ", "scientific_name": "Cygnus cygnus", "commons_category": "Category:Cygnus cygnus" }
+      ]
+    },
+    {
+      "slug": "duck",
+      "name_en": "Duck",
+      "name_ja": "カモ",
+      "species": [
+        { "slug": "mallard", "name_en": "Mallard", "name_ja": "マガモ", "scientific_name": "Anas platyrhynchos", "commons_category": "Category:Anas platyrhynchos" },
+        { "slug": "mandarin-duck", "name_en": "Mandarin duck", "name_ja": "オシドリ", "scientific_name": "Aix galericulata", "commons_category": "Category:Aix galericulata" }
+      ]
+    },
+    {
+      "slug": "sparrow",
+      "name_en": "Sparrow",
+      "name_ja": "スズメ",
+      "species": [
+        { "slug": "house-sparrow", "name_en": "House sparrow", "name_ja": "イエスズメ", "scientific_name": "Passer domesticus", "commons_category": "Category:Passer domesticus" },
+        { "slug": "eurasian-tree-sparrow", "name_en": "Eurasian tree sparrow", "name_ja": "スズメ", "scientific_name": "Passer montanus", "commons_category": "Category:Passer montanus" }
+      ]
+    },
+    {
+      "slug": "tit",
+      "name_en": "Tit",
+      "name_ja": "シジュウカラ",
+      "species": [
+        { "slug": "great-tit", "name_en": "Great tit", "name_ja": "ヨーロッパシジュウカラ", "scientific_name": "Parus major", "commons_category": "Category:Parus major" },
+        { "slug": "blue-tit", "name_en": "Eurasian blue tit", "name_ja": "アオガラ", "scientific_name": "Cyanistes caeruleus", "commons_category": "Category:Cyanistes caeruleus" },
+        { "slug": "japanese-tit", "name_en": "Japanese tit", "name_ja": "シジュウカラ", "scientific_name": "Parus minor", "commons_category": "Category:Parus minor" }
+      ]
+    },
+    {
+      "slug": "crow",
+      "name_en": "Crow",
+      "name_ja": "カラス",
+      "species": [
+        { "slug": "carrion-crow", "name_en": "Carrion crow", "name_ja": "ハシボソガラス", "scientific_name": "Corvus corone", "commons_category": "Category:Corvus corone" },
+        { "slug": "common-raven", "name_en": "Common raven", "name_ja": "ワタリガラス", "scientific_name": "Corvus corax", "commons_category": "Category:Corvus corax" },
+        { "slug": "eurasian-jay", "name_en": "Eurasian jay", "name_ja": "カケス", "scientific_name": "Garrulus glandarius", "commons_category": "Category:Garrulus glandarius" }
+      ]
+    },
+    {
+      "slug": "woodpecker",
+      "name_en": "Woodpecker",
+      "name_ja": "キツツキ",
+      "species": [
+        { "slug": "great-spotted-woodpecker", "name_en": "Great spotted woodpecker", "name_ja": "アカゲラ", "scientific_name": "Dendrocopos major", "commons_category": "Category:Dendrocopos major" },
+        { "slug": "european-green-woodpecker", "name_en": "European green woodpecker", "name_ja": "ヨーロッパアオゲラ", "scientific_name": "Picus viridis", "commons_category": "Category:Picus viridis" }
+      ]
+    },
+    {
+      "slug": "hummingbird",
+      "name_en": "Hummingbird",
+      "name_ja": "ハチドリ",
+      "species": [
+        { "slug": "ruby-throated-hummingbird", "name_en": "Ruby-throated hummingbird", "name_ja": "ノドアカハチドリ", "scientific_name": "Archilochus colubris", "commons_category": "Category:Archilochus colubris" },
+        { "slug": "annas-hummingbird", "name_en": "Anna's hummingbird", "name_ja": "アンナハチドリ", "scientific_name": "Calypte anna", "commons_category": "Category:Calypte anna" }
+      ]
+    },
+    {
+      "slug": "flamingo",
+      "name_en": "Flamingo",
+      "name_ja": "フラミンゴ",
+      "species": [
+        { "slug": "greater-flamingo", "name_en": "Greater flamingo", "name_ja": "オオフラミンゴ", "scientific_name": "Phoenicopterus roseus", "commons_category": "Category:Phoenicopterus roseus" },
+        { "slug": "american-flamingo", "name_en": "American flamingo", "name_ja": "ベニイロフラミンゴ", "scientific_name": "Phoenicopterus ruber", "commons_category": "Category:Phoenicopterus ruber" }
+      ]
+    },
+    {
+      "slug": "peafowl",
+      "name_en": "Peafowl",
+      "name_ja": "クジャク",
+      "species": [
+        { "slug": "indian-peafowl", "name_en": "Indian peafowl", "name_ja": "インドクジャク", "scientific_name": "Pavo cristatus", "commons_category": "Category:Pavo cristatus" }
+      ]
+    },
+    {
+      "slug": "pigeon",
+      "name_en": "Pigeon",
+      "name_ja": "ハト",
+      "species": [
+        { "slug": "rock-dove", "name_en": "Rock dove", "name_ja": "カワラバト", "scientific_name": "Columba livia", "commons_category": "Category:Columba livia" }
+      ]
+    },
+    {
+      "slug": "swallow",
+      "name_en": "Swallow",
+      "name_ja": "ツバメ",
+      "species": [
+        { "slug": "barn-swallow", "name_en": "Barn swallow", "name_ja": "ツバメ", "scientific_name": "Hirundo rustica", "commons_category": "Category:Hirundo rustica" }
+      ]
+    },
+    {
+      "slug": "robin",
+      "name_en": "Robin",
+      "name_ja": "コマドリ",
+      "species": [
+        { "slug": "european-robin", "name_en": "European robin", "name_ja": "ヨーロッパコマドリ", "scientific_name": "Erithacus rubecula", "commons_category": "Category:Erithacus rubecula" }
+      ]
+    },
+    {
+      "slug": "toucan",
+      "name_en": "Toucan",
+      "name_ja": "オオハシ",
+      "species": [
+        { "slug": "toco-toucan", "name_en": "Toco toucan", "name_ja": "オニオオハシ", "scientific_name": "Ramphastos toco", "commons_category": "Category:Ramphastos toco" }
+      ]
+    },
+    {
+      "slug": "hornbill",
+      "name_en": "Hornbill",
+      "name_ja": "サイチョウ",
+      "species": [
+        { "slug": "great-hornbill", "name_en": "Great hornbill", "name_ja": "オオサイチョウ", "scientific_name": "Buceros bicornis", "commons_category": "Category:Buceros bicornis" }
+      ]
+    },
+    {
+      "slug": "stork",
+      "name_en": "Stork",
+      "name_ja": "コウノトリ",
+      "species": [
+        { "slug": "white-stork", "name_en": "White stork", "name_ja": "シュバシコウ", "scientific_name": "Ciconia ciconia", "commons_category": "Category:Ciconia ciconia" }
+      ]
+    }
+  ]
+}

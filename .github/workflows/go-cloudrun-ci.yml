@@ -5,12 +5,14 @@ on:
     paths:
       - 'go-cloudrun-app/**'
       - 'go-cloudrun-echo/**'
+      - 'go-cloudrun-bird/**'
       - '.github/workflows/go-cloudrun-ci.yml'
   push:
     branches: [main]
     paths:
       - 'go-cloudrun-app/**'
       - 'go-cloudrun-echo/**'
+      - 'go-cloudrun-bird/**'
       - '.github/workflows/go-cloudrun-ci.yml'
 
 jobs:
@@ -21,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        service: [go-cloudrun-app, go-cloudrun-echo]
+        service: [go-cloudrun-app, go-cloudrun-echo, go-cloudrun-bird]
     defaults:
       run:
         working-directory: ${{ matrix.service }}

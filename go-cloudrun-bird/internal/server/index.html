@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>bird API — ランダムな鳥の画像</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #fbfaf7;
+    --fg: #1c1b19;
+    --muted: #6b6862;
+    --line: #e2ded5;
+    --card: #ffffff;
+    --accent: #2f6f4f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16181a;
+      --fg: #ececea;
+      --muted: #9b9a96;
+      --line: #2c2f33;
+      --card: #1e2124;
+      --accent: #7fc7a0;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 15px/1.7 system-ui, -apple-system, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+  }
+  main { max-width: 780px; margin: 0 auto; padding: 40px 20px 64px; }
+  h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .lede { color: var(--muted); margin: 0 0 28px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .frame {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 320px; background: var(--bg);
+  }
+  .frame img { display: block; width: 100%; height: auto; max-height: 62vh; object-fit: contain; }
+  .meta { padding: 16px 18px; border-top: 1px solid var(--line); }
+  .name { font-weight: 600; }
+  .sci { font-style: italic; color: var(--muted); }
+  .credit { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .credit a { color: inherit; }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0 34px; }
+  button, select {
+    font: inherit; padding: 8px 16px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--card); color: var(--fg);
+  }
+  button { cursor: pointer; border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  button:disabled { opacity: 0.5; cursor: progress; }
+  h2 { font-size: 15px; margin: 28px 0 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; }
+  footer { margin-top: 32px; color: var(--muted); font-size: 13px; }
+  footer a { color: inherit; }
+</style>
+</head>
+<body>
+<main>
+  <h1>bird API 🐦</h1>
+  <p class="lede">リクエストするとランダムに鳥の画像を返す API です。画像は Wikimedia Commons から取得しています。</p>
+
+  <div class="card">
+    <div class="frame"><img id="photo" alt="" hidden></div>
+    <div class="meta">
+      <div id="name" class="name">読み込み中…</div>
+      <div id="credit" class="credit"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <select id="group"><option value="">すべての鳥</option></select>
+    <button id="next" type="button">別の鳥を見る</button>
+  </div>
+
+  <h2>エンドポイント</h2>
+  <table>
+    <tr><th>パス</th><th>内容</th></tr>
+    <tr><td><code>/api/birds/image/random</code></td><td>ランダムな 1 枚</td></tr>
+    <tr><td><code>/api/birds/image/random/{count}</code></td><td>ランダムに最大 50 枚</td></tr>
+    <tr><td><code>/api/birds/image/redirect</code></td><td>画像へ 302 リダイレクト（<code>&lt;img src&gt;</code> 用）</td></tr>
+    <tr><td><code>/api/birds/list/all</code></td><td>グループと種の一覧</td></tr>
+    <tr><td><code>/api/birds/catalog</code></td><td>和名・英名・学名つきの一覧</td></tr>
+    <tr><td><code>/api/bird/{group}/images/random</code></td><td>そのグループからランダムに 1 枚</td></tr>
+    <tr><td><code>/api/bird/{group}/{species}/images/random</code></td><td>その種からランダムに 1 枚</td></tr>
+    <tr><td><code>/api/bird/{group}/{species}/images</code></td><td>その種の画像をすべて</td></tr>
+  </table>
+
+  <footer>
+    画像の著作権は各撮影者に帰属します。ライセンスと作者はレスポンスの <code>attribution</code> に含まれます。
+    出典: <a href="https://commons.wikimedia.org/">Wikimedia Commons</a>
+  </footer>
+</main>
+
+<script>
+const photo = document.getElementById('photo');
+const nameEl = document.getElementById('name');
+const creditEl = document.getElementById('credit');
+const groupEl = document.getElementById('group');
+const nextEl = document.getElementById('next');
+
+function endpoint() {
+  const g = groupEl.value;
+  return g ? `/api/bird/${g}/images/random` : '/api/birds/image/random';
+}
+
+async function load() {
+  nextEl.disabled = true;
+  nameEl.textContent = '読み込み中…';
+  creditEl.textContent = '';
+  try {
+    const res = await fetch(endpoint(), { cache: 'no-store' });
+    const data = await res.json();
+    if (data.status !== 'success') throw new Error(data.message || '取得に失敗しました');
+    photo.src = data.message;
+    photo.alt = `${data.bird.name_ja} (${data.bird.scientific_name})`;
+    photo.hidden = false;
+    nameEl.innerHTML = '';
+    nameEl.append(`${data.bird.name_ja} / ${data.bird.name_en} `);
+    const sci = document.createElement('span');
+    sci.className = 'sci';
+    sci.textContent = data.bird.scientific_name;
+    nameEl.append(sci);
+    const a = data.attribution;
+    creditEl.innerHTML = '';
+    creditEl.append(`${a.artist || '作者不明'} — ${a.license || 'ライセンス情報なし'} · `);
+    const link = document.createElement('a');
+    link.href = a.source_page;
+    link.textContent = 'Commons のファイルページ';
+    link.rel = 'noopener';
+    creditEl.append(link);
+  } catch (err) {
+    photo.hidden = true;
+    nameEl.textContent = 'エラー';
+    creditEl.textContent = String(err.message || err);
+  } finally {
+    nextEl.disabled = false;
+  }
+}
+
+async function loadGroups() {
+  try {
+    const res = await fetch('/api/birds/catalog');
+    const data = await res.json();
+    for (const g of data.message) {
+      const opt = document.createElement('option');
+      opt.value = g.slug;
+      opt.textContent = `${g.name_ja} (${g.name_en})`;
+      groupEl.append(opt);
+    }
+  } catch { /* グループ選択がなくてもランダム表示は動く */ }
+}
+
+nextEl.addEventListener('click', load);
+groupEl.addEventListener('change', load);
+loadGroups();
+load();
+</script>
+</body>
+</html>
