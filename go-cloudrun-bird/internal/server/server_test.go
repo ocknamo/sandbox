@@ -56,7 +56,7 @@ func newTestHandler(t *testing.T, fetcher birds.Fetcher) (http.Handler, *catalog
 		t.Fatalf("load catalog: %v", err)
 	}
 	logger := slog.New(slog.NewJSONHandler(io.Discard, nil))
-	return New(birds.New(cat, fetcher, time.Hour, logger), logger), cat
+	return New(birds.New(cat, fetcher, time.Hour, logger), testFrontendURL, logger), cat
 }
 
 func get(t *testing.T, h http.Handler, path string) *httptest.ResponseRecorder {
@@ -269,25 +269,41 @@ func TestUpstreamFailureIs502(t *testing.T) {
 	}
 }
 
-// The page has to answer on /index.html as well as on /, because Google Front
-// End never forwards the bare "/" of a *.run.app service to the container.
-func TestIndexPageIsServedAtRootAndIndexHTML(t *testing.T) {
+// The front end lives on GitHub Pages, so both page paths forward there. Both
+// are covered because Google Front End never forwards the bare "/" of a
+// *.run.app service to the container, which leaves /index.html carrying the
+// redirect on a deployment.
+func TestPagePathsRedirectToTheFrontEnd(t *testing.T) {
 	h, _ := newTestHandler(t, &stubFetcher{})
 
 	for _, path := range []string{"/", "/index.html"} {
 		rec := get(t, h, path)
 
-		if rec.Code != http.StatusOK {
-			t.Fatalf("%s: status = %d, want %d", path, rec.Code, http.StatusOK)
+		if rec.Code != http.StatusFound {
+			t.Fatalf("%s: status = %d, want %d", path, rec.Code, http.StatusFound)
 		}
-		if ct := rec.Header().Get("Content-Type"); !strings.HasPrefix(ct, "text/html") {
-			t.Errorf("%s: Content-Type = %q, want HTML", path, ct)
-		}
-		if !strings.Contains(rec.Body.String(), "/api/birds/image/random") {
-			t.Errorf("%s: landing page does not mention the API", path)
+		if loc := rec.Header().Get("Location"); loc != testFrontendURL {
+			t.Errorf("%s: Location = %q, want %q", path, loc, testFrontendURL)
 		}
 	}
 }
+
+// Without a front end to forward to, the page paths have nothing to serve.
+func TestPagePathIs404WithoutAFrontEnd(t *testing.T) {
+	cat, err := catalog.Load()
+	if err != nil {
+		t.Fatalf("load catalog: %v", err)
+	}
+	logger := slog.New(slog.NewJSONHandler(io.Discard, nil))
+	h := New(birds.New(cat, &stubFetcher{}, time.Hour, logger), "", logger)
+
+	rec := get(t, h, "/index.html")
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusNotFound)
+	}
+}
+
+const testFrontendURL = "https://example.test/bird/"
 
 func TestUnknownPathIsNotFound(t *testing.T) {
 	h, _ := newTestHandler(t, &stubFetcher{})

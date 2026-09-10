@@ -90,13 +90,18 @@ GCP 側の作業は不要です。デプロイ用サービスアカウントは�
 
 ## GitHub Pages
 
-`go-cloudrun-bird` のフロントエンド（[`go-cloudrun-bird/web/index.html`](go-cloudrun-bird/web/index.html)）
-は https://ocknamo.github.io/sandbox/ にも置いてあります。ビルド不要の 1 ファイルで、
-Cloud Run 上の API を直接呼びます。公開は
-`.github/workflows/deploy-bird-pages.yml` が行い、認証は Cloud Run のデプロイと
-同じ OIDC です。有効化の手順は
-[`go-cloudrun-bird/README.md`](go-cloudrun-bird/README.md#github-pages-を有効にする)
-にあります。
+https://ocknamo.github.io/sandbox/ — `go-cloudrun-bird` のフロントエンドです。
+ビルド不要の 1 ファイル（[`docs/index.html`](docs/index.html)）で、Cloud Run 上の
+API を直接呼びます。
+
+公開しているのは [`docs/`](docs) をそのまま配信する GitHub Pages で、ワークフローも
+ビルドもありません。**Settings → Pages** で Source を **Deploy from a branch**、
+**main** の **/docs** にすれば、以後は `docs/` への push がそのまま公開になります。
+
+ファイルがサービスのディレクトリではなくリポジトリ直下にあるのは、Pages の
+ブランチ配信が公開元として `/` か `/docs` しか選べないためです。詳細は
+[`go-cloudrun-bird/README.md`](go-cloudrun-bird/README.md#フロントエンド) を
+参照してください。
 
 ## その他
 
