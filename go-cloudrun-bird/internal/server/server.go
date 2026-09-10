@@ -8,7 +8,6 @@ package server
 
 import (
 	"context"
-	_ "embed"
 	"encoding/json"
 	"errors"
 	"log/slog"
@@ -20,9 +19,6 @@ import (
 	"github.com/ocknamo/sandbox/go-cloudrun-bird/internal/catalog"
 )
 
-//go:embed index.html
-var indexHTML []byte
-
 // maxImages caps a multi-image request, as the Dog API does.
 const maxImages = 50
 
@@ -32,9 +28,11 @@ const maxImages = 50
 // retry once after a rate-limit response.
 const upstreamTimeout = 20 * time.Second
 
-// New returns the service handler.
-func New(svc *birds.Service, logger *slog.Logger) http.Handler {
-	h := &handlers{svc: svc}
+// New returns the service handler. frontendURL is where the browser front end
+// is published; the page paths redirect there instead of serving a page of
+// their own.
+func New(svc *birds.Service, frontendURL string, logger *slog.Logger) http.Handler {
+	h := &handlers{svc: svc, frontendURL: frontendURL}
 	mux := http.NewServeMux()
 
 	// Not /healthz: Google Front End intercepts that exact path on *.run.app
@@ -57,10 +55,11 @@ func New(svc *birds.Service, logger *slog.Logger) http.Handler {
 	mux.HandleFunc("GET /api/bird/{group}/{species}/images/redirect", h.redirect)
 	mux.HandleFunc("GET /api/bird/{group}/{species}/images", h.allImages)
 
-	// The page is served at /index.html as well as at /: Google Front End
-	// answers the bare "/" of a *.run.app service with its own 404 page
-	// without ever forwarding it to the container, the same way it does
-	// for /healthz, so "/" alone would leave the page unreachable.
+	// The front end is published on GitHub Pages, not served from here, so
+	// these two paths only forward. Both are registered because Google Front
+	// End answers the bare "/" of a *.run.app service with its own 404 page
+	// without ever forwarding it to the container, the same way it does for
+	// /healthz — on a deployment only /index.html actually arrives.
 	mux.HandleFunc("GET /index.html", h.page)
 	mux.HandleFunc("GET /", h.index)
 
@@ -68,27 +67,36 @@ func New(svc *birds.Service, logger *slog.Logger) http.Handler {
 }
 
 type handlers struct {
-	svc *birds.Service
+	svc         *birds.Service
+	frontendURL string
 }
 
 func (h *handlers) health(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 
-// index catches every path the mux has no pattern for, and serves the page for
-// the one path it does own.
+// index catches every path the mux has no pattern for, and forwards the one
+// path it does own.
 func (h *handlers) index(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
-		writeError(w, http.StatusNotFound, "no such endpoint: "+r.URL.Path+" (see /index.html)")
+		writeError(w, http.StatusNotFound, "no such endpoint: "+r.URL.Path+" (see "+h.frontendURL+")")
 		return
 	}
 	h.page(w, r)
 }
 
+// page sends the caller to the published front end. The page used to be
+// embedded in this binary and served from here; it now lives on GitHub Pages,
+// which serves it whether or not this service is awake. The redirect keeps
+// existing links to /index.html working, and is a temporary one so the page
+// can move again without a cached 301 standing in the way.
 func (h *handlers) page(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if h.frontendURL == "" {
+		writeError(w, http.StatusNotFound, "no front end configured (see BIRD_FRONTEND_URL)")
+		return
+	}
 	w.Header().Set("Cache-Control", "public, max-age=300")
-	_, _ = w.Write(indexHTML)
+	http.Redirect(w, r, h.frontendURL, http.StatusFound)
 }
 
 // randomImage answers with a single picture, Dog API style: "message" is the

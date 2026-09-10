@@ -24,13 +24,10 @@
 | GET | `/api/bird/{group}/images/redirect` | そのグループからランダムな画像へリダイレクト |
 | GET | `/api/bird/{group}/images` | そのグループの画像をすべて |
 | GET | `/api/bird/{group}/{species}/images/...` | 上記と同じものを種単位で |
-| GET | `/index.html` | 動作確認用のページ（ランダムな鳥を表示）。`/` でも同じものを返します |
+| GET | `/index.html` | フロントエンド（GitHub Pages）へ 302 リダイレクト。`/` も同じ |
 
-デプロイ後のページは `/` ではなく
-[`/index.html`](https://go-cloudrun-bird-329294726644.asia-northeast1.run.app/index.html)
-で開いてください。`*.run.app` では Google Front End が `/healthz` と同じように
-`/` をコンテナに転送せず、自前の 404 ページを返してしまいます（`/api/...` や
-`/health` は影響を受けません）。ローカル実行では `/` もそのまま使えます。
+動作確認用のページは **https://ocknamo.github.io/sandbox/** にあります。
+`/index.html` と `/` はそこへリダイレクトします。
 
 `{group}` は `owl` や `penguin` のような大まかな分類、`{species}` はその中の種
 （`barn-owl` など）です。Dog API の breed / sub-breed と同じ関係で、大文字小文字は
@@ -76,6 +73,16 @@ $ curl "$URL/api/bird/velociraptor/images/random"
 <img src="https://.../api/bird/owl/images/redirect" alt="ランダムなフクロウ">
 ```
 
+## フロントエンド
+
+[`docs/index.html`](../docs/index.html) の 1 ファイルのみ（ビルド不要）。
+GitHub Pages だけが配信し、この API 自体はページを持ちません
+（`/index.html` は Pages へリダイレクトします）。
+
+ページは `docs/index.html` 内 `DEPLOYED_API`（Cloud Run の URL）を CORS 越しに
+呼びます。`?api=` で向き先を差し替え可能（例:
+`?api=http://localhost:8080` でローカルの `go run .` に向ける）。
+
 ## ライセンスとクレジット
 
 Commons の画像は自由に使えますが、多くは CC BY / CC BY-SA でクレジットの表示が
@@ -108,6 +115,7 @@ Commons の画像は自由に使えますが、多くは CC BY / CC BY-SA でク
 | `BIRD_PREWARM_COUNT` | `6` | 起動時に先読みする種の数（`0` で無効） |
 | `BIRD_USER_AGENT` | `bird-api/1.0 (+https://github.com/ocknamo/sandbox)` | Commons へ送る User-Agent |
 | `BIRD_COMMONS_ENDPOINT` | Commons の `api.php` | 差し替え用（テストやミラー） |
+| `BIRD_FRONTEND_URL` | `https://ocknamo.github.io/sandbox/` | `/index.html` のリダイレクト先 |
 
 ## 鳥を増やすには
 
@@ -122,7 +130,7 @@ $ curl "https://commons.wikimedia.org/w/api.php?action=query&format=json&titles=
 
 ```sh
 go test ./...
-go run .                       # http://localhost:8080/index.html
+go run .                       # http://localhost:8080/api/birds/image/random
 
 docker build -t go-cloudrun-bird .
 docker run --rm -p 8080:8080 go-cloudrun-bird
@@ -133,6 +141,9 @@ docker run --rm -p 8080:8080 go-cloudrun-bird
 
 ## デプロイ
 
-`.github/workflows/deploy-go-cloudrun-bird.yml` が共通の `deploy-service.yml` を
-呼び出します。既存のプロジェクト・Workload Identity・サービスアカウントをそのまま
-使うため、GCP 側の追加作業はありません。
+API は `.github/workflows/deploy-go-cloudrun-bird.yml` が共通の `deploy-service.yml`
+を呼び出します。既存のプロジェクト・Workload Identity・サービスアカウントを
+そのまま使うため、GCP 側の追加作業はありません。
+
+フロントエンドにデプロイはありません。GitHub Pages が `docs/` をそのまま配信する
+ため、`docs/index.html` への push がそのまま公開になります。

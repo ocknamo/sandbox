@@ -88,6 +88,12 @@ GCP 側の作業は不要です。デプロイ用サービスアカウントは�
 [`go-cloudrun-app/scripts/setup-gcp.sh`](go-cloudrun-app/scripts/setup-gcp.sh)
 にあります。
 
+## GitHub Pages
+
+https://ocknamo.github.io/sandbox/ — `go-cloudrun-bird` のフロントエンド
+（[`docs/index.html`](docs/index.html)）。詳細は
+[`go-cloudrun-bird/README.md`](go-cloudrun-bird/README.md#フロントエンド)。
+
 ## その他
 
 - [`svelte-voice-api`](svelte-voice-api) — Svelte + Web Speech API の実験。

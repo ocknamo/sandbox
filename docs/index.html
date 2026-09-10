@@ -100,11 +100,25 @@
   <footer>
     画像の著作権は各撮影者に帰属します。ライセンスと作者はレスポンスの <code>attribution</code> に含まれます。
     出典: <a href="https://commons.wikimedia.org/">Wikimedia Commons</a>
+    <div id="api-host"></div>
   </footer>
 </main>
 
 <script>
+// This page is a static file — GitHub Pages serves it, the API does not — so it
+// always calls the deployed service across origins. That works because the API
+// answers every origin with Access-Control-Allow-Origin: *.
+// ?api=http://localhost:8080 points it at a local `go run .` instead.
+const DEPLOYED_API = 'https://go-cloudrun-bird-329294726644.asia-northeast1.run.app';
+const API = (new URLSearchParams(location.search).get('api') || DEPLOYED_API).replace(/\/+$/, '');
+
 const photo = document.getElementById('photo');
+photo.addEventListener('error', () => {
+  // The URL points at upload.wikimedia.org, a host this page does not control,
+  // so say so rather than leaving an empty frame.
+  photo.hidden = true;
+  creditEl.textContent = '画像を読み込めませんでした。別の鳥を試してください。';
+});
 const nameEl = document.getElementById('name');
 const creditEl = document.getElementById('credit');
 const groupEl = document.getElementById('group');
@@ -112,7 +126,7 @@ const nextEl = document.getElementById('next');
 
 function endpoint() {
   const g = groupEl.value;
-  return g ? `/api/bird/${g}/images/random` : '/api/birds/image/random';
+  return API + (g ? `/api/bird/${g}/images/random` : '/api/birds/image/random');
 }
 
 async function load() {
@@ -151,7 +165,7 @@ async function load() {
 
 async function loadGroups() {
   try {
-    const res = await fetch('/api/birds/catalog');
+    const res = await fetch(`${API}/api/birds/catalog`);
     const data = await res.json();
     for (const g of data.message) {
       const opt = document.createElement('option');
@@ -160,6 +174,16 @@ async function loadGroups() {
       groupEl.append(opt);
     }
   } catch { /* グループ選択がなくてもランダム表示は動く */ }
+}
+
+// Name the host being called, so a page pointed at the wrong deployment shows
+// it instead of just failing to load a picture.
+{
+  const link = document.createElement('a');
+  link.href = API + '/health';
+  link.textContent = new URL(API).host;
+  link.rel = 'noopener';
+  document.getElementById('api-host').append('API: ', link);
 }
 
 nextEl.addEventListener('click', load);

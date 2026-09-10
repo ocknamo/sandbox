@@ -40,6 +40,14 @@ func main() {
 
 	svc := birds.New(cat, client, envDuration("BIRD_CACHE_TTL", birds.DefaultTTL, logger), logger)
 
+	// The browser front end is published on GitHub Pages, straight out of the
+	// repository's docs/ directory, so it stays up whether or not this service
+	// is. This binary only points at it.
+	frontend := os.Getenv("BIRD_FRONTEND_URL")
+	if frontend == "" {
+		frontend = defaultFrontendURL
+	}
+
 	// Cloud Run injects PORT and requires the container to listen on it.
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -48,7 +56,7 @@ func main() {
 
 	srv := &http.Server{
 		Addr:              net.JoinHostPort("", port),
-		Handler:           server.New(svc, logger),
+		Handler:           server.New(svc, frontend, logger),
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 
@@ -79,6 +87,9 @@ func main() {
 		os.Exit(1)
 	}
 }
+
+// defaultFrontendURL is where GitHub Pages publishes the front end.
+const defaultFrontendURL = "https://ocknamo.github.io/sandbox/"
 
 func envDuration(key string, fallback time.Duration, logger *slog.Logger) time.Duration {
 	raw := os.Getenv(key)
