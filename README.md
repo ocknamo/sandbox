@@ -91,11 +91,7 @@ GCP 側の作業は不要です。デプロイ用サービスアカウントは�
 ## GitHub Pages
 
 https://ocknamo.github.io/sandbox/ — `go-cloudrun-bird` のフロントエンド
-（[`docs/index.html`](docs/index.html)）。**Settings → Pages** を
-**Deploy from a branch / main / /docs** にすれば push だけで公開されます。
-
-`docs/` 直下に置いているのは、Pages のブランチ配信先が `/` か `/docs` しか
-選べないためです。詳細は
+（[`docs/index.html`](docs/index.html)）。詳細は
 [`go-cloudrun-bird/README.md`](go-cloudrun-bird/README.md#フロントエンド)。
 
 ## その他

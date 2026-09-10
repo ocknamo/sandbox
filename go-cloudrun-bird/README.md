@@ -26,9 +26,8 @@
 | GET | `/api/bird/{group}/{species}/images/...` | 上記と同じものを種単位で |
 | GET | `/index.html` | フロントエンド（GitHub Pages）へ 302 リダイレクト。`/` も同じ |
 
-動作確認用のページは **https://ocknamo.github.io/sandbox/** にあります（この API が
-止まっていても開けます）。`/index.html` は互換のために残したリダイレクトで、
-`*.run.app` では Google Front End が `/` をコンテナに転送しないため必要です。
+動作確認用のページは **https://ocknamo.github.io/sandbox/** にあります。
+`/index.html` と `/` はそこへリダイレクトします。
 
 `{group}` は `owl` や `penguin` のような大まかな分類、`{species}` はその中の種
 （`barn-owl` など）です。Dog API の breed / sub-breed と同じ関係で、大文字小文字は
@@ -78,18 +77,11 @@ $ curl "$URL/api/bird/velociraptor/images/random"
 
 [`docs/index.html`](../docs/index.html) の 1 ファイルのみ（ビルド不要）。
 GitHub Pages だけが配信し、この API 自体はページを持ちません
-（`/index.html` は Pages への 302 リダイレクト）。
-
-`docs/` 直下に置いているのは、Pages のブランチ配信先が `/` か `/docs` しか
-選べないためです。`go-cloudrun-bird/` の外なので、ページの変更で Cloud Run の
-デプロイは走りません。
+（`/index.html` は Pages へリダイレクトします）。
 
 ページは `docs/index.html` 内 `DEPLOYED_API`（Cloud Run の URL）を CORS 越しに
 呼びます。`?api=` で向き先を差し替え可能（例:
 `?api=http://localhost:8080` でローカルの `go run .` に向ける）。
-
-**有効化**: **Settings → Pages** を **Deploy from a branch / main / /docs** に
-設定（最初の一度だけ）。以後は `docs/` への push がそのまま公開されます。
 
 ## ライセンスとクレジット
 
