@@ -26,13 +26,9 @@
 | GET | `/api/bird/{group}/{species}/images/...` | 上記と同じものを種単位で |
 | GET | `/index.html` | フロントエンド（GitHub Pages）へ 302 リダイレクト。`/` も同じ |
 
-動作確認用のページは **https://ocknamo.github.io/sandbox/** にあります。この API が
-動いているかどうかに関係なく開けます。
-
-`/index.html` は互換のために残してあるリダイレクトです。`*.run.app` では
-Google Front End が `/healthz` と同じように `/` をコンテナに転送せず自前の 404 を
-返すため、デプロイ後に効くのは `/index.html` の方だけになります（`/api/...` や
-`/health` は影響を受けません）。
+動作確認用のページは **https://ocknamo.github.io/sandbox/** にあります（この API が
+止まっていても開けます）。`/index.html` は互換のために残したリダイレクトで、
+`*.run.app` では Google Front End が `/` をコンテナに転送しないため必要です。
 
 `{group}` は `owl` や `penguin` のような大まかな分類、`{species}` はその中の種
 （`barn-owl` など）です。Dog API の breed / sub-breed と同じ関係で、大文字小文字は
@@ -80,44 +76,20 @@ $ curl "$URL/api/bird/velociraptor/images/random"
 
 ## フロントエンド
 
-[`docs/index.html`](../docs/index.html) の 1 ファイルだけです。ビルド手順も
-フレームワークもなく、`fetch` で API を叩いて結果を並べるだけです。
+[`docs/index.html`](../docs/index.html) の 1 ファイルのみ（ビルド不要）。
+GitHub Pages だけが配信し、この API 自体はページを持ちません
+（`/index.html` は Pages への 302 リダイレクト）。
 
-配信しているのは GitHub Pages だけで、この API はページを持ちません。バイナリに
-埋め込んで Cloud Run からも配信することもできますが、そうすると同じページの実体が
-2 つになり、どちらを見ているのか分からなくなります。ページが 1 か所にしかないので、
-`/index.html` は Pages へのリダイレクトにしてあります。
+`docs/` 直下に置いているのは、Pages のブランチ配信先が `/` か `/docs` しか
+選べないためです。`go-cloudrun-bird/` の外なので、ページの変更で Cloud Run の
+デプロイは走りません。
 
-サービスを `pause` していてもページは開けます（当然ながら、鳥の画像は出ません）。
+ページは `docs/index.html` 内 `DEPLOYED_API`（Cloud Run の URL）を CORS 越しに
+呼びます。`?api=` で向き先を差し替え可能（例:
+`?api=http://localhost:8080` でローカルの `go run .` に向ける）。
 
-ファイルがリポジトリ直下の `docs/` にあってこのディレクトリの下にないのは、
-GitHub Pages のブランチ配信が公開元として `/`（リポジトリ全体）か `/docs` しか
-選べないためです。
-
-### API の向き先
-
-`docs/index.html` の `DEPLOYED_API` に書いてある Cloud Run の URL を呼びます。
-別オリジンへのリクエストになりますが、API は `Access-Control-Allow-Origin: *` を
-返すのでそのまま通ります。どこを呼んでいるかはページ下部に表示されます。
-
-`?api=` を付けると向き先を差し替えられます。ローカルの API に向けるときに使います。
-
-```sh
-go run .   # 別のターミナルで
-npx http-server docs -p 8082
-# http://localhost:8082/index.html?api=http://localhost:8080
-```
-
-### GitHub Pages を有効にする
-
-リポジトリの **Settings → Pages** で **Source** を **Deploy from a branch**、
-ブランチを **main**、フォルダを **/docs** にします。最初の一度だけの作業です。以後は
-`docs/` への push がそのまま公開されます。ワークフローもビルドも `gh-pages`
-ブランチも要りません。
-
-`docs/` は `go-cloudrun-bird/` の外なので、ページだけを直すときに Cloud Run の
-デプロイは動きません（バイナリはページを持たないため、再デプロイする理由もありま
-せん）。
+**有効化**: **Settings → Pages** を **Deploy from a branch / main / /docs** に
+設定（最初の一度だけ）。以後は `docs/` への push がそのまま公開されます。
 
 ## ライセンスとクレジット
 
