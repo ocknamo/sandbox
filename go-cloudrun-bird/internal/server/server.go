@@ -8,7 +8,6 @@ package server
 
 import (
 	"context"
-	_ "embed"
 	"encoding/json"
 	"errors"
 	"log/slog"
@@ -18,10 +17,8 @@ import (
 
 	"github.com/ocknamo/sandbox/go-cloudrun-bird/internal/birds"
 	"github.com/ocknamo/sandbox/go-cloudrun-bird/internal/catalog"
+	"github.com/ocknamo/sandbox/go-cloudrun-bird/web"
 )
-
-//go:embed index.html
-var indexHTML []byte
 
 // maxImages caps a multi-image request, as the Dog API does.
 const maxImages = 50
@@ -88,7 +85,7 @@ func (h *handlers) index(w http.ResponseWriter, r *http.Request) {
 func (h *handlers) page(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "public, max-age=300")
-	_, _ = w.Write(indexHTML)
+	_, _ = w.Write(web.IndexHTML)
 }
 
 // randomImage answers with a single picture, Dog API style: "message" is the

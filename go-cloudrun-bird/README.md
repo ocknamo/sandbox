@@ -26,6 +26,8 @@
 | GET | `/api/bird/{group}/{species}/images/...` | 上記と同じものを種単位で |
 | GET | `/index.html` | 動作確認用のページ（ランダムな鳥を表示）。`/` でも同じものを返します |
 
+ページは GitHub Pages にも同じものが置いてあります → **https://ocknamo.github.io/sandbox/**
+
 デプロイ後のページは `/` ではなく
 [`/index.html`](https://go-cloudrun-bird-329294726644.asia-northeast1.run.app/index.html)
 で開いてください。`*.run.app` では Google Front End が `/healthz` と同じように
@@ -75,6 +77,45 @@ $ curl "$URL/api/bird/velociraptor/images/random"
 ```html
 <img src="https://.../api/bird/owl/images/redirect" alt="ランダムなフクロウ">
 ```
+
+## フロントエンド
+
+[`web/index.html`](web/index.html) の 1 ファイルだけです。ビルド手順もフレーム
+ワークもなく、`fetch` で API を叩いて結果を並べるだけなので、置くのはファイルを
+コピーするだけで済みます。
+
+この 1 ファイルを 2 か所から配信しています。
+
+- **Cloud Run** — [`web/web.go`](web/web.go) が `//go:embed` でバイナリに埋め込み、
+  サーバーが `/index.html` で返します。
+- **GitHub Pages** — [`.github/workflows/deploy-bird-pages.yml`](../.github/workflows/deploy-bird-pages.yml)
+  が同じファイルをそのまま公開します。
+
+コピーを 2 つ持つと必ずずれるので、`internal/server/` ではなく `web/` に置いて
+あります（`//go:embed` は自分より上のディレクトリを見られないため、埋め込み用の
+Go ファイルも同じディレクトリに置く必要があります）。
+
+### API の向き先
+
+ページは実行時に決めます。
+
+| 開いている場所 | 呼ぶ API |
+| --- | --- |
+| Cloud Run（`*.run.app`）・ローカル | 同一オリジン（相対パス） |
+| GitHub Pages・その他 | `web/index.html` の `DEPLOYED_API` に書いてある Cloud Run の URL |
+| `?api=https://...` を付けたとき | その URL |
+
+Pages からは別オリジンへのリクエストになりますが、API は
+`Access-Control-Allow-Origin: *` を返すのでそのまま通ります。別のデプロイ先を試す
+ときは `?api=` を付けてください（例: `https://ocknamo.github.io/sandbox/?api=http://localhost:8080`）。
+
+### GitHub Pages を有効にする
+
+リポジトリの **Settings → Pages → Source** で **GitHub Actions** を選びます。最初の
+一度だけの作業です。以後 `go-cloudrun-bird/web/` 配下を main に push すると
+ワークフローが公開します（Actions タブから手動実行も可能）。ブランチも
+`gh-pages` も使わず、認証は Cloud Run のデプロイと同じ OIDC なので、置くべき
+シークレットはありません。
 
 ## ライセンスとクレジット
 
@@ -133,6 +174,10 @@ docker run --rm -p 8080:8080 go-cloudrun-bird
 
 ## デプロイ
 
-`.github/workflows/deploy-go-cloudrun-bird.yml` が共通の `deploy-service.yml` を
-呼び出します。既存のプロジェクト・Workload Identity・サービスアカウントをそのまま
-使うため、GCP 側の追加作業はありません。
+API は `.github/workflows/deploy-go-cloudrun-bird.yml` が共通の `deploy-service.yml`
+を呼び出します。既存のプロジェクト・Workload Identity・サービスアカウントを
+そのまま使うため、GCP 側の追加作業はありません。
+
+フロントエンドは `.github/workflows/deploy-bird-pages.yml` が GitHub Pages へ公開
+します。`web/index.html` を変更すると両方が動きます（バイナリに埋め込んである分と
+Pages に置いてある分の両方を更新する必要があるため）。
