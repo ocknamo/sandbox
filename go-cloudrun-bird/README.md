@@ -24,10 +24,10 @@
 | GET | `/api/bird/{group}/images/redirect` | そのグループからランダムな画像へリダイレクト |
 | GET | `/api/bird/{group}/images` | そのグループの画像をすべて |
 | GET | `/api/bird/{group}/{species}/images/...` | 上記と同じものを種単位で |
-| GET | `/index.html` | フロントエンド（GitHub Pages）へ 302 リダイレクト。`/` も同じ |
 
-動作確認用のページは **https://ocknamo.github.io/sandbox/** にあります。
-`/index.html` と `/` はそこへリダイレクトします。
+`/` を含め `/api` 以外のパスは 404（JSON）です。この API はページを持たず、
+どこにもリダイレクトしません。動作確認用のページは
+**https://ocknamo.github.io/sandbox/** に直接アクセスしてください。
 
 `{group}` は `owl` や `penguin` のような大まかな分類、`{species}` はその中の種
 （`barn-owl` など）です。Dog API の breed / sub-breed と同じ関係で、大文字小文字は
@@ -77,7 +77,7 @@ $ curl "$URL/api/bird/velociraptor/images/random"
 
 [`docs/index.html`](../docs/index.html) の 1 ファイルのみ（ビルド不要）。
 GitHub Pages だけが配信し、この API 自体はページを持ちません
-（`/index.html` は Pages へリダイレクトします）。
+（API 側の `/` や `/index.html` は 404 を返すだけです）。
 
 ページは `docs/index.html` 内 `DEPLOYED_API`（Cloud Run の URL）を CORS 越しに
 呼びます。`?api=` で向き先を差し替え可能（例:
@@ -115,7 +115,6 @@ Commons の画像は自由に使えますが、多くは CC BY / CC BY-SA でク
 | `BIRD_PREWARM_COUNT` | `6` | 起動時に先読みする種の数（`0` で無効） |
 | `BIRD_USER_AGENT` | `bird-api/1.0 (+https://github.com/ocknamo/sandbox)` | Commons へ送る User-Agent |
 | `BIRD_COMMONS_ENDPOINT` | Commons の `api.php` | 差し替え用（テストやミラー） |
-| `BIRD_FRONTEND_URL` | `https://ocknamo.github.io/sandbox/` | `/index.html` のリダイレクト先 |
 
 ## 鳥を増やすには
 

@@ -28,11 +28,10 @@ const maxImages = 50
 // retry once after a rate-limit response.
 const upstreamTimeout = 20 * time.Second
 
-// New returns the service handler. frontendURL is where the browser front end
-// is published; the page paths redirect there instead of serving a page of
-// their own.
-func New(svc *birds.Service, frontendURL string, logger *slog.Logger) http.Handler {
-	h := &handlers{svc: svc, frontendURL: frontendURL}
+// New returns the service handler. The service is API only: it serves no page
+// of its own and forwards nowhere, so every path outside /api is a 404.
+func New(svc *birds.Service, logger *slog.Logger) http.Handler {
+	h := &handlers{svc: svc}
 	mux := http.NewServeMux()
 
 	// Not /healthz: Google Front End intercepts that exact path on *.run.app
@@ -55,48 +54,25 @@ func New(svc *birds.Service, frontendURL string, logger *slog.Logger) http.Handl
 	mux.HandleFunc("GET /api/bird/{group}/{species}/images/redirect", h.redirect)
 	mux.HandleFunc("GET /api/bird/{group}/{species}/images", h.allImages)
 
-	// The front end is published on GitHub Pages, not served from here, so
-	// these two paths only forward. Both are registered because Google Front
-	// End answers the bare "/" of a *.run.app service with its own 404 page
-	// without ever forwarding it to the container, the same way it does for
-	// /healthz — on a deployment only /index.html actually arrives.
-	mux.HandleFunc("GET /index.html", h.page)
-	mux.HandleFunc("GET /", h.index)
+	// Everything the patterns above do not claim, "/" included, is a 404.
+	mux.HandleFunc("GET /", h.notFound)
 
 	return withLogging(logger, withCORS(mux))
 }
 
 type handlers struct {
-	svc         *birds.Service
-	frontendURL string
+	svc *birds.Service
 }
 
 func (h *handlers) health(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 
-// index catches every path the mux has no pattern for, and forwards the one
-// path it does own.
-func (h *handlers) index(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		writeError(w, http.StatusNotFound, "no such endpoint: "+r.URL.Path+" (see "+h.frontendURL+")")
-		return
-	}
-	h.page(w, r)
-}
-
-// page sends the caller to the published front end. The page used to be
-// embedded in this binary and served from here; it now lives on GitHub Pages,
-// which serves it whether or not this service is awake. The redirect keeps
-// existing links to /index.html working, and is a temporary one so the page
-// can move again without a cached 301 standing in the way.
-func (h *handlers) page(w http.ResponseWriter, r *http.Request) {
-	if h.frontendURL == "" {
-		writeError(w, http.StatusNotFound, "no front end configured (see BIRD_FRONTEND_URL)")
-		return
-	}
-	w.Header().Set("Cache-Control", "public, max-age=300")
-	http.Redirect(w, r, h.frontendURL, http.StatusFound)
+// notFound catches every path the mux has no pattern for, "/" among them. The
+// front end lives on GitHub Pages and is reached directly, so the root has
+// nothing to serve and nowhere to send the caller.
+func (h *handlers) notFound(w http.ResponseWriter, r *http.Request) {
+	writeError(w, http.StatusNotFound, "no such endpoint: "+r.URL.Path)
 }
 
 // randomImage answers with a single picture, Dog API style: "message" is the

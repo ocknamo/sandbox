@@ -56,7 +56,7 @@ func newTestHandler(t *testing.T, fetcher birds.Fetcher) (http.Handler, *catalog
 		t.Fatalf("load catalog: %v", err)
 	}
 	logger := slog.New(slog.NewJSONHandler(io.Discard, nil))
-	return New(birds.New(cat, fetcher, time.Hour, logger), testFrontendURL, logger), cat
+	return New(birds.New(cat, fetcher, time.Hour, logger), logger), cat
 }
 
 func get(t *testing.T, h http.Handler, path string) *httptest.ResponseRecorder {
@@ -269,41 +269,25 @@ func TestUpstreamFailureIs502(t *testing.T) {
 	}
 }
 
-// The front end lives on GitHub Pages, so both page paths forward there. Both
-// are covered because Google Front End never forwards the bare "/" of a
-// *.run.app service to the container, which leaves /index.html carrying the
-// redirect on a deployment.
-func TestPagePathsRedirectToTheFrontEnd(t *testing.T) {
+// The service is API only: the root serves nothing and forwards nowhere, and
+// neither does the /index.html the front end used to be reached through.
+func TestPagePathsAreNotFound(t *testing.T) {
 	h, _ := newTestHandler(t, &stubFetcher{})
 
 	for _, path := range []string{"/", "/index.html"} {
 		rec := get(t, h, path)
 
-		if rec.Code != http.StatusFound {
-			t.Fatalf("%s: status = %d, want %d", path, rec.Code, http.StatusFound)
+		if rec.Code != http.StatusNotFound {
+			t.Fatalf("%s: status = %d, want %d", path, rec.Code, http.StatusNotFound)
 		}
-		if loc := rec.Header().Get("Location"); loc != testFrontendURL {
-			t.Errorf("%s: Location = %q, want %q", path, loc, testFrontendURL)
+		if loc := rec.Header().Get("Location"); loc != "" {
+			t.Errorf("%s: Location = %q, want no redirect", path, loc)
+		}
+		if body := decode[errorResponse](t, rec); body.Status != "error" {
+			t.Errorf("%s: status field = %q, want %q", path, body.Status, "error")
 		}
 	}
 }
-
-// Without a front end to forward to, the page paths have nothing to serve.
-func TestPagePathIs404WithoutAFrontEnd(t *testing.T) {
-	cat, err := catalog.Load()
-	if err != nil {
-		t.Fatalf("load catalog: %v", err)
-	}
-	logger := slog.New(slog.NewJSONHandler(io.Discard, nil))
-	h := New(birds.New(cat, &stubFetcher{}, time.Hour, logger), "", logger)
-
-	rec := get(t, h, "/index.html")
-	if rec.Code != http.StatusNotFound {
-		t.Fatalf("status = %d, want %d", rec.Code, http.StatusNotFound)
-	}
-}
-
-const testFrontendURL = "https://example.test/bird/"
 
 func TestUnknownPathIsNotFound(t *testing.T) {
 	h, _ := newTestHandler(t, &stubFetcher{})
