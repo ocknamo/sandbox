@@ -182,3 +182,87 @@ func TestAskRejectsEmptyKeyAndQuestions(t *testing.T) {
 		t.Error("Ask with no questions succeeded, want an error")
 	}
 }
+
+// The score answer documented at https://docs.typesafe.ai/primitives/score,
+// pinned here because guessing its shape is what broke the first live run:
+// legend is an object keyed by level number, not a string, and the score is
+// an expected value that falls between levels rather than an index.
+func TestAskDecodesDocumentedScoreAnswer(t *testing.T) {
+	c := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"answers": {"severity": {
+			"type": "score",
+			"score": 1.43,
+			"confidence": 0.35,
+			"legend": {
+				"0": "Cosmetic; no impact to functionality",
+				"1": "Broken or degraded feature, but workaround exists",
+				"2": "Blocking issue; no workaround exists"
+			},
+			"probabilities": {"0": 0.0, "1": 0.57, "2": 0.43}
+		}}}`))
+	})
+
+	resp, err := c.Ask(context.Background(), "hello", map[string]Question{
+		"severity": Score("How severe?", []string{"a", "b", "c"}),
+	})
+	if err != nil {
+		t.Fatalf("Ask: %v", err)
+	}
+
+	a := resp.Answers["severity"]
+	if a.Score == nil || *a.Score != 1.43 {
+		t.Fatalf("score = %v, want 1.43", a.Score)
+	}
+	if got, want := a.Legend["1"], "Broken or degraded feature, but workaround exists"; got != want {
+		t.Errorf("legend[1] = %q, want %q", got, want)
+	}
+	if len(a.Legend) != 3 {
+		t.Errorf("legend has %d levels, want 3", len(a.Legend))
+	}
+	if got := a.Probabilities["1"]; got != 0.57 {
+		t.Errorf("probabilities[1] = %v, want 0.57", got)
+	}
+	if a.Confidence == nil || *a.Confidence != 0.35 {
+		t.Errorf("confidence = %v, want 0.35", a.Confidence)
+	}
+
+	// The score is the probability-weighted mean of the level numbers, which
+	// is why it is not a whole number: 0*0.0 + 1*0.57 + 2*0.43 = 1.43.
+	var want float64
+	for level, p := range map[float64]float64{0: 0.0, 1: 0.57, 2: 0.43} {
+		want += level * p
+	}
+	if diff := *a.Score - want; diff > 1e-9 || diff < -1e-9 {
+		t.Errorf("score = %v, but the probabilities average to %v", *a.Score, want)
+	}
+}
+
+// A choice answer keys its probabilities by option name rather than by level
+// number, so the same map type has to serve both.
+func TestAskDecodesChoiceAnswer(t *testing.T) {
+	c := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"answers": {"kind": {
+			"type": "choice",
+			"choice": "humor",
+			"confidence": 0.81,
+			"probabilities": {"humor": 0.81, "insight": 0.19}
+		}}}`))
+	})
+
+	resp, err := c.Ask(context.Background(), "hello", map[string]Question{
+		"kind": Choice("What kind?", map[string]string{"humor": "a joke", "insight": "a fact"}),
+	})
+	if err != nil {
+		t.Fatalf("Ask: %v", err)
+	}
+
+	a := resp.Answers["kind"]
+	if a.Choice != "humor" {
+		t.Errorf("choice = %q, want %q", a.Choice, "humor")
+	}
+	if got := a.Probabilities["humor"]; got != 0.81 {
+		t.Errorf("probabilities[humor] = %v, want 0.81", got)
+	}
+}

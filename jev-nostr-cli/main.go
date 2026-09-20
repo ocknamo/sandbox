@@ -98,13 +98,16 @@ func run(postsPath, model string, policy recommend.Policy, raw bool) error {
 			return fmt.Errorf("post %s: %w", short(p.ID), err)
 		}
 
+		// An answer that does not fit the structs is the interesting case, so
+		// both failures carry the body. Without it a CI log says only that
+		// something did not match, and never what arrived.
 		var resp jev.Response
 		if err := json.Unmarshal(body, &resp); err != nil {
-			return fmt.Errorf("post %s: decode response: %w", short(p.ID), err)
+			return fmt.Errorf("post %s: decode response: %w\n  body: %s", short(p.ID), err, body)
 		}
 		verdict, err := recommend.Evaluate(resp.Answers, policy)
 		if err != nil {
-			return fmt.Errorf("post %s: %w", short(p.ID), err)
+			return fmt.Errorf("post %s: %w\n  body: %s", short(p.ID), err, body)
 		}
 
 		inputTokens += resp.Usage.InputTokens
@@ -133,9 +136,11 @@ func printSignals(p post, v recommend.Verdict, elapsed time.Duration) {
 	fmt.Printf("    insight %.2f | humor %.2f | relatable %.2f | promotional %.2f\n",
 		v.Insight, v.Humor, v.Relatable, v.Promotional)
 
+	// The score is an expected level, not an index, so it is shown with the
+	// decimal the API actually returned.
 	substance := "n/a"
 	if v.Substance != nil {
-		substance = fmt.Sprintf("%.0f", *v.Substance)
+		substance = fmt.Sprintf("%.2f/%.0f", *v.Substance, v.SubstanceTop)
 		if v.SubstanceLegend != "" {
 			substance += " (" + v.SubstanceLegend + ")"
 		}

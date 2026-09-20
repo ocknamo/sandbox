@@ -97,13 +97,27 @@ type Response struct {
 // The numbers are pointers because zero is a meaningful answer here: a Noul of
 // 0 means "no", which is not the same thing as a field the server never sent.
 type Answer struct {
-	Type          QuestionType       `json:"type"`
-	Noul          *float64           `json:"noul,omitempty"`
-	Choice        string             `json:"choice,omitempty"`
-	Score         *float64           `json:"score,omitempty"`
-	Legend        string             `json:"legend,omitempty"`
+	Type   QuestionType `json:"type"`
+	Noul   *float64     `json:"noul,omitempty"`
+	Choice string       `json:"choice,omitempty"`
+
+	// Score is not an index into the rubric. It is the expected level: every
+	// level number weighted by its probability and summed, so it falls
+	// between levels. Levels count from 0, which makes the top of an n-level
+	// rubric n-1.
+	Score *float64 `json:"score,omitempty"`
+
+	// Legend repeats the score rubric, keyed by level number as a string.
+	// The values are strings because Score questions here are built from
+	// plain level descriptions; the API returns objects instead when a
+	// question supplies structured criteria.
+	Legend map[string]string `json:"legend,omitempty"`
+
+	// Probabilities is the distribution the answer was drawn from: keyed by
+	// option name for a choice, by level number as a string for a score.
 	Probabilities map[string]float64 `json:"probabilities,omitempty"`
-	Confidence    *float64           `json:"confidence,omitempty"`
+
+	Confidence *float64 `json:"confidence,omitempty"`
 }
 
 // Usage reports what the request cost. Jev bills input tokens only.

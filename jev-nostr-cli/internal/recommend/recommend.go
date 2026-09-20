@@ -2,6 +2,8 @@ package recommend
 
 import (
 	"fmt"
+	"math"
+	"strconv"
 
 	"github.com/ocknamo/sandbox/jev-nostr-cli/internal/jev"
 )
@@ -38,9 +40,11 @@ type Verdict struct {
 	Reason string
 
 	// Substance and Kind come from the score and choice questions. Substance
-	// is the raw value the API returned; see Evaluate for why it is a pointer
-	// and why nothing depends on its absolute size yet.
+	// is the expected level on the rubric, between 0 and SubstanceTop, and
+	// falls between whole levels. SubstanceLegend is the description of the
+	// level it sits nearest.
 	Substance       *float64
+	SubstanceTop    float64
 	SubstanceLegend string
 	Kind            string
 	KindConfidence  float64
@@ -59,10 +63,11 @@ type Verdict struct {
 // insight has earned its place, and averaging would bury it under a post that
 // is mediocre at everything. Any one reason to read something is a reason.
 //
-// The substance score is carried through but not yet part of the decision.
-// The API documents a score as an index into the rubric without saying whether
-// it counts from zero or one, and guessing wrong would quietly shift every
-// threshold. It is used for ranking, where only the ordering matters.
+// The substance score is carried through but not yet part of the decision. It
+// is a graded value rather than a yes/no, so folding it in means choosing how
+// much weight it carries against the nouls, and there is nothing to base that
+// on until the real answers have been looked at. For now it breaks ranking
+// ties, where only the ordering matters.
 func Evaluate(answers map[string]jev.Answer, policy Policy) (Verdict, error) {
 	var v Verdict
 	var err error
@@ -84,7 +89,8 @@ func Evaluate(answers map[string]jev.Answer, policy Policy) (Verdict, error) {
 	// declines to answer them costs a label, not the verdict.
 	if a, ok := answers[KeySubstance]; ok {
 		v.Substance = a.Score
-		v.SubstanceLegend = a.Legend
+		v.SubstanceTop = float64(len(a.Legend)) - 1
+		v.SubstanceLegend = legendFor(a.Legend, a.Score)
 	}
 	if a, ok := answers[KeyKind]; ok {
 		v.Kind = a.Choice
@@ -134,6 +140,15 @@ func Rank(a, b Verdict) int {
 		return 1
 	}
 	return 0
+}
+
+// legendFor names the rubric level a score sits nearest. A score of 1.43 is
+// between levels, and the nearer of the two is the honest label for it.
+func legendFor(legend map[string]string, score *float64) string {
+	if score == nil || len(legend) == 0 {
+		return ""
+	}
+	return legend[strconv.Itoa(int(math.Round(*score)))]
 }
 
 // noul reads one required yes/no answer.

@@ -14,7 +14,7 @@ LLM は人間が読むテキストを返しますが、Jev が返すのは**コ�
 | --- | --- | --- | --- |
 | `noul` | 真偽の判定 | 任意（`true` / `false` の説明） | `noul`（0〜1） |
 | `choice` | 選択肢から 1 つ選ぶ | 必須・`{選択肢: 説明}`（最大 255） | `choice`, `probabilities`, `confidence` |
-| `score` | ルーブリックで採点 | 必須・順序付き配列（2〜10 段階） | `score`, `legend`, `probabilities`, `confidence` |
+| `score` | ルーブリックで採点 | 必須・順序付き配列（2〜10 段階） | `score`（期待値・小数）, `legend`, `probabilities`, `confidence` |
 
 質問は「知識のある人が数秒で判断できる」粒度まで分解し、組み合わせのロジックは
 呼び出し側のコードで書く、というのが設計思想です。
@@ -27,7 +27,7 @@ LLM は人間が読むテキストを返しますが、Jev が返すのは**コ�
 | `humor` | `noul` | 笑わせようとしていて、実際に成功しているか |
 | `relatable` | `noul` | 見知らぬ人が「わかる」と思う感覚を書いているか |
 | `promotional` | `noul` | 宣伝・勧誘・誘導か（拒否用） |
-| `substance` | `score` | 読み手にとっての中身の量（5 段階） |
+| `substance` | `score` | 読み手にとっての中身の量（5 段階 = `0.0`〜`4.0`） |
 | `kind` | `choice` | 投稿の種類（表示用ラベル） |
 
 肯定シグナルを3つに分けてあるのは、**投稿はそのうちどれか1つで十分に価値を持つ**
@@ -65,7 +65,7 @@ asking "jev-latest" 6 questions about 5 posts (appeal >= 0.50, promotional veto 
 
 0be17f5ebe0a  How does the man in the moon get his hair cut? Eclipse i…  (2.1s)
     insight 0.10 | humor 0.90 | relatable 0.19 | promotional 0.03
-    substance 2 (An ordinary observation) | kind humor 0.81
+    substance 1.43/4 (An ordinary observation: clear, but slight.) | kind humor 0.81
     => RECOMMEND on humor (appeal 0.90)
 ...
 
@@ -121,10 +121,23 @@ relatable 0.10` の投稿は平均 0.36 で埋もれますが、最大値なら 
 
 **宣伝は減点ではなく拒否**です。よく書けた広告は、やはり広告です。
 
-**`substance`（score）はまだ判定に使っていません。** API のドキュメントは score が
-ルーブリックの何番目かを返すと書いていますが、0 始まりか 1 始まりかを書いていません。
-取り違えるとしきい値が静かにずれるので、今は**順序しか意味を持たないランキングの
-タイブレーク**にだけ使っています。実際の応答を見てから判定に組み込みます。
+**`score` はインデックスではなく期待値です。** レベル番号をその確率で重み付けして
+足したもので、**レベルの間の小数**になります。5 段階なら `0.0`〜`4.0`（0 始まり）。
+
+```json
+{"type": "score", "score": 1.43, "confidence": 0.35,
+ "legend": {"0": "…", "1": "…", "2": "…"},
+ "probabilities": {"0": 0.0, "1": 0.57, "2": 0.43}}
+```
+
+`0×0.0 + 1×0.57 + 2×0.43 = 1.43`。`legend` は**文字列ではなくレベル番号をキーにした
+オブジェクト**です。最初のライブ実行はここを取り違えて落ちました
+（`internal/jev/jev_test.go` に実際の形状を固定してあります）。
+
+**`substance` はまだ判定に使っていません。** 0/1 ではなく段階的な値なので、
+組み込むには「noul 3つに対してどれだけの重みを持たせるか」を決める必要があり、
+実際の応答を見るまで根拠がありません。今は**順序しか意味を持たないランキングの
+タイブレーク**にだけ使っています。
 
 **`Answer` の数値フィールドがポインタなのは、0 が意味のある答えだから**です。
 `noul` の 0 は「いいえ」であって、サーバが値を返さなかったことと同じではありません。

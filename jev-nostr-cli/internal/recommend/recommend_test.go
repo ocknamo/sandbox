@@ -75,16 +75,23 @@ func TestPromotionalVetoesEvenAStrongPost(t *testing.T) {
 
 func TestSubstanceAndKindAreCarriedThrough(t *testing.T) {
 	a := answers(0.9, 0.1, 0.2, 0.0)
-	a[KeySubstance] = jev.Answer{Type: jev.TypeScore, Score: ptr(3), Legend: "A developed thought"}
+	a[KeySubstance] = jev.Answer{Type: jev.TypeScore, Score: ptr(2.6), Legend: map[string]string{
+		"0": "Content-free", "1": "A passing remark", "2": "An ordinary observation",
+		"3": "A developed thought", "4": "A substantial point",
+	}}
 	a[KeyKind] = jev.Answer{Type: jev.TypeChoice, Choice: "insight", Confidence: ptr(0.77)}
 
 	v := evaluate(t, a)
 
-	if v.Substance == nil || *v.Substance != 3 {
-		t.Errorf("substance = %v, want a pointer to 3", v.Substance)
+	if v.Substance == nil || *v.Substance != 2.6 {
+		t.Errorf("substance = %v, want a pointer to 2.6", v.Substance)
 	}
+	if v.SubstanceTop != 4 {
+		t.Errorf("substance top = %v, want 4 for a five-level rubric", v.SubstanceTop)
+	}
+	// 2.6 sits between levels and is nearer level 3 than level 2.
 	if v.SubstanceLegend != "A developed thought" {
-		t.Errorf("legend = %q", v.SubstanceLegend)
+		t.Errorf("legend = %q, want the level 3 description", v.SubstanceLegend)
 	}
 	if v.Kind != "insight" {
 		t.Errorf("kind = %q, want %q", v.Kind, "insight")
@@ -175,5 +182,32 @@ func TestQuestionsCoverEveryKeyEvaluateReads(t *testing.T) {
 	}
 	if len(levels) < 2 || len(levels) > 10 {
 		t.Errorf("score has %d levels, want between 2 and 10", len(levels))
+	}
+}
+
+func TestLegendForPicksTheNearestLevel(t *testing.T) {
+	legend := map[string]string{"0": "none", "1": "some", "2": "lots"}
+
+	for _, tc := range []struct {
+		score float64
+		want  string
+	}{
+		{0, "none"},
+		{0.4, "none"},
+		{0.6, "some"},
+		{1.43, "some"},
+		{1.5, "lots"},
+		{2, "lots"},
+	} {
+		if got := legendFor(legend, ptr(tc.score)); got != tc.want {
+			t.Errorf("legendFor(%v) = %q, want %q", tc.score, got, tc.want)
+		}
+	}
+
+	if got := legendFor(legend, nil); got != "" {
+		t.Errorf("legendFor(nil) = %q, want empty", got)
+	}
+	if got := legendFor(nil, ptr(1.0)); got != "" {
+		t.Errorf("legendFor with no legend = %q, want empty", got)
 	}
 }
