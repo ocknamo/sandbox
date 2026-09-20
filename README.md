@@ -97,3 +97,6 @@ https://ocknamo.github.io/sandbox/ — `go-cloudrun-bird` のフロントエン�
 ## その他
 
 - [`svelte-voice-api`](svelte-voice-api) — Svelte + Web Speech API の実験。
+- [`nostr-jev-timeline`](nostr-jev-timeline) — Nostr の投稿を Jev（TypeSafe の System One
+  モデル）で選別し、おすすめ投稿の ID だけを返す HTTP API。Node.js の実験で、Cloud Run へは
+  デプロイしていません。

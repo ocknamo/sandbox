@@ -1,0 +1,26 @@
+{
+  "name": "nostr-jev-timeline",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Nostr のリレーから集めた投稿を Jev (TypeSafe System One) で選別し、おすすめ投稿の ID だけを返す HTTP API",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "start": "node src/index.ts",
+    "dev": "node --watch src/index.ts",
+    "test": "node --test",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@typesafe-ai/sdk": "^0.6.0",
+    "nostr-tools": "^2.25.2",
+    "ws": "^8.21.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/ws": "^8.18.1",
+    "typescript": "^5.7.0"
+  }
+}
