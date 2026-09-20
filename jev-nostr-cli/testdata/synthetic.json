@@ -1,0 +1,44 @@
+[
+  {
+    "id": "f98027190d69539efc6e5403468af169d19eb3032373befa1f1196b98d8f3e66",
+    "pubkey": "54bc9db9324cce6ea46bd06989ef892ee2b225637f8d0c6705e136acf77083ad",
+    "created_at": 1758300000,
+    "kind": 1,
+    "content": "Go の context でハマった話。http.Request の Context は ResponseWriter に書き終えた時点で cancel されるので、ハンドラの中で go func(){ ... } して元の ctx をそのまま渡すと、レスポンスを返した瞬間に裏の処理まで死ぬ。context.WithoutCancel が 1.21 で入ったのはこのため。"
+  },
+  {
+    "id": "417e06653a50e62682fcf2fc2581b4aaf44f29d45169805996cd85fa1fee4509",
+    "pubkey": "83238953d55fabd781dab63f55d4cf65a944a0ffd3496d5c61274242bfde824f",
+    "created_at": 1758300100,
+    "kind": 1,
+    "content": "gm"
+  },
+  {
+    "id": "559045164422156d3f207ef9f85b1eb811f3ca87d60ec538520d4782c5d596d6",
+    "pubkey": "ad04d00b0ee8eebff0023878a0880bef35bc80318b1cca978adb83c1faa90d69",
+    "created_at": 1758300200,
+    "kind": 1,
+    "content": "🚀🚀 $BTC TO THE MOON 🚀🚀 100x GUARANTEED. DM me for the signal group, only 20 spots left!!! #crypto #bitcoin #airdrop"
+  },
+  {
+    "id": "645d324f57ec4fbc4c729421f952c4970f60e4b6ad90430c0c2098d035db8262",
+    "pubkey": "54bc9db9324cce6ea46bd06989ef892ee2b225637f8d0c6705e136acf77083ad",
+    "created_at": 1758300300,
+    "kind": 1,
+    "content": "Something I only understood after writing a relay: NIP-01 REQ filters are ORed across filter objects but ANDed within one. So [{\"authors\":[a]},{\"kinds\":[1]}] is not the same query as [{\"authors\":[a],\"kinds\":[1]}], and clients get this wrong constantly."
+  },
+  {
+    "id": "23d69315cf5f07b60a5585a3fde65c3685b5b408b3ed3fbe3c629a1bc526ede5",
+    "pubkey": "f20d525c52377279741b8cc20a90e310f1a018f8fa92a562a5c829402327ca17",
+    "created_at": 1758300400,
+    "kind": 1,
+    "content": "ラーメン食べた"
+  },
+  {
+    "id": "2aa7a7ecc5c40d4baa30509edc53c61d198391b2f56458bf02f381c044889970",
+    "pubkey": "ad04d00b0ee8eebff0023878a0880bef35bc80318b1cca978adb83c1faa90d69",
+    "created_at": 1758300500,
+    "kind": 1,
+    "content": "Claim your free 5000 SATS airdrop now! Connect your wallet at http://nostr-airdrop-claim.example.xyz and receive instantly. Limited time offer."
+  }
+]

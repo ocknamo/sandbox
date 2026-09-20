@@ -84,13 +84,25 @@ jobs:
             } >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      - name: Send the sample posts to Jev
+      # Two fixtures. The real posts are what the timeline has to get right;
+      # the synthetic ones carry the spam the real sample happens not to
+      # contain, which is the only way to see the promotional veto fire
+      # against real answers rather than against a test double.
+      - name: Send the real posts to Jev
         if: steps.key.outputs.present == 'true'
         env:
           TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
         run: |
           set -o pipefail
-          go run . -raw 2>&1 | tee "$RUNNER_TEMP/jev.log"
+          go run . -posts testdata/posts.json -raw 2>&1 | tee "$RUNNER_TEMP/jev.log"
+
+      - name: Send the synthetic posts to Jev
+        if: steps.key.outputs.present == 'true'
+        env:
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+        run: |
+          set -o pipefail
+          go run . -posts testdata/synthetic.json 2>&1 | tee "$RUNNER_TEMP/jev-synthetic.log"
 
       # Runs even when the call failed, so an auth or validation error lands in
       # the run summary instead of only in the step log.
@@ -98,9 +110,14 @@ jobs:
         if: always() && steps.key.outputs.present == 'true'
         run: |
           {
-            echo '### Jev response'
+            echo '### Real posts'
             echo
             echo '```text'
             cat "$RUNNER_TEMP/jev.log" 2>/dev/null || echo '(no output captured)'
+            echo '```'
+            echo '### Synthetic posts'
+            echo
+            echo '```text'
+            cat "$RUNNER_TEMP/jev-synthetic.log" 2>/dev/null || echo '(no output captured)'
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"

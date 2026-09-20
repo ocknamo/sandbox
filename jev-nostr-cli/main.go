@@ -1,10 +1,10 @@
-// Command jev-nostr-cli sends a handful of Nostr posts to the Jev model and
-// prints the answer it gets back for each one.
+// Command jev-nostr-cli sends Nostr posts to the Jev model, combines the
+// answers into a recommendation, and prints the timeline that results.
 //
-// This is step one of the recommendation timeline: prove the round trip works
-// and see what a System One answer actually looks like, before anything is
-// built on top of it. It asks a single narrow question per post and does no
-// filtering of its own beyond reporting which posts clear a threshold.
+// It is the bench for the recommendation timeline: the questions in
+// internal/recommend and the rule that combines them are the same ones the API
+// will use, so tuning happens here, against real posts, with every signal
+// visible.
 package main
 
 import (
@@ -15,50 +15,45 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"slices"
 	"syscall"
+	"time"
 
 	"github.com/ocknamo/sandbox/jev-nostr-cli/internal/jev"
+	"github.com/ocknamo/sandbox/jev-nostr-cli/internal/recommend"
 )
 
-// questionKey names the one question this step asks. The name is ours: the API
-// echoes it back as the key of the matching answer.
-const questionKey = "worth_reading"
-
-// questions is deliberately a single narrow judgement. The docs are explicit
-// that a question should be the kind of call a knowledgeable person could make
-// in a couple of seconds; anything broader belongs in several questions whose
-// results we combine in Go. Sharpening this into a real recommendation signal
-// is the next step, not this one.
-var questions = map[string]jev.Question{
-	questionKey: jev.Noul(
-		"Does this social media post say something substantive that a reader " +
-			"who does not follow the author would find worth reading? Answer no " +
-			"for greetings, spam, promotions and content-free chatter.",
-	),
-}
-
-// post is the part of a Nostr event this step cares about. A real event carries
-// tags and a signature too; none of that is needed to judge the text.
+// post is the part of a Nostr event this command cares about. A real event
+// carries tags and a signature too; none of that is needed to judge the text.
 type post struct {
 	ID      string `json:"id"`
 	Pubkey  string `json:"pubkey"`
 	Content string `json:"content"`
 }
 
+// judged pairs a post with what the model made of it.
+type judged struct {
+	post    post
+	verdict recommend.Verdict
+	elapsed time.Duration
+}
+
 func main() {
 	postsPath := flag.String("posts", "testdata/posts.json", "JSON file holding an array of Nostr events")
 	model := flag.String("model", jev.DefaultModel, "Jev model identifier")
-	threshold := flag.Float64("threshold", 0.5, "noul value at or above which a post counts as recommendable")
+	appeal := flag.Float64("appeal", recommend.DefaultPolicy().Appeal, "value the strongest positive signal must reach")
+	promo := flag.Float64("promotional", recommend.DefaultPolicy().Promotional, "value at which a post is vetoed as promotional")
 	raw := flag.Bool("raw", false, "also print the raw JSON response for each post")
 	flag.Parse()
 
-	if err := run(*postsPath, *model, *threshold, *raw); err != nil {
+	policy := recommend.Policy{Appeal: *appeal, Promotional: *promo}
+	if err := run(*postsPath, *model, policy, *raw); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
 		os.Exit(1)
 	}
 }
 
-func run(postsPath, model string, threshold float64, raw bool) error {
+func run(postsPath, model string, policy recommend.Policy, raw bool) error {
 	apiKey := os.Getenv("TYPESAFE_API_KEY")
 	if apiKey == "" {
 		return errors.New("TYPESAFE_API_KEY is not set")
@@ -85,14 +80,20 @@ func run(postsPath, model string, threshold float64, raw bool) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	fmt.Printf("asking %q about %d posts (threshold %.2f)\n\n", model, len(posts), threshold)
+	questions := recommend.Questions()
+	fmt.Printf("asking %q %d questions about %d posts (appeal >= %.2f, promotional veto >= %.2f)\n\n",
+		model, len(questions), len(posts), policy.Appeal, policy.Promotional)
 
-	var recommended, inputTokens int
+	results := make([]judged, 0, len(posts))
+	var inputTokens int
+	var totalElapsed time.Duration
+
 	for _, p := range posts {
-		// One post per request. Batching several posts into one call is a
-		// later optimisation; keeping it one-to-one here makes the mapping
-		// from post to answer obvious.
+		// Still one request per post. Six questions ride along at almost no
+		// extra cost, but a second post would need a second request.
+		start := time.Now()
 		body, err := client.AskRaw(ctx, p.Content, questions)
+		elapsed := time.Since(start)
 		if err != nil {
 			return fmt.Errorf("post %s: %w", short(p.ID), err)
 		}
@@ -101,30 +102,73 @@ func run(postsPath, model string, threshold float64, raw bool) error {
 		if err := json.Unmarshal(body, &resp); err != nil {
 			return fmt.Errorf("post %s: decode response: %w", short(p.ID), err)
 		}
-
-		answer, ok := resp.Answers[questionKey]
-		if !ok {
-			return fmt.Errorf("post %s: response has no %q answer", short(p.ID), questionKey)
-		}
-		if answer.Noul == nil {
-			return fmt.Errorf("post %s: answer carries no noul value", short(p.ID))
+		verdict, err := recommend.Evaluate(resp.Answers, policy)
+		if err != nil {
+			return fmt.Errorf("post %s: %w", short(p.ID), err)
 		}
 
-		verdict := "skip"
-		if *answer.Noul >= threshold {
-			verdict = "RECOMMEND"
-			recommended++
-		}
 		inputTokens += resp.Usage.InputTokens
+		totalElapsed += elapsed
+		results = append(results, judged{post: p, verdict: verdict, elapsed: elapsed})
 
-		fmt.Printf("%s  noul=%.3f  %-9s  %s\n", short(p.ID), *answer.Noul, verdict, preview(p.Content, 60))
+		printSignals(p, verdict, elapsed)
 		if raw {
 			fmt.Printf("  raw: %s\n", body)
 		}
+		fmt.Println()
 	}
 
-	fmt.Printf("\n%d of %d posts recommended, %d input tokens\n", recommended, len(posts), inputTokens)
+	printTimeline(results)
+
+	fmt.Printf("\n%d input tokens, %s of request time (%s per post on average)\n",
+		inputTokens, totalElapsed.Round(time.Millisecond),
+		(totalElapsed / time.Duration(len(results))).Round(time.Millisecond))
 	return nil
+}
+
+// printSignals shows every answer behind a verdict, not only the outcome. The
+// point of this command is to see where a decision came from.
+func printSignals(p post, v recommend.Verdict, elapsed time.Duration) {
+	fmt.Printf("%s  %s  (%s)\n", short(p.ID), preview(p.Content, 56), elapsed.Round(time.Millisecond))
+	fmt.Printf("    insight %.2f | humor %.2f | relatable %.2f | promotional %.2f\n",
+		v.Insight, v.Humor, v.Relatable, v.Promotional)
+
+	substance := "n/a"
+	if v.Substance != nil {
+		substance = fmt.Sprintf("%.0f", *v.Substance)
+		if v.SubstanceLegend != "" {
+			substance += " (" + v.SubstanceLegend + ")"
+		}
+	}
+	fmt.Printf("    substance %s | kind %s %.2f\n", substance, v.Kind, v.KindConfidence)
+
+	switch {
+	case v.Vetoed:
+		fmt.Printf("    => VETOED as promotional\n")
+	case v.Recommend:
+		fmt.Printf("    => RECOMMEND on %s (appeal %.2f)\n", v.Reason, v.Appeal)
+	default:
+		fmt.Printf("    => skip (appeal %.2f, best was %s)\n", v.Appeal, v.Reason)
+	}
+}
+
+// printTimeline shows what a caller of the API would actually receive.
+func printTimeline(results []judged) {
+	kept := make([]judged, 0, len(results))
+	for _, r := range results {
+		if r.verdict.Recommend {
+			kept = append(kept, r)
+		}
+	}
+	slices.SortStableFunc(kept, func(a, b judged) int {
+		return recommend.Rank(a.verdict, b.verdict)
+	})
+
+	fmt.Printf("timeline: %d of %d posts\n", len(kept), len(results))
+	for i, r := range kept {
+		fmt.Printf("  %d. %s  %.2f %-9s  %s\n",
+			i+1, short(r.post.ID), r.verdict.Appeal, r.verdict.Reason, preview(r.post.Content, 48))
+	}
 }
 
 func loadPosts(path string) ([]post, error) {

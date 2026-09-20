@@ -1,44 +1,47 @@
 [
   {
-    "id": "f98027190d69539efc6e5403468af169d19eb3032373befa1f1196b98d8f3e66",
-    "pubkey": "54bc9db9324cce6ea46bd06989ef892ee2b225637f8d0c6705e136acf77083ad",
-    "created_at": 1758300000,
+    "content": "なるほどJevを使えばウミガメのスープを低コストで出題できるやん",
+    "created_at": 1789921424,
+    "id": "571f8e6b68f83bccee32b7b2c1da90d890d353eadd050cacc4698a459033f27d",
     "kind": 1,
-    "content": "Go の context でハマった話。http.Request の Context は ResponseWriter に書き終えた時点で cancel されるので、ハンドラの中で go func(){ ... } して元の ctx をそのまま渡すと、レスポンスを返した瞬間に裏の処理まで死ぬ。context.WithoutCancel が 1.21 で入ったのはこのため。"
+    "pubkey": "f40832e26b1d12f8a27717b606996baef68bc4b6b86c4a35ca827f6fbcbf511e",
+    "sig": "81890a36bbae7d5859ed4fd3c5e7054818b1e37292de792917063c2344f8f6e5a391dd4a89aadf402e6e848c83e90b083757c7f6082b6722d8cf6329371d05e5",
+    "tags": [["client", "Damus"]]
   },
   {
-    "id": "417e06653a50e62682fcf2fc2581b4aaf44f29d45169805996cd85fa1fee4509",
-    "pubkey": "83238953d55fabd781dab63f55d4cf65a944a0ffd3496d5c61274242bfde824f",
-    "created_at": 1758300100,
+    "content": "うおおおおおおおおおおおおお",
+    "created_at": 1789921223,
+    "id": "43d6b46e6d963f4a3a2229e61c8a99653b4dc2b243f9af93ce907d21264517d7",
     "kind": 1,
-    "content": "gm"
+    "pubkey": "f8978eb7b86da8563b2cf208359e2e0ae27817bd616e4181a565a3e27f8e8a50",
+    "sig": "37f9241b533f7feca56047100ef31bfa31ec770dfd74cc0b1918a5004aa5336802a04aa520428279ce3c3d13609863bab431b5046825f7a18e78e676c89f68c1",
+    "tags": [["client", "ToriNos"]]
   },
   {
-    "id": "559045164422156d3f207ef9f85b1eb811f3ca87d60ec538520d4782c5d596d6",
-    "pubkey": "ad04d00b0ee8eebff0023878a0880bef35bc80318b1cca978adb83c1faa90d69",
-    "created_at": 1758300200,
+    "content": "おあ",
+    "created_at": 1789921236,
+    "id": "2109eb90d89d115a13ed2cd8869960b718b6fc1e3dbed9e825f7af8af5c93a90",
     "kind": 1,
-    "content": "🚀🚀 $BTC TO THE MOON 🚀🚀 100x GUARANTEED. DM me for the signal group, only 20 spots left!!! #crypto #bitcoin #airdrop"
+    "pubkey": "84b0c46ab699ac35eb2ca286470b85e081db2087cdef63932236c397417782f5",
+    "sig": "439f13efe524c36570317986ff625e3e2f8576c135ada9b2bd7480ecdfedd3a6864ec25bd14c86a2b595f2920c522aff4a4143c50e3d2f1a19c468214c3d2ff0",
+    "tags": [["client", "lumilumi", "31990:84b0c46ab699ac35eb2ca286470b85e081db2087cdef63932236c397417782f5:1727506446612", "wss://cagliostr.compile-error.net"]]
   },
   {
-    "id": "645d324f57ec4fbc4c729421f952c4970f60e4b6ad90430c0c2098d035db8262",
-    "pubkey": "54bc9db9324cce6ea46bd06989ef892ee2b225637f8d0c6705e136acf77083ad",
-    "created_at": 1758300300,
+    "content": "How does the man in the moon get his hair cut? Eclipse it.",
+    "created_at": 1789920002,
+    "id": "0be17f5ebe0a73384e61117a44e2d09c3b88acc9d57ad1d4a5d501f554e1bb54",
     "kind": 1,
-    "content": "Something I only understood after writing a relay: NIP-01 REQ filters are ORed across filter objects but ANDed within one. So [{\"authors\":[a]},{\"kinds\":[1]}] is not the same query as [{\"authors\":[a],\"kinds\":[1]}], and clients get this wrong constantly."
+    "pubkey": "aaa6ebf5ff27e0927860e9f86cfd63669291cd448296b19f77e8a3abdf8f859a",
+    "sig": "dc73e570289c06ec79a3a5c2cad4ad02be0651c554ea270de4286c032320d497c21b94ce10985ae7d34eb4f7fa1e3d5fbb83ac02a2a3f5979122926dd1f6cf38",
+    "tags": []
   },
   {
-    "id": "23d69315cf5f07b60a5585a3fde65c3685b5b408b3ed3fbe3c629a1bc526ede5",
-    "pubkey": "f20d525c52377279741b8cc20a90e310f1a018f8fa92a562a5c829402327ca17",
-    "created_at": 1758300400,
+    "content": "働いてて趣味で創作もしてますみたいなひと本当にどうなってるの",
+    "created_at": 1789917999,
+    "id": "e068811f54e199e8c3fe2d0342260fd4799650b9b1c59c866c359ebce2237914",
     "kind": 1,
-    "content": "ラーメン食べた"
-  },
-  {
-    "id": "2aa7a7ecc5c40d4baa30509edc53c61d198391b2f56458bf02f381c044889970",
-    "pubkey": "ad04d00b0ee8eebff0023878a0880bef35bc80318b1cca978adb83c1faa90d69",
-    "created_at": 1758300500,
-    "kind": 1,
-    "content": "Claim your free 5000 SATS airdrop now! Connect your wallet at http://nostr-airdrop-claim.example.xyz and receive instantly. Limited time offer."
+    "pubkey": "a23ebaad045973a9b949ffdddb8dc8a1803126715f755dbc5c6bfd002576368b",
+    "sig": "e2f040bca79a7be94950ee1bf8ae8c623b1a111941d27ac4e1804ded41b45e69e69cb07e3045c9ce828f0d35f6cc1cd822a5231612fde627cab0e995d34852de",
+    "tags": []
   }
 ]

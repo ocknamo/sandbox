@@ -17,7 +17,26 @@ LLM は人間が読むテキストを返しますが、Jev が返すのは**コ�
 | `score` | ルーブリックで採点 | 必須・順序付き配列（2〜10 段階） | `score`, `legend`, `probabilities`, `confidence` |
 
 質問は「知識のある人が数秒で判断できる」粒度まで分解し、組み合わせのロジックは
-呼び出し側のコードで書く、というのが設計思想です。Step 1 では `noul` を 1 つだけ聞いています。
+呼び出し側のコードで書く、というのが設計思想です。
+
+### 聞いていること（`internal/recommend/questions.go`）
+
+| キー | 型 | 役割 |
+| --- | --- | --- |
+| `insight` | `noul` | 読み手が知らないことや、考える材料を渡しているか |
+| `humor` | `noul` | 笑わせようとしていて、実際に成功しているか |
+| `relatable` | `noul` | 見知らぬ人が「わかる」と思う感覚を書いているか |
+| `promotional` | `noul` | 宣伝・勧誘・誘導か（拒否用） |
+| `substance` | `score` | 読み手にとっての中身の量（5 段階） |
+| `kind` | `choice` | 投稿の種類（表示用ラベル） |
+
+肯定シグナルを3つに分けてあるのは、**投稿はそのうちどれか1つで十分に価値を持つ**
+からです。ダジャレに洞察を求めても仕方がなく、ぼやきに情報量を求めても仕方がない。
+単一の「良い投稿か？」ではこの区別ができません。
+
+**6つ聞いてもコストはほとんど増えません。** 1リクエスト約 350 入力トークンのうち
+300 前後は固定費で、質問は並列に評価されます。高いのは**質問の数ではなくリクエストの数**
+です。
 
 Go の SDK は存在しないため、`internal/jev` で `net/http` から直接叩いています。
 
@@ -32,7 +51,8 @@ go run .
 | --- | --- | --- |
 | `-posts` | `testdata/posts.json` | Nostr イベントの配列が入った JSON ファイル |
 | `-model` | `jev-latest` | モデル識別子（`jev-latest` → `jev-1.13.0`） |
-| `-threshold` | `0.5` | この値以上の `noul` を「おすすめ」とみなす |
+| `-appeal` | `0.5` | 最も強い肯定シグナルがこの値以上なら採用 |
+| `-promotional` | `0.5` | この値以上なら宣伝として拒否 |
 | `-raw` | `false` | 生のレスポンス JSON も表示する |
 
 `TYPESAFE_ENDPOINT` を設定すると接続先を差し替えられます。開発中にスタブサーバへ
@@ -41,14 +61,24 @@ go run .
 出力はこうなります（値は実際の応答によります）:
 
 ```text
-asking "jev-latest" about 6 posts (threshold 0.50)
+asking "jev-latest" 6 questions about 5 posts (appeal >= 0.50, promotional veto >= 0.50)
 
-f98027190d69  noul=0.891  RECOMMEND  Go の context でハマった話。http.Request の Context は…
-417e06653a50  noul=0.042  skip       gm
+0be17f5ebe0a  How does the man in the moon get his hair cut? Eclipse i…  (2.1s)
+    insight 0.10 | humor 0.90 | relatable 0.19 | promotional 0.03
+    substance 2 (An ordinary observation) | kind humor 0.81
+    => RECOMMEND on humor (appeal 0.90)
 ...
 
-2 of 6 posts recommended, 173 input tokens
+timeline: 2 of 5 posts
+  1. 0be17f5ebe0a  0.90 humor      How does the man in the moon get his hair cut?…
 ```
+
+### サンプル
+
+| ファイル | 中身 |
+| --- | --- |
+| `testdata/posts.json` | **実際の Nostr の投稿**（そのまま）。既定で使われる |
+| `testdata/synthetic.json` | 手で書いたサンプル。実データのほうに無いスパムが入っている |
 
 ## 動作確認は CI で行う
 
@@ -72,12 +102,31 @@ Cloud Run のサービスと違い、このワークフローは main 以外の�
 ## 構成
 
 ```
-main.go              CLI。投稿を読み、1 件ずつ質問し、結果を表示する
-internal/jev/        System One API のクライアント。型定義と POST だけ
-testdata/posts.json  サンプルの Nostr イベント（中身のある投稿と雑音を混ぜてある）
+main.go               CLI。投稿を読み、質問し、結果を並べる
+internal/jev/         System One API のクライアント。型定義と POST だけ
+internal/recommend/   「何を聞くか」と「どう合成するか」。API 本体でもこれを使う
+testdata/             サンプルの Nostr イベント
 ```
 
-`Answer` の数値フィールドがポインタなのは、**0 が意味のある答えだから**です。
+### 設計メモ
+
+**Jev に聞くのは「その投稿が何であるか」だけ**で、「それをどう扱うか」は Go 側の
+ポリシーです（`recommend.Policy`）。しきい値を動かすのに API を呼び直す必要はなく、
+判断の根拠がテストできる場所に残ります。
+
+**`Appeal` は3つの肯定シグナルの最大値で、平均ではありません。**
+良いダジャレは出来の悪い論説ではないからです。`humor 0.92 / insight 0.05 /
+relatable 0.10` の投稿は平均 0.36 で埋もれますが、最大値なら 0.92 で通ります。
+読む理由がひとつでもあれば、それは読む理由です。
+
+**宣伝は減点ではなく拒否**です。よく書けた広告は、やはり広告です。
+
+**`substance`（score）はまだ判定に使っていません。** API のドキュメントは score が
+ルーブリックの何番目かを返すと書いていますが、0 始まりか 1 始まりかを書いていません。
+取り違えるとしきい値が静かにずれるので、今は**順序しか意味を持たないランキングの
+タイブレーク**にだけ使っています。実際の応答を見てから判定に組み込みます。
+
+**`Answer` の数値フィールドがポインタなのは、0 が意味のある答えだから**です。
 `noul` の 0 は「いいえ」であって、サーバが値を返さなかったことと同じではありません。
 
 ## 課金とレート制限
@@ -88,8 +137,12 @@ testdata/posts.json  サンプルの Nostr イベント（中身のある投稿�
 
 ## 次のステップ
 
-1. ~~CLI で往復を確認する~~ ← 今ここ
-2. 質問と `criteria` を設計してリコメンド判定の精度を見る
+1. ~~CLI で往復を確認する~~
+2. ~~質問と `criteria` を設計して合成スコアにする~~ ← 今ここ
 3. Nostr 側のダミーサーバ（投稿 ID を返す HTTP サーバ）を作る
 4. おすすめタイムライン API 本体：取得 → Jev でフィルタ → ID を返す
 5. `confidence` によるルーティング、並列化、キャッシュ
+
+Step 4 では**並列化が必須**です。1リクエスト約 2 秒なので、100 件を逐次で回すと
+3 分以上かかります。レート制限は 1,200 req/分 = 20 req/秒で、トークン制限
+（250k/秒）にはまったく届かないため、**効くのはリクエスト数のほう**です。
