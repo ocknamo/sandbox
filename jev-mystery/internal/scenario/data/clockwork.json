@@ -1,0 +1,346 @@
+{
+  "id": "clockwork",
+  "title": "止まった柱時計",
+  "byline": "エンジン確認用のプレースホルダ事件",
+  "opening": [
+    "十月の雨が、曽根家の別荘を一日じゅう叩いていた。",
+    "出版社の社長・曽根康三に呼ばれたあなたは、日が暮れてから玄関にたどり着いた。迎えたのは秘書の倉田静ひとりで、主人は書斎にこもったきりだという。",
+    "客は他に二人。夫人の曽根玲子と、この家に長く出入りしている作家の南条悟。夕食の席で三人が交わした言葉は、数えるほどしかなかった。"
+  ],
+  "incident": [
+    "午後十時。書斎の扉を叩いても返事がない。",
+    "扉を破ると、曽根康三は机に突っ伏して息をしていなかった。窓は内側から留め金が下りていて、扉にはかんぬきが渡されたままだった。",
+    "「九時に伺ったときは、たしかにお元気でした」と倉田が言う。玄関ホールの柱時計が、十時を打った。"
+  ],
+  "start_scene": "hall",
+
+  "scenes": [
+    {
+      "id": "hall",
+      "name": "玄関ホール",
+      "description": [
+        "雨音がよく響く。吹き抜けの壁際に、背の高い柱時計が立っている。",
+        "倉田静と曽根玲子が、離れた椅子に座っている。"
+      ],
+      "characters": ["kurata", "reiko"]
+    },
+    {
+      "id": "study",
+      "name": "書斎",
+      "description": [
+        "破られた扉の向こう。机の上には書きかけの原稿と、空のグラスがひとつ。",
+        "窓は庭に面していて、留め金は下りたままだ。"
+      ],
+      "characters": []
+    },
+    {
+      "id": "terrace",
+      "name": "テラス",
+      "description": [
+        "書斎の窓の外。庇があるので、雨に濡れずに立っていられる。",
+        "南条悟が煙草をふかしている。"
+      ],
+      "characters": ["nanjo"]
+    }
+  ],
+
+  "characters": [
+    { "id": "kurata", "name": "倉田 静", "role": "被害者の秘書", "avatar": "🗂" },
+    { "id": "reiko", "name": "曽根 玲子", "role": "被害者の妻", "avatar": "🕯" },
+    { "id": "nanjo", "name": "南条 悟", "role": "作家", "avatar": "🚬" },
+    { "id": "sone", "name": "曽根 康三", "role": "この家の主人", "avatar": "🗝" }
+  ],
+
+  "evidence": [
+    { "id": "ledger", "name": "帳簿の写し", "description": "机の引き出しの底。社の金の流れに、説明のつかない欠けが三年分ある。" },
+    { "id": "thread", "name": "窓枠の釣り糸", "description": "書斎の窓枠に、切れた釣り糸がわずかに残っていた。外へ向かって張られていた跡。" },
+    { "id": "clock", "name": "進んだ柱時計", "description": "玄関ホールの柱時計は、正しい時刻より一時間進んでいる。錘の位置が動かされた跡がある。" }
+  ],
+
+  "actions": [
+    {
+      "id": "look",
+      "match": {
+        "what": "Look around the room the player is standing in; take in the surroundings again.",
+        "not_for": "Examining one particular object or person.",
+        "examples": ["あたりを見回す", "部屋を見る", "周囲を確認する"]
+      },
+      "did": "あたりを見回した。",
+      "result": ["もう一度、ゆっくりと目を走らせる。"]
+    },
+    {
+      "id": "go_hall",
+      "scenes": ["study", "terrace"],
+      "match": {
+        "what": "Go to the entrance hall, where the tall clock stands.",
+        "not_for": "Going to the study or out to the terrace.",
+        "examples": ["玄関ホールに戻る", "ホールへ行く", "みんなのところへ戻る"]
+      },
+      "did": "玄関ホールへ戻った。",
+      "result": ["廊下を戻ると、雨音がまた大きくなった。"],
+      "moves_to": "hall"
+    },
+    {
+      "id": "go_study",
+      "scenes": ["hall", "terrace"],
+      "match": {
+        "what": "Go into the study, the room where the body was found.",
+        "not_for": "Going to the hall or the terrace.",
+        "examples": ["書斎へ行く", "現場に入る", "遺体のある部屋に向かう"]
+      },
+      "did": "書斎に入った。",
+      "result": ["破れた扉をくぐる。まだ誰も何も片づけていない。"],
+      "moves_to": "study"
+    },
+    {
+      "id": "go_terrace",
+      "scenes": ["hall", "study"],
+      "match": {
+        "what": "Go outside to the terrace under the eaves, beneath the study window.",
+        "not_for": "Going to the hall or into the study.",
+        "examples": ["テラスに出る", "庭に出る", "外を見に行く"]
+      },
+      "did": "テラスに出た。",
+      "result": ["湿った空気と、煙草のにおい。"],
+      "moves_to": "terrace"
+    },
+    {
+      "id": "examine_body",
+      "scenes": ["study"],
+      "match": {
+        "what": "Examine the dead man himself: the body, his posture, what he is wearing or holding.",
+        "not_for": "Examining the desk, the window or anything else in the room.",
+        "examples": ["遺体を調べる", "死体を見る", "被害者の様子を確かめる"]
+      },
+      "did": "遺体を調べた。",
+      "result": [
+        "後頭部に一撃。凶器は見当たらない。",
+        "腕時計は止まっていない。指しているのは、いま八時二十分。"
+      ],
+      "repeat": ["もう一度確かめても、腕時計と柱時計のずれはそのままだ。"],
+      "sets_flags": ["saw_body"]
+    },
+    {
+      "id": "examine_desk",
+      "scenes": ["study"],
+      "match": {
+        "what": "Examine the desk: its drawers, the papers on it, the glass.",
+        "not_for": "Examining the body or the window.",
+        "examples": ["机を調べる", "引き出しを開ける", "原稿を読む"]
+      },
+      "did": "机を調べた。",
+      "result": [
+        "引き出しは鍵がかかっていない。いちばん下の底に、薄い綴じ込みが挟まっていた。",
+        "社の金の出入りを、誰かが手で書き写したものらしい。"
+      ],
+      "repeat": ["引き出しには、もう目を引くものはない。"],
+      "gives_evidence": ["ledger"]
+    },
+    {
+      "id": "examine_window",
+      "scenes": ["study"],
+      "match": {
+        "what": "Examine the study window and its latch.",
+        "not_for": "Examining the body, the desk, or the door.",
+        "examples": ["窓を調べる", "留め金を確かめる", "窓枠を見る"]
+      },
+      "did": "窓を調べた。",
+      "result": [
+        "留め金は下りている。が、枠の木にごく浅い擦り傷があり、そこに切れた釣り糸が数センチ残っていた。",
+        "糸は外へ、テラスのほうへ向かって張られていたように見える。"
+      ],
+      "repeat": ["釣り糸の跡は、何度見ても外へ向かっている。"],
+      "gives_evidence": ["thread"]
+    },
+    {
+      "id": "examine_clock",
+      "scenes": ["hall"],
+      "match": {
+        "what": "Examine the tall clock in the hall: its face, its weights, whether it keeps time.",
+        "not_for": "Asking a person what time something happened.",
+        "examples": ["柱時計を調べる", "時計を確かめる", "時計の裏を見る"]
+      },
+      "did": "柱時計を調べた。",
+      "result": [
+        "扉を開けると、錘の吊り位置が変えられた跡がある。",
+        "自分の時計と見比べる。柱時計は、きっかり一時間進んでいた。"
+      ],
+      "repeat": ["柱時計は、やはり一時間進んでいる。"],
+      "gives_evidence": ["clock"]
+    },
+    {
+      "id": "ask_kurata_evening",
+      "scenes": ["hall"],
+      "speaker": "kurata",
+      "match": {
+        "what": "Ask the secretary Kurata about her evening: where she was, what she did, when she last saw her employer.",
+        "not_for": "Asking her about the ledger or about the clock.",
+        "examples": ["倉田さんに今夜のことを聞く", "彼女のアリバイを尋ねる", "最後に会ったのはいつか聞く"]
+      },
+      "did": "倉田静に、今夜の行動を尋ねた。",
+      "result": [
+        "「九時に、お茶をお持ちしました。扉越しに、下がっていいと」",
+        "「時刻はそこの柱時計で見ています。この家はいつもあれですから」"
+      ]
+    },
+    {
+      "id": "ask_kurata_ledger",
+      "scenes": ["hall"],
+      "speaker": "kurata",
+      "requires": { "evidence": ["ledger"] },
+      "match": {
+        "what": "Confront the secretary Kurata with the ledger found in the desk.",
+        "not_for": "Asking her about her evening in general, or about the clock.",
+        "examples": ["帳簿について倉田さんに聞く", "帳簿を見せて問い詰める", "金の流れを問う"]
+      },
+      "did": "倉田静に帳簿の写しを見せた。",
+      "result": [
+        "はじめて、彼女の指が動いた。",
+        "「……社長は、私を疑っておられました。今週、調べを外の方に頼むと」"
+      ],
+      "sets_flags": ["kurata_pressed"]
+    },
+    {
+      "id": "ask_reiko_sound",
+      "scenes": ["hall"],
+      "speaker": "reiko",
+      "match": {
+        "what": "Ask the widow Reiko what she heard or noticed during the evening.",
+        "not_for": "Asking the secretary or the writer anything.",
+        "examples": ["玲子さんに物音を聞かなかったか尋ねる", "奥さんに話を聞く", "何か聞こえなかったか聞く"]
+      },
+      "did": "曽根玲子に、聞こえたものを尋ねた。",
+      "result": [
+        "「八時を少し回ったころ、何か落ちるような音がしました」",
+        "「でも倉田さんが九時にお会いしているのでしょう。なら、私の聞き違いね」"
+      ]
+    },
+    {
+      "id": "ask_nanjo_terrace",
+      "scenes": ["terrace"],
+      "speaker": "nanjo",
+      "match": {
+        "what": "Ask the writer Nanjo what he saw or did out here on the terrace.",
+        "not_for": "Asking the secretary or the widow anything.",
+        "examples": ["南条さんに話を聞く", "テラスで何を見たか尋ねる", "作家に事情を聞く"]
+      },
+      "did": "南条悟に、テラスでの時間を尋ねた。",
+      "result": [
+        "「八時前からここだ。雨の音がいい」",
+        "「窓は……そうだな、一度だけ、内側で何かが鳴った。錠が落ちる音に似ていたな」"
+      ],
+      "sets_flags": ["heard_latch"]
+    }
+  ],
+
+  "misses": {
+    "default": ["何も起こらない。"],
+    "move": ["そちらへ向かう道は、いまは思いつかない。"],
+    "search": ["目を走らせたが、取り立てて見るべきものはない。"],
+    "ask": ["言葉は宙に浮いたまま、答えは返ってこない。"],
+    "talk": ["相手は曖昧にうなずいただけだった。"],
+    "meta": ["誰も指示はくれない。見て、聞いて、自分で決めるしかない。"],
+    "nonsense": ["……いまは、そんな場合ではない。"],
+    "declare": ["まだ早い。名指しするには、手の中のものが足りない。"]
+  },
+
+  "finale": {
+    "requires_evidence": ["clock", "thread", "ledger"],
+    "label": "全員を広間に集める",
+    "match": {
+      "what": "Gather everyone together to announce the solution and name the killer.",
+      "not_for": "Asking one person a question, or accusing someone in passing during a conversation.",
+      "examples": ["全員を広間に集める", "みんなを集めて真相を話す", "推理を披露する"]
+    },
+    "prompt": [
+      "三人が広間に集まった。雨はまだ止まない。",
+      "あなたの見立てを、言葉にしてください。誰が、どうやって、なぜ。"
+    ],
+    "truth": [
+      "犯人は秘書の倉田静。",
+      "殺害は午後八時すぎ。玲子が聞いた「落ちるような音」がそれにあたる。",
+      "倉田は事前に玄関ホールの柱時計を一時間進めておいた。家人は時刻をこの柱時計で見るため、全員の証言が一時間ずれた。倉田の言う『九時にお茶を運んだ』は、実際には八時前のことであり、そのとき曽根はまだ生きていた。",
+      "書斎は密室ではない。倉田は窓の留め金に釣り糸を結び、窓を閉めてからテラス側で糸を引いて内側の留め金を落とし、糸を切って回収した。窓枠に残った釣り糸と、南条が聞いた『内側で錠が落ちる音』がその痕跡である。",
+      "動機は横領。机の引き出しにあった帳簿の写しのとおり、倉田は三年にわたり社の金を抜いており、曽根は外部に調査を依頼する直前だった。"
+    ],
+    "suspects": ["kurata", "reiko", "nanjo"],
+    "culprit": "kurata",
+    "points": [
+      {
+        "id": "clock",
+        "label": "柱時計のずれ",
+        "question": "Does the detective's statement say that the hall clock had been put forward, and that this is why everyone believed the death happened later than it did? It counts however it is worded, as long as the tampered clock is what made the time of death wrong."
+      },
+      {
+        "id": "window",
+        "label": "窓の細工",
+        "question": "Does the detective's statement explain that the study was not really sealed, because the window latch was pulled down from outside with a thread or line and the thread then removed? It counts however it is worded, as long as the latch is dropped from outside rather than by a key, an accomplice or a hidden passage."
+      },
+      {
+        "id": "motive",
+        "label": "横領という動機",
+        "question": "Does the detective's statement give the motive as the killer stealing from the company and being about to be found out? It counts however it is worded, as long as money taken from the firm and the coming investigation are the reason for the killing."
+      }
+    ],
+    "coherence_levels": [
+      "名指しがあるだけで、理由らしい理由がない。",
+      "理由はあるが、事件の出来事とほとんど噛み合っていない。",
+      "筋は通るが、要になるところが抜けている。",
+      "出来事の大半を説明できていて、順序もつながっている。",
+      "隙なく組み上がっていて、どの部分も次の部分を支えている。"
+    ],
+    "endings": [
+      {
+        "id": "true",
+        "require_culprit": true,
+        "min_points": 3,
+        "min_coherence": 2.5,
+        "title": "真相",
+        "text": [
+          "倉田静は、最後まで姿勢を崩さなかった。ただ、柱時計の話になったところで、一度だけ目を閉じた。",
+          "「……あの時計は、この家で誰も疑いません。二十年、そうしてきたのですから」",
+          "雨が上がる。窓の外で、釣り糸の切れ端がまだ光っていた。"
+        ]
+      },
+      {
+        "id": "close",
+        "require_culprit": true,
+        "min_points": 2,
+        "title": "届いた手",
+        "text": [
+          "倉田静は長く黙り、それから小さくうなずいた。",
+          "「そこまでお分かりでしたら、あとは申し上げます」",
+          "届かなかった筋道は、彼女の口から語られることになった。"
+        ]
+      },
+      {
+        "id": "named",
+        "require_culprit": true,
+        "title": "名指し",
+        "text": [
+          "倉田静は、あなたをまっすぐ見返した。",
+          "「なぜ私なのか、説明していただけますか」",
+          "答えに詰まったあなたの言葉は、雨音に紛れて消えた。"
+        ]
+      },
+      {
+        "id": "sharp",
+        "min_points": 2,
+        "title": "仕掛けだけが残った",
+        "text": [
+          "時計も、窓の細工も、あなたの言うとおりだった。",
+          "ただ、あなたが名を呼んだ相手は、それを行うことのできない場所にいた。",
+          "倉田静は、静かに紅茶を注ぎ足した。"
+        ]
+      },
+      {
+        "id": "fail",
+        "title": "迷宮",
+        "text": [
+          "三人は顔を見合わせ、やがて一人ずつ広間を出ていった。",
+          "柱時計が時を打つ。それが正しい時刻かどうか、もう誰も気にしていなかった。"
+        ]
+      }
+    ]
+  }
+}

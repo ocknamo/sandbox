@@ -1,0 +1,19 @@
+# One run through the case, in the words a player might actually type.
+# Each line is "input<TAB>the action it should land on"; `none` means the
+# input is meant to match nothing. The tally at the end of a run is the
+# number that decides whether this game works at all.
+柱時計をよく見てみる	examine_clock
+倉田さんに今夜どこにいたのか聞きたい	ask_kurata_evening
+奥さんは何か物音を聞いていないだろうか	ask_reiko_sound
+書斎に入る	go_study
+遺体の様子を確かめる	examine_body
+机の引き出しを開けてみる	examine_desk
+窓の留め金を確かめたい	examine_window
+外のテラスに出る	go_terrace
+南条に話を聞く	ask_nanjo_terrace
+ホールへ戻る	go_hall
+帳簿のことで倉田さんを問い詰める	ask_kurata_ledger
+屋根によじ登る	none
+今日の天気の話をする	none
+どうすればいいか教えてほしい	none
+全員を広間に集めて推理を話す	finale

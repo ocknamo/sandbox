@@ -1,0 +1,35 @@
+name: Deploy jev-mystery
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'jev-mystery/**'
+      - '.github/workflows/deploy-jev-mystery.yml'
+      - '.github/workflows/deploy-service.yml'
+  workflow_dispatch:
+
+# Required for Workload Identity Federation: the job mints a GitHub OIDC token
+# that Google exchanges for short-lived credentials. No service account key.
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy-service.yml
+    with:
+      service: jev-mystery-api
+      directory: jev-mystery
+    secrets:
+      # TYPESAFE_API_KEY: the service refuses to start without it, so a missing
+      # secret shows up as a revision that never becomes healthy rather than as
+      # an API that 500s on every request.
+      #
+      # GAME_SECRET signs the game states that travel to the browser and back.
+      # Without it each instance signs with a key of its own, and a player's
+      # game stops working the moment Cloud Run starts a second one. It must
+      # not contain "@", which the deploy workflow uses as its delimiter.
+      env_vars: |
+        TYPESAFE_API_KEY=${{ secrets.TYPESAFE_API_KEY }}
+        GAME_SECRET=${{ secrets.GAME_SECRET }}
