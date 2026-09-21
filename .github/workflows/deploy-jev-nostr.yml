@@ -1,0 +1,28 @@
+name: Deploy jev-nostr
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'jev-nostr/**'
+      - '.github/workflows/deploy-jev-nostr.yml'
+      - '.github/workflows/deploy-service.yml'
+  workflow_dispatch:
+
+# Required for Workload Identity Federation: the job mints a GitHub OIDC token
+# that Google exchanges for short-lived credentials. No service account key.
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy-service.yml
+    with:
+      service: jev-nostr-api
+      directory: jev-nostr
+    secrets:
+      # The service refuses to start without this, so a missing secret shows
+      # up as a revision that never becomes healthy rather than as an API that
+      # 500s on every request.
+      env_vars: TYPESAFE_API_KEY=${{ secrets.TYPESAFE_API_KEY }}

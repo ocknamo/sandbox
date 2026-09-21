@@ -11,11 +11,14 @@ Cloud Run に対して行われます（サービスアカウントキーは不�
 | [`go-cloudrun-app`](go-cloudrun-app) | `go-cloudrun-app` | 最小構成の JSON HTTP サービス |
 | [`go-cloudrun-echo`](go-cloudrun-echo) | `go-cloudrun-echo` | リクエストを JSON でそのまま返すサービス |
 | [`go-cloudrun-bird`](go-cloudrun-bird) | `go-cloudrun-bird` | ランダムな鳥の画像を返す API（画像は Wikimedia Commons） |
+| [`jev-nostr`](jev-nostr) | `jev-nostr-api` | Nostr の投稿を TypeSafe の Jev で判定するスコアリング API |
 
 ### ワークフローの構成
 
 `.github/workflows/deploy-service.yml` にデプロイパイプライン全体を一箇所にまとめて
-あります。テスト、ビルド、プッシュ、デプロイを行い、その後デプロイ先 URL の
+あります。サービスに環境変数が要る場合は、呼び出し側から `env_vars` シークレットに
+`KEY=VALUE` を 1 行ずつ渡します（[`deploy-jev-nostr.yml`](.github/workflows/deploy-jev-nostr.yml)
+が例です）。テスト、ビルド、プッシュ、デプロイを行い、その後デプロイ先 URL の
 `/health` をポーリングして 200 が返らなければ失敗させます。各サービスは、その
 サービス名とディレクトリを渡すだけの薄い呼び出し用ワークフロー
 （`deploy-<service>.yml`）を追加し、`paths` トリガーを自分のファイルだけに絞って
@@ -90,9 +93,13 @@ GCP 側の作業は不要です。デプロイ用サービスアカウントは�
 
 ## GitHub Pages
 
-https://ocknamo.github.io/sandbox/ — `go-cloudrun-bird` のフロントエンド
-（[`docs/index.html`](docs/index.html)）。詳細は
-[`go-cloudrun-bird/README.md`](go-cloudrun-bird/README.md#フロントエンド)。
+- https://ocknamo.github.io/sandbox/ — `go-cloudrun-bird` のフロントエンド
+  （[`docs/index.html`](docs/index.html)）。詳細は
+  [`go-cloudrun-bird/README.md`](go-cloudrun-bird/README.md#フロントエンド)。
+- https://ocknamo.github.io/sandbox/jev.html — Nostr の「おすすめタイムライン」
+  （[`docs/jev.html`](docs/jev.html)）。リレーから流れてくる投稿を Jev に判定させ、
+  しきい値をブラウザ側で適用します。詳細は
+  [`jev-nostr/README.md`](jev-nostr/README.md)。
 
 ## その他
 

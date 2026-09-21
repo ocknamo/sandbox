@@ -1,0 +1,123 @@
+name: jev-nostr CI
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'jev-nostr/**'
+      - '.github/workflows/jev-nostr-ci.yml'
+  # Unlike the Cloud Run services this runs on every branch, not just main.
+  # The live call is the only way to exercise the real API from this repo, and
+  # workflow_dispatch is unavailable until the file reaches the default branch.
+  push:
+    paths:
+      - 'jev-nostr/**'
+      - '.github/workflows/jev-nostr-ci.yml'
+
+jobs:
+  test:
+    name: Build and test
+    runs-on: ubuntu-latest
+    # Runs in well under a minute; nothing here touches the network.
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: jev-nostr
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version: '1.24'
+          cache: false
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: gofmt check
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "These files are not gofmt'd:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: go test
+        run: go test -race ./...
+
+  live:
+    name: Live Jev call
+    needs: test
+    runs-on: ubuntu-latest
+    # A handful of sequential requests against an external API.
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: jev-nostr
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version: '1.24'
+          cache: false
+
+      # The secrets context is not available in a job-level or step-level `if`,
+      # so whether the key exists has to become a step output first. A missing
+      # key skips the call rather than failing: forks and pull requests from
+      # them never receive secrets.
+      - name: Look for the API key
+        id: key
+        env:
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+        run: |
+          if [ -n "$TYPESAFE_API_KEY" ]; then
+            echo 'present=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'present=false' >> "$GITHUB_OUTPUT"
+            {
+              echo '### Live Jev call skipped'
+              echo
+              echo 'The `TYPESAFE_API_KEY` secret is not set for this repository.'
+              echo 'Add it under Settings → Secrets and variables → Actions.'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # Two fixtures. The real posts are what the timeline has to get right;
+      # the synthetic ones carry the spam the real sample happens not to
+      # contain, which is the only way to see the promotional veto fire
+      # against real answers rather than against a test double.
+      - name: Send the real posts to Jev
+        if: steps.key.outputs.present == 'true'
+        env:
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+        run: |
+          set -o pipefail
+          go run ./cmd/cli -posts testdata/posts.json -raw 2>&1 | tee "$RUNNER_TEMP/jev.log"
+
+      - name: Send the synthetic posts to Jev
+        if: steps.key.outputs.present == 'true'
+        env:
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+        run: |
+          set -o pipefail
+          go run ./cmd/cli -posts testdata/synthetic.json 2>&1 | tee "$RUNNER_TEMP/jev-synthetic.log"
+
+      # Runs even when the call failed, so an auth or validation error lands in
+      # the run summary instead of only in the step log.
+      - name: Publish the response
+        if: always() && steps.key.outputs.present == 'true'
+        run: |
+          {
+            echo '### Real posts'
+            echo
+            echo '```text'
+            cat "$RUNNER_TEMP/jev.log" 2>/dev/null || echo '(no output captured)'
+            echo '```'
+            echo '### Synthetic posts'
+            echo
+            echo '```text'
+            cat "$RUNNER_TEMP/jev-synthetic.log" 2>/dev/null || echo '(no output captured)'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
