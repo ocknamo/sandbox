@@ -225,7 +225,7 @@ const BATCH_SIZE = 8;
 const BATCH_WAIT_MS = 4000;
 
 // How many stored posts to ask the relay for on connecting.
-const RELAY_LIMIT = 500;
+const RELAY_LIMIT = 100;
 
 // How many scored posts to keep. A relay replay can hand over far more than a
 // page can usefully show, and each one holds its own distributions.
@@ -947,9 +947,10 @@ function start() {
   socket.addEventListener('open', () => {
     setStatus('connected', [host]);
     // NIP-01: kinds:[1] is a plain text note. The limit is what a relay
-    // replays from its store before it starts streaming live ones. It is high
-    // because a narrow filter needs a lot of posts to find a few matches, and
-    // every one of them is a paid request: a full replay is roughly 500 calls.
+    // replays from its store before it starts streaming live ones. A narrow
+    // filter wants a lot of posts to match against, but every one of them is
+    // a paid request, so the replay is kept to a size worth spending: this is
+    // ~100 calls per connect, and the live stream keeps adding after it.
     socket.send(JSON.stringify(['REQ', 'timeline', { kinds: [1], limit: RELAY_LIMIT }]));
   });
   socket.addEventListener('message', (msg) => {
