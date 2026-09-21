@@ -162,13 +162,13 @@ func TestRankPutsStrongestAppealFirstAndBreaksTiesOnSubstance(t *testing.T) {
 
 func TestQuestionsCoverEveryKeyEvaluateReads(t *testing.T) {
 	q := Questions()
-	for _, key := range []string{KeyInsight, KeyHumor, KeyRelatable, KeyPromotional, KeySubstance, KeyKind, KeyLanguage} {
+	for _, key := range []string{KeyInsight, KeyHumor, KeyRelatable, KeyPromotional, KeySubstance, KeyKind, KeyLanguage, KeyTopic} {
 		if _, ok := q[key]; !ok {
 			t.Errorf("Questions() has no %q", key)
 		}
 	}
-	if len(q) != 7 {
-		t.Errorf("Questions() has %d entries, want 7", len(q))
+	if len(q) != 8 {
+		t.Errorf("Questions() has %d entries, want 8", len(q))
 	}
 
 	// The API requires criteria for a choice and a score, and accepts between
@@ -271,5 +271,82 @@ func TestLanguageOptionsAreNamedAndDistinct(t *testing.T) {
 	// would have to call it something.
 	if options["none"] == "" {
 		t.Error("language has no option for a post with no language in it")
+	}
+}
+
+func TestTopicCarriesTheWholeDistribution(t *testing.T) {
+	a := answers(0.9, 0.1, 0.2, 0.0)
+	// A post about writing software to analyse sport: neither subject wins
+	// outright, which is the case the distribution exists to survive.
+	a[KeyTopic] = jev.Answer{
+		Type:          jev.TypeChoice,
+		Choice:        "tech",
+		Probabilities: map[string]float64{"tech": 0.45, "sports": 0.40, "science": 0.08, "other": 0.07},
+		Confidence:    ptr(0.45),
+	}
+
+	v := evaluate(t, a)
+
+	if v.Topic != "tech" {
+		t.Errorf("topic = %q, want tech", v.Topic)
+	}
+	if got := v.TopicScores["sports"]; got != 0.40 {
+		t.Errorf("topic scores[sports] = %v, want 0.40", got)
+	}
+	if v.TopicConfidence != 0.45 {
+		t.Errorf("topic confidence = %v, want 0.45", v.TopicConfidence)
+	}
+
+	// Neither subject clears a half on its own; a reader interested in both
+	// adds them, which only works if every entry survives.
+	var interest float64
+	for _, key := range []string{"tech", "sports"} {
+		interest += v.TopicScores[key]
+	}
+	if interest < 0.8 {
+		t.Errorf("tech+sports = %v, want the two to add up to 0.85", interest)
+	}
+
+	// Which subjects a reader wants is not the post's business.
+	if !v.Recommend {
+		t.Error("a strong post was rejected once a topic came back")
+	}
+}
+
+func TestTopicIsOptional(t *testing.T) {
+	v := evaluate(t, answers(0.9, 0.1, 0.2, 0.0))
+	if v.Topic != "" || v.TopicScores != nil {
+		t.Errorf("topic = %q %v, want it absent", v.Topic, v.TopicScores)
+	}
+	if !v.Recommend {
+		t.Error("a strong post was rejected when no topic came back")
+	}
+}
+
+func TestTopicOptionsAreUsableAsARubric(t *testing.T) {
+	options, ok := Questions()[KeyTopic].Criteria.(map[string]jev.Option)
+	if !ok {
+		t.Fatalf("topic criteria = %T, want map[string]jev.Option", Questions()[KeyTopic].Criteria)
+	}
+	// Well under the 255 the API allows, and the docs ask for the full list
+	// rather than a shortlist, so a flat list is right at this size.
+	if len(options) < 10 || len(options) > 40 {
+		t.Errorf("topic has %d options, want a flat list of roughly this size", len(options))
+	}
+	for key, opt := range options {
+		if opt.What == "" {
+			t.Errorf("topic option %q says nothing about what it covers", key)
+		}
+	}
+	// A fallback, so the model can say none of the others fit.
+	if options["other"].What == "" {
+		t.Error("topic has no fallback option")
+	}
+	// The options most likely to swallow one another have to say what they
+	// exclude, or "tech" absorbs both of the others.
+	for _, key := range []string{"tech", "bitcoin", "nostr"} {
+		if options[key].NotFor == "" {
+			t.Errorf("topic option %q does not say what it excludes", key)
+		}
 	}
 }

@@ -68,6 +68,21 @@ func Choice(instructions string, options map[string]string) Question {
 	return Question{Type: TypeChoice, Instructions: instructions, Criteria: options}
 }
 
+// Option describes a choice option in more detail than a sentence can. The API
+// accepts either form; this one earns its keep when options are easy to
+// confuse with one another, where saying what an option is NOT for separates
+// them better than any amount of saying what it is.
+type Option struct {
+	What     string   `json:"what"`
+	NotFor   string   `json:"not_for,omitempty"`
+	Examples []string `json:"examples,omitempty"`
+}
+
+// ChoiceOptions is Choice with structured descriptions.
+func ChoiceOptions(instructions string, options map[string]Option) Question {
+	return Question{Type: TypeChoice, Instructions: instructions, Criteria: options}
+}
+
 // Score builds a question answered with a level on a rubric. The levels are
 // ordered from lowest to highest and the API accepts between 2 and 10 of them.
 func Score(instructions string, levels []string) Question {

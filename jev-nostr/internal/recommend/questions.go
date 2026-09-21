@@ -20,6 +20,7 @@ const (
 	KeySubstance   = "substance"
 	KeyKind        = "kind"
 	KeyLanguage    = "language"
+	KeyTopic       = "topic"
 )
 
 // substanceLevels is the rubric behind KeySubstance, ordered from least to
@@ -70,6 +71,77 @@ var languageOptions = map[string]string{
 	"other": "A language not listed among the options.",
 }
 
+// topicOptions is the rubric behind KeyTopic: what a post is about, as opposed
+// to kindOptions, which is what a post is.
+//
+// Read as a distribution rather than a winner. A choice sums to 1, so a post
+// about two of these splits its weight between them and clears no single
+// threshold; a reader interested in both adds the two together and gets the
+// honest answer, which is what the page does. That is also why the list is
+// flat: 22 options is nowhere near the 255 the API allows, and the docs ask
+// for the full list rather than a shortlist. Hierarchies are for taxonomies of
+// thousands.
+//
+// NotFor is here for the options that would otherwise bleed into one another.
+// Saying what an option excludes separates a confusable pair better than any
+// amount of saying what it covers.
+var topicOptions = map[string]jev.Option{
+	"tech": {
+		What:   "Software, hardware, engineering practice, AI, the internet.",
+		NotFor: "Bitcoin and Nostr, which have options of their own.",
+	},
+	// Split out of tech because Nostr carries a lot of both, and "I want the
+	// engineering but not the coins" is a real thing to want.
+	"bitcoin": {
+		What:     "Bitcoin, Lightning, other crypto assets, mining, wallets, exchanges.",
+		NotFor:   "Software engineering in general, or the Nostr protocol.",
+		Examples: []string{"Lightning のルーティング手数料が下がってきた"},
+	},
+	"nostr": {
+		What:     "The Nostr protocol, its NIPs, relays and clients, decentralised social media.",
+		NotFor:   "Software engineering in general, or Bitcoin.",
+		Examples: []string{"NIP-01 の REQ フィルタは filter 間が OR で filter 内が AND"},
+	},
+	"science": {
+		What:   "Physics, chemistry, biology, astronomy, mathematics, research and its findings.",
+		NotFor: "Everyday encounters with nature or animals, and medicine.",
+	},
+	"health":     {What: "Health, illness, medicine, fitness, sleep, mental health."},
+	"politics":   {What: "Politics, government, law, war, rights, social issues and activism."},
+	"business":   {What: "The economy, markets, companies, money and personal finance."},
+	"religion":   {What: "Religion, faith, scripture, ritual, spirituality."},
+	"philosophy": {What: "Philosophy, ethics, ideas about how to think or live."},
+	"sports":     {What: "Sport, athletes, matches, results, training."},
+	"games":      {What: "Video games, board games, puzzles, tabletop play."},
+	"anime":      {What: "Anime, manga, and the fandom around them."},
+	"music":      {What: "Music, songs, instruments, concerts, artists."},
+	"film":       {What: "Films, television, drama, video."},
+	"books":      {What: "Books, reading, literature, and the writing of them."},
+	"art": {
+		What:   "Art, illustration, design, craft, and making any of them.",
+		NotFor: "Photography and anime, which have options of their own.",
+	},
+	"photo": {
+		What:   "Photography: taking pictures, cameras, a picture being shown.",
+		NotFor: "Drawn or designed images.",
+	},
+	"food":   {What: "Food, cooking, restaurants, drink."},
+	"travel": {What: "Travel, places, transport, a town or a country as a subject."},
+	"nature": {
+		What:     "The natural world as encountered: weather, seasons, plants, animals, scenery.",
+		NotFor:   "Scientific research about them.",
+		Examples: []string{"今日の空がきれい", "近所の猫がこっちを見ている"},
+	},
+	// Without this, a post about getting through the week has nowhere to go
+	// and lands on philosophy or business instead.
+	"life": {
+		What:     "Everyday life: work, study, family, friends, feelings, the day someone is having.",
+		Examples: []string{"働いてて趣味で創作もしてますみたいなひと本当にどうなってるの"},
+	},
+	// The docs ask for a fallback so the model can say none of the others fit.
+	"other": {What: "Something none of the other options covers."},
+}
+
 // Questions is the whole set, put to the model in a single request.
 //
 // Asking six questions instead of one is close to free. Roughly 300 of the
@@ -118,6 +190,11 @@ func Questions() map[string]jev.Question {
 		KeyLanguage: jev.Choice(
 			"What language is this post written in?",
 			languageOptions,
+		),
+
+		KeyTopic: jev.ChoiceOptions(
+			"What is this post about?",
+			topicOptions,
 		),
 	}
 }

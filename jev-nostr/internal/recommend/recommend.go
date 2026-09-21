@@ -56,6 +56,16 @@ type Verdict struct {
 	Language       string
 	LanguageScores map[string]float64
 
+	// Topic is the subject the model settled on, and TopicScores the whole
+	// distribution behind it. A choice sums to 1, so a post spanning two
+	// subjects clears neither on its own; a reader interested in both adds
+	// their scores, which is why the distribution has to survive intact.
+	// TopicConfidence falls when the weight is spread, which is itself the
+	// signal that a post straddles subjects.
+	Topic           string
+	TopicScores     map[string]float64
+	TopicConfidence float64
+
 	Recommend bool
 
 	// Vetoed marks a post rejected as promotional rather than for lack of
@@ -70,9 +80,10 @@ type Verdict struct {
 // insight has earned its place, and averaging would bury it under a post that
 // is mediocre at everything. Any one reason to read something is a reason.
 //
-// Language is carried through and never acted on. Which language a timeline
-// wants is not a property of the post, and a service that decided it here
-// would have to be asked again every time a reader changed their mind.
+// Language and topic are carried through and never acted on. Which language a
+// timeline wants, and which subjects interest its reader, are not properties
+// of the post, and a service that decided them here would have to be asked
+// again every time a reader changed their mind.
 //
 // The substance score is carried through but not yet part of the decision. It
 // is a graded value rather than a yes/no, so folding it in means choosing how
@@ -112,6 +123,13 @@ func Evaluate(answers map[string]jev.Answer, policy Policy) (Verdict, error) {
 	if a, ok := answers[KeyLanguage]; ok {
 		v.Language = a.Choice
 		v.LanguageScores = a.Probabilities
+	}
+	if a, ok := answers[KeyTopic]; ok {
+		v.Topic = a.Choice
+		v.TopicScores = a.Probabilities
+		if a.Confidence != nil {
+			v.TopicConfidence = *a.Confidence
+		}
 	}
 
 	v.Appeal, v.Reason = strongest(map[string]float64{

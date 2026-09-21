@@ -148,7 +148,9 @@ func printSignals(p post, v recommend.Verdict, elapsed time.Duration) {
 		}
 	}
 	fmt.Printf("    substance %s | kind %s %.2f | language %s\n",
-		substance, v.Kind, v.KindConfidence, languages(v.LanguageScores, v.Language))
+		substance, v.Kind, v.KindConfidence, distribution(v.LanguageScores, v.Language, 3))
+	fmt.Printf("    topic %s (confidence %.2f)\n",
+		distribution(v.TopicScores, v.Topic, 4), v.TopicConfidence)
 
 	switch {
 	case v.Vetoed:
@@ -179,10 +181,11 @@ func printTimeline(results []judged) {
 	}
 }
 
-// languages renders the language distribution, strongest first, keeping only
-// the options the model gave real weight. The winner alone would hide the
-// interesting case: a post that reads half Japanese and half English.
-func languages(scores map[string]float64, winner string) string {
+// distribution renders a choice's probabilities, strongest first, keeping only
+// the options the model gave real weight and at most limit of them. The winner
+// alone would hide the interesting case: a post that reads half Japanese and
+// half English, or one about both software and sport.
+func distribution(scores map[string]float64, winner string, limit int) string {
 	if len(scores) == 0 {
 		return winner
 	}
@@ -199,6 +202,9 @@ func languages(scores map[string]float64, winner string) string {
 		return strings.Compare(a, b)
 	})
 
+	if len(keys) > limit {
+		keys = keys[:limit]
+	}
 	parts := make([]string, 0, len(keys))
 	for _, k := range keys {
 		parts = append(parts, fmt.Sprintf("%s %.2f", k, scores[k]))
