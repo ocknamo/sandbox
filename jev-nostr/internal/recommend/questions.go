@@ -8,7 +8,7 @@
 // without another round trip.
 package recommend
 
-import "github.com/ocknamo/sandbox/jev-nostr-cli/internal/jev"
+import "github.com/ocknamo/sandbox/jev-nostr/internal/jev"
 
 // The keys naming each question. The API echoes them back as the keys of the
 // matching answers, so they are the contract between Questions and Evaluate.

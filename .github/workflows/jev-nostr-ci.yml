@@ -1,18 +1,18 @@
-name: jev-nostr-cli CI
+name: jev-nostr CI
 
 on:
   workflow_dispatch:
   pull_request:
     paths:
-      - 'jev-nostr-cli/**'
-      - '.github/workflows/jev-nostr-cli-ci.yml'
+      - 'jev-nostr/**'
+      - '.github/workflows/jev-nostr-ci.yml'
   # Unlike the Cloud Run services this runs on every branch, not just main.
   # The live call is the only way to exercise the real API from this repo, and
   # workflow_dispatch is unavailable until the file reaches the default branch.
   push:
     paths:
-      - 'jev-nostr-cli/**'
-      - '.github/workflows/jev-nostr-cli-ci.yml'
+      - 'jev-nostr/**'
+      - '.github/workflows/jev-nostr-ci.yml'
 
 jobs:
   test:
@@ -22,7 +22,7 @@ jobs:
     timeout-minutes: 15
     defaults:
       run:
-        working-directory: jev-nostr-cli
+        working-directory: jev-nostr
     steps:
       - uses: actions/checkout@v7
 
@@ -54,7 +54,7 @@ jobs:
     timeout-minutes: 10
     defaults:
       run:
-        working-directory: jev-nostr-cli
+        working-directory: jev-nostr
     steps:
       - uses: actions/checkout@v7
 
@@ -94,7 +94,7 @@ jobs:
           TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
         run: |
           set -o pipefail
-          go run . -posts testdata/posts.json -raw 2>&1 | tee "$RUNNER_TEMP/jev.log"
+          go run ./cmd/cli -posts testdata/posts.json -raw 2>&1 | tee "$RUNNER_TEMP/jev.log"
 
       - name: Send the synthetic posts to Jev
         if: steps.key.outputs.present == 'true'
@@ -102,7 +102,7 @@ jobs:
           TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
         run: |
           set -o pipefail
-          go run . -posts testdata/synthetic.json 2>&1 | tee "$RUNNER_TEMP/jev-synthetic.log"
+          go run ./cmd/cli -posts testdata/synthetic.json 2>&1 | tee "$RUNNER_TEMP/jev-synthetic.log"
 
       # Runs even when the call failed, so an auth or validation error lands in
       # the run summary instead of only in the step log.

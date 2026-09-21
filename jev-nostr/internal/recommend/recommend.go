@@ -5,7 +5,7 @@ import (
 	"math"
 	"strconv"
 
-	"github.com/ocknamo/sandbox/jev-nostr-cli/internal/jev"
+	"github.com/ocknamo/sandbox/jev-nostr/internal/jev"
 )
 
 // Policy is the part of the decision that stays in Go. Jev reports what a post

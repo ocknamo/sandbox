@@ -1,8 +1,15 @@
-# jev-nostr-cli
+# jev-nostr
 
-Nostr の投稿を [TypeSafe の Jev](https://docs.typesafe.ai/introduction) に投げて、
-返ってきた判定を表示するだけの小さな CLI です。「おすすめタイムライン API」の
-**Step 1**、つまり往復が成立することと System One の答えの形を確かめるための足場です。
+Nostr の投稿を [TypeSafe の Jev](https://docs.typesafe.ai/introduction) に判定させ、
+「おすすめタイムライン」に残すかを決めます。
+
+| コマンド | 役割 |
+| --- | --- |
+| `cmd/cli` | 手元のサンプル投稿を判定して、全シグナルを並べるベンチ。質問のチューニング用 |
+| `cmd/server` | Cloud Run 上のスコアリング API。GitHub Pages のページが呼ぶ |
+
+判定そのもの（`internal/recommend`）は両方で共有しているので、CLI で調整した結果が
+そのまま API に効きます。
 
 ## Jev とは
 
@@ -40,11 +47,11 @@ LLM は人間が読むテキストを返しますが、Jev が返すのは**コ�
 
 Go の SDK は存在しないため、`internal/jev` で `net/http` から直接叩いています。
 
-## 使い方
+## CLI
 
 ```sh
 export TYPESAFE_API_KEY=...
-go run .
+go run ./cmd/cli
 ```
 
 | フラグ | 既定値 | 内容 |
@@ -55,8 +62,8 @@ go run .
 | `-promotional` | `0.5` | この値以上なら宣伝として拒否 |
 | `-raw` | `false` | 生のレスポンス JSON も表示する |
 
-`TYPESAFE_ENDPOINT` を設定すると接続先を差し替えられます。開発中にスタブサーバへ
-向けるための逃げ道で、本番では使いません。
+`TYPESAFE_ENDPOINT` を設定すると接続先を差し替えられます（CLI・サーバ共通）。
+開発中にスタブサーバへ向けるための逃げ道で、本番では使いません。
 
 出力はこうなります（値は実際の応答によります）:
 
@@ -99,13 +106,64 @@ Cloud Run のサービスと違い、このワークフローは main 以外の�
 `workflow_dispatch` はワークフローファイルがデフォルトブランチに入るまで UI に出てこないので、
 作業ブランチの段階で実際の応答を見るにはこれが必要です。
 
+## スコアリング API と Web ページ
+
+https://ocknamo.github.io/sandbox/jev.html が、リレーから流れてくる投稿を
+リアルタイムに判定して並べます。
+
+```
+ブラウザ ──WebSocket──> Nostr リレー        （投稿を受け取る）
+   │
+   └──── POST /api/score ────> Cloud Run ────> api.typesafe.ai
+                               （API キーを持つ）
+```
+
+**なぜバックエンドが要るのか。** `api.typesafe.ai` はブラウザからのオリジンを
+拒否します（`Disallowed CORS origin`）。仮に許可されていたとしても、静的ページに
+API キーは置けません。投稿の取得はリレーから直接なので、API を経由するのは判定だけです。
+
+### しきい値はブラウザ側で適用します
+
+`/api/score` は**シグナルだけを返し、採否を返しません**。
+
+```json
+{"results": [{"id": "…", "insight": 0.90, "humor": 0.09, "relatable": 0.44,
+              "promotional": 0.02, "appeal": 0.90, "reason": "insight",
+              "substance": 3.84, "substance_top": 4, "kind": "insight",
+              "kind_confidence": 0.98}]}
+```
+
+採否を返してしまうと、しきい値がサーバ側に固定されます。シグナルを返せば、
+**スライダーを動かしても再判定は走りません** — 待ち時間ゼロ、追加コストゼロです。
+`recommend.Policy` と同じルールをページ側の `verdict()` が持っています。
+
+| エンドポイント | 内容 |
+| --- | --- |
+| `POST /api/score` | `{"posts":[{"id","content"}]}` を判定。1 リクエスト最大 30 件 |
+| `GET /api/questions` | 実際に投げている質問文。ページが根拠を表示するのに使う |
+| `GET /health` | デプロイパイプラインが叩く |
+
+1 投稿 = 1 リクエストなので、バッチは**並列に**処理します（`internal/scorer`）。
+同時実行数 4 は、公称 1,200 req/分 = 20 req/秒 を 1 件 220ms で割った数字です。
+
+ローカルで動かす場合:
+
+```sh
+TYPESAFE_API_KEY=... go run ./cmd/server
+# 別の端末で docs/jev.html を開き、?api=http://localhost:8080 を付ける
+```
+
 ## 構成
 
 ```
-main.go               CLI。投稿を読み、質問し、結果を並べる
-internal/jev/         System One API のクライアント。型定義と POST だけ
-internal/recommend/   「何を聞くか」と「どう合成するか」。API 本体でもこれを使う
+cmd/cli/              質問チューニング用のベンチ
+cmd/server/           Cloud Run のエントリポイント
+internal/jev/         System One API のクライアント。型定義と POST、429 のリトライ
+internal/recommend/   「何を聞くか」と「どう合成するか」。CLI と API が共有する
+internal/scorer/      バッチを並列に判定する
+internal/server/      HTTP ルーティングと入力の上限
 testdata/             サンプルの Nostr イベント
+../docs/jev.html      GitHub Pages のフロントエンド
 ```
 
 ### 設計メモ
@@ -151,11 +209,19 @@ relatable 0.10` の投稿は平均 0.36 で埋もれますが、最大値なら 
 ## 次のステップ
 
 1. ~~CLI で往復を確認する~~
-2. ~~質問と `criteria` を設計して合成スコアにする~~ ← 今ここ
-3. Nostr 側のダミーサーバ（投稿 ID を返す HTTP サーバ）を作る
-4. おすすめタイムライン API 本体：取得 → Jev でフィルタ → ID を返す
-5. `confidence` によるルーティング、並列化、キャッシュ
+2. ~~質問と `criteria` を設計して合成スコアにする~~
+3. ~~スコアリング API と、リアルタイムに判定する Web ページ~~ ← 今ここ
+4. `relatable` の作り直し（下記）
+5. `substance` を判定に組み込むかを決める
+6. `confidence` によるルーティング、キャッシュ
 
-Step 4 では**並列化が必須**です。1リクエスト約 2 秒なので、100 件を逐次で回すと
-3 分以上かかります。レート制限は 1,200 req/分 = 20 req/秒で、トークン制限
-（250k/秒）にはまったく届かないため、**効くのはリクエスト数のほう**です。
+### 分かっている課題
+
+**`relatable` が効いていません。** 実測で 0.14〜0.50 の帯から出ず、一度も高く出ず、
+一度も決定的に低く出ません。「ラーメン食べた」がちょうど 0.50 でしきい値を
+すり抜けたのがその表れです。`insight`（0.06〜0.93）や `promotional`（0.02〜0.99）が
+綺麗に二極化しているのと対照的で、質問文を作り直す必要があります。
+
+**`substance` が一番よく分離しています。** 中身のある投稿 3.5+、`gm` は 0.00。
+ページのスライダーで 1.5 あたりに上げると雑談が落ちるのが見えます。判定に
+組み込むかどうかは、このスライダーで感触を掴んでから決めます。

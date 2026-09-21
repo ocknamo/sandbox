@@ -3,7 +3,7 @@ package main
 import "testing"
 
 func TestLoadPostsReadsTheFixture(t *testing.T) {
-	posts, err := loadPosts("testdata/posts.json")
+	posts, err := loadPosts("../../testdata/posts.json")
 	if err != nil {
 		t.Fatalf("loadPosts: %v", err)
 	}

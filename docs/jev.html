@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nostr おすすめタイムライン — Jev でスコアリング</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #fbfaf7;
+    --fg: #1c1b19;
+    --muted: #6b6862;
+    --line: #e2ded5;
+    --card: #ffffff;
+    --accent: #2f6f4f;
+    --warn: #a4562a;
+    --bar: #d9d4c8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16181a;
+      --fg: #ececea;
+      --muted: #9b9a96;
+      --line: #2c2f33;
+      --card: #1e2124;
+      --accent: #7fc7a0;
+      --warn: #e0a074;
+      --bar: #363a3f;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 15px/1.7 system-ui, -apple-system, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+  }
+  main { max-width: 860px; margin: 0 auto; padding: 40px 20px 64px; }
+  h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  h2 { font-size: 17px; margin: 0 0 12px; }
+  .lede { color: var(--muted); margin: 0 0 28px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 18px;
+  }
+  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  button {
+    font: inherit;
+    padding: 7px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+  }
+  button.secondary { background: transparent; color: var(--accent); }
+  button:disabled { opacity: 0.5; cursor: default; }
+  select, input[type=text] {
+    font: inherit;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--fg);
+  }
+  .sliders { display: grid; gap: 14px; }
+  .slider { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; }
+  .slider label { font-size: 14px; }
+  .slider .val { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 3.4em; text-align: right; }
+  .slider input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); }
+  .slider .hint { grid-column: 1 / -1; font-size: 12.5px; color: var(--muted); margin: -4px 0 0; }
+  .post {
+    border-top: 1px solid var(--line);
+    padding: 14px 0;
+  }
+  .post:first-child { border-top: none; }
+  .post .content { margin: 0 0 8px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .post.out .content { color: var(--muted); }
+  .meta { font-size: 12.5px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .tag {
+    font-size: 11.5px; padding: 1px 7px; border-radius: 999px;
+    border: 1px solid var(--line); color: var(--muted);
+  }
+  .tag.why { border-color: var(--accent); color: var(--accent); }
+  .tag.veto { border-color: var(--warn); color: var(--warn); }
+  .signals { display: grid; grid-template-columns: 6.5em 1fr 3em; gap: 2px 8px; margin-top: 8px; font-size: 12.5px; }
+  .signals .name { color: var(--muted); }
+  .signals .track { background: var(--bar); border-radius: 3px; align-self: center; height: 6px; }
+  /* display:block, or the width set on this inline span does nothing. */
+  .signals .fill { display: block; background: var(--accent); border-radius: 3px; height: 6px; }
+  .signals .fill.neg { background: var(--warn); }
+  .signals .num { font-variant-numeric: tabular-nums; color: var(--muted); text-align: right; }
+  .status { font-size: 13px; color: var(--muted); }
+  .status.err { color: var(--warn); }
+  code { font-size: 12.5px; background: var(--bar); padding: 1px 5px; border-radius: 4px; }
+  footer { color: var(--muted); font-size: 13px; margin-top: 32px; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Nostr おすすめタイムライン</h1>
+  <p class="lede">
+    リレーから流れてくる投稿を <a href="https://docs.typesafe.ai/" rel="noopener">Jev</a> に判定させ、
+    おすすめだけ残します。しきい値はブラウザ側で適用しているので、
+    <strong>スライダーを動かしても再判定は走りません</strong>（＝待ち時間ゼロ・追加コストゼロ）。
+  </p>
+
+  <div class="card">
+    <div class="row">
+      <button id="start">接続して集める</button>
+      <button id="stop" class="secondary" disabled>停止</button>
+      <select id="relay">
+        <option value="wss://yabu.me">yabu.me（日本語が多い）</option>
+        <option value="wss://relay.damus.io">relay.damus.io</option>
+        <option value="wss://nos.lol">nos.lol</option>
+        <option value="wss://relay.nostr.band">relay.nostr.band</option>
+      </select>
+      <span id="status" class="status">未接続</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>しきい値</h2>
+    <div class="sliders">
+      <div class="slider">
+        <label for="appeal">appeal（insight / humor / relatable の最大値）がこの値以上</label>
+        <span class="val" id="appeal-val">0.50</span>
+        <input type="range" id="appeal" min="0" max="1" step="0.01" value="0.5">
+        <p class="hint">3 つのうち<strong>どれか 1 つ</strong>が越えれば通ります。平均ではありません。ダジャレは洞察がなくても通るべきなので。</p>
+      </div>
+      <div class="slider">
+        <label for="promo">promotional がこの値以上なら拒否</label>
+        <span class="val" id="promo-val">0.50</span>
+        <input type="range" id="promo" min="0" max="1" step="0.01" value="0.5">
+        <p class="hint">減点ではなく拒否です。よく書けた広告も広告なので。</p>
+      </div>
+      <div class="slider">
+        <label for="substance">substance がこの値以上（0 で無効）</label>
+        <span class="val" id="substance-val">0.00</span>
+        <input type="range" id="substance" min="0" max="4" step="0.1" value="0">
+        <p class="hint">
+          実験中。<code>score</code> は 0〜4 の期待値で、実測では一番よく分離しました
+          （中身のある投稿 3.5+、<code>gm</code> は 0.00）。1.5 あたりに上げると
+          「ラーメン食べた」のような雑談が落ちます。
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>おすすめ <span id="kept-count" class="status"></span></h2>
+    <div id="kept"><p class="status">まだありません。</p></div>
+  </div>
+
+  <div class="card">
+    <h2>除外 <span id="dropped-count" class="status"></span></h2>
+    <div id="dropped"><p class="status">まだありません。</p></div>
+  </div>
+
+  <footer>
+    投稿は選んだリレーからブラウザが直接受け取ります。判定だけが API を経由します
+    （<a href="https://api.typesafe.ai" rel="noopener">api.typesafe.ai</a> はブラウザからの
+    オリジンを拒否するうえ、静的ページに API キーは置けないため）。
+    <div id="api-host"></div>
+  </footer>
+</main>
+
+<script>
+// This page is a static file on GitHub Pages, so it always calls the scoring
+// service across origins. That works because the service answers every origin
+// with Access-Control-Allow-Origin: *.
+// ?api=http://localhost:8080 points it at a local `go run ./cmd/server`.
+const DEPLOYED_API = 'https://jev-nostr-api-329294726644.asia-northeast1.run.app';
+const API = (new URLSearchParams(location.search).get('api') || DEPLOYED_API).replace(/\/+$/, '');
+
+// How many posts to gather before sending a batch, and how long to wait before
+// sending a short one. The service caps a batch at 30.
+const BATCH_SIZE = 8;
+const BATCH_WAIT_MS = 4000;
+
+const el = (id) => document.getElementById(id);
+const startEl = el('start'), stopEl = el('stop'), relayEl = el('relay'), statusEl = el('status');
+const keptEl = el('kept'), droppedEl = el('dropped');
+const keptCountEl = el('kept-count'), droppedCountEl = el('dropped-count');
+
+// scored holds every post that has come back, newest first. Verdicts are never
+// stored: they are recomputed from the sliders on every render, which is what
+// makes moving a slider free.
+let scored = [];
+let pending = [];       // posts collected from the relay, not yet sent
+let seen = new Set();   // event ids, so a reconnect does not pay twice
+let socket = null;
+let batchTimer = null;
+let inFlight = 0;
+
+function thresholds() {
+  return {
+    appeal: parseFloat(el('appeal').value),
+    promotional: parseFloat(el('promo').value),
+    substance: parseFloat(el('substance').value),
+  };
+}
+
+// verdict is the same rule as internal/recommend, applied in the browser: the
+// strongest of the three positive signals, with promotion as a veto.
+function verdict(r, t) {
+  if (r.promotional >= t.promotional) return { keep: false, why: 'promotional', veto: true };
+  if (t.substance > 0 && (r.substance ?? 0) < t.substance) {
+    return { keep: false, why: 'substance', veto: false };
+  }
+  if (r.appeal >= t.appeal) return { keep: true, why: r.reason, veto: false };
+  return { keep: false, why: r.reason, veto: false };
+}
+
+function setStatus(text, isError) {
+  statusEl.textContent = text;
+  statusEl.classList.toggle('err', !!isError);
+}
+
+function signalBar(name, value, max, negative) {
+  const frac = Math.max(0, Math.min(1, max ? value / max : 0));
+  return `
+    <span class="name">${name}</span>
+    <span class="track"><span class="fill${negative ? ' neg' : ''}" style="width:${(frac * 100).toFixed(1)}%"></span></span>
+    <span class="num">${value.toFixed(2)}</span>`;
+}
+
+function postCard(r, v) {
+  const node = document.createElement('div');
+  node.className = 'post' + (v.keep ? '' : ' out');
+
+  const content = document.createElement('p');
+  content.className = 'content';
+  content.textContent = r.content;
+  node.append(content);
+
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  const tag = document.createElement('span');
+  if (v.veto) {
+    tag.className = 'tag veto';
+    tag.textContent = '宣伝として拒否';
+  } else if (v.keep) {
+    tag.className = 'tag why';
+    tag.textContent = `${v.why} で採用`;
+  } else {
+    tag.className = 'tag';
+    tag.textContent = v.why === 'substance' ? 'substance 不足' : `最高でも ${v.why} ${r.appeal.toFixed(2)}`;
+  }
+  meta.append(tag);
+  if (r.kind) {
+    const kind = document.createElement('span');
+    kind.className = 'tag';
+    kind.textContent = `${r.kind} ${r.kind_confidence.toFixed(2)}`;
+    meta.append(kind);
+  }
+  if (r.substance_legend) {
+    const legend = document.createElement('span');
+    legend.textContent = r.substance_legend;
+    meta.append(legend);
+  }
+  node.append(meta);
+
+  const signals = document.createElement('div');
+  signals.className = 'signals';
+  signals.innerHTML =
+    signalBar('insight', r.insight, 1, false) +
+    signalBar('humor', r.humor, 1, false) +
+    signalBar('relatable', r.relatable, 1, false) +
+    signalBar('promotional', r.promotional, 1, true) +
+    (r.substance == null ? '' : signalBar('substance', r.substance, r.substance_top || 4, false));
+  node.append(signals);
+
+  return node;
+}
+
+function render() {
+  const t = thresholds();
+  const kept = [], dropped = [];
+  for (const r of scored) {
+    const v = verdict(r, t);
+    (v.keep ? kept : dropped).push([r, v]);
+  }
+  // Strongest appeal first, substance breaking ties: the same order the API
+  // would serve.
+  kept.sort((a, b) => (b[0].appeal - a[0].appeal) || ((b[0].substance ?? 0) - (a[0].substance ?? 0)));
+
+  for (const [target, list, counter, empty] of [
+    [keptEl, kept, keptCountEl, 'まだありません。'],
+    [droppedEl, dropped, droppedCountEl, 'まだありません。'],
+  ]) {
+    target.replaceChildren();
+    counter.textContent = list.length ? `${list.length} 件` : '';
+    if (!list.length) {
+      const p = document.createElement('p');
+      p.className = 'status';
+      p.textContent = empty;
+      target.append(p);
+      continue;
+    }
+    for (const [r, v] of list) target.append(postCard(r, v));
+  }
+}
+
+async function sendBatch() {
+  clearTimeout(batchTimer);
+  batchTimer = null;
+  if (!pending.length) return;
+
+  const batch = pending.splice(0, 30);
+  inFlight++;
+  setStatus(`判定中… (${inFlight} 件のリクエスト)`);
+  try {
+    const res = await fetch(`${API}/api/score`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ posts: batch.map((p) => ({ id: p.id, content: p.content })) }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
+
+    const byId = new Map(batch.map((p) => [p.id, p]));
+    const fresh = data.results
+      .filter((r) => !r.error)
+      .map((r) => ({ ...r, content: byId.get(r.id)?.content ?? '' }));
+    const failed = data.results.filter((r) => r.error);
+
+    scored = [...fresh, ...scored].slice(0, 120);
+    render();
+    setStatus(failed.length
+      ? `${fresh.length} 件を判定、${failed.length} 件は失敗（${failed[0].error}）`
+      : `${scored.length} 件を判定済み`, failed.length > 0);
+  } catch (err) {
+    setStatus(`判定に失敗: ${err.message || err}`, true);
+  } finally {
+    inFlight--;
+  }
+}
+
+function queue(event) {
+  if (seen.has(event.id)) return;
+  seen.add(event.id);
+  if (!event.content || !event.content.trim()) return;
+
+  pending.push({ id: event.id, content: event.content });
+  if (pending.length >= BATCH_SIZE) {
+    sendBatch();
+  } else if (!batchTimer) {
+    batchTimer = setTimeout(sendBatch, BATCH_WAIT_MS);
+  }
+}
+
+function start() {
+  stop();
+  const url = relayEl.value;
+  setStatus(`${new URL(url).host} に接続中…`);
+  startEl.disabled = true;
+  stopEl.disabled = false;
+
+  socket = new WebSocket(url);
+  socket.addEventListener('open', () => {
+    setStatus(`${new URL(url).host} に接続、投稿を待っています`);
+    // NIP-01: kinds:[1] is a plain text note. limit seeds the stream with a
+    // few recent ones so the page is not blank while waiting.
+    socket.send(JSON.stringify(['REQ', 'timeline', { kinds: [1], limit: 10 }]));
+  });
+  socket.addEventListener('message', (msg) => {
+    let frame;
+    try { frame = JSON.parse(msg.data); } catch { return; }
+    // Relay frames are ["EVENT", <subscription>, <event>].
+    if (Array.isArray(frame) && frame[0] === 'EVENT' && frame[2]) queue(frame[2]);
+  });
+  socket.addEventListener('error', () => setStatus('リレーに接続できませんでした', true));
+  socket.addEventListener('close', () => {
+    startEl.disabled = false;
+    stopEl.disabled = true;
+    if (socket) setStatus('切断されました');
+  });
+}
+
+function stop() {
+  clearTimeout(batchTimer);
+  batchTimer = null;
+  if (socket) {
+    const s = socket;
+    socket = null;          // so the close handler knows this was deliberate
+    s.close();
+  }
+  startEl.disabled = false;
+  stopEl.disabled = true;
+}
+
+startEl.addEventListener('click', start);
+stopEl.addEventListener('click', () => { stop(); setStatus('停止しました'); });
+
+for (const [id, valId, digits] of [['appeal', 'appeal-val', 2], ['promo', 'promo-val', 2], ['substance', 'substance-val', 2]]) {
+  const input = el(id), out = el(valId);
+  const update = () => { out.textContent = parseFloat(input.value).toFixed(digits); render(); };
+  input.addEventListener('input', update);
+  update();
+}
+
+// Name the host being called, so a page pointed at the wrong deployment shows
+// it instead of just failing to score anything.
+{
+  const link = document.createElement('a');
+  link.href = API + '/health';
+  link.textContent = new URL(API).host;
+  link.rel = 'noopener';
+  el('api-host').append('スコアリング API: ', link);
+}
+</script>
+</body>
+</html>

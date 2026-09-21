@@ -4,7 +4,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/ocknamo/sandbox/jev-nostr-cli/internal/jev"
+	"github.com/ocknamo/sandbox/jev-nostr/internal/jev"
 )
 
 func ptr(f float64) *float64 { return &f }

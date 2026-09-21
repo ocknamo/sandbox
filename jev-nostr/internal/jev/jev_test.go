@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
 // newTestClient points a client at a stub server so the tests never touch the
@@ -264,5 +265,88 @@ func TestAskDecodesChoiceAnswer(t *testing.T) {
 	}
 	if got := a.Probabilities["humor"]; got != 0.81 {
 		t.Errorf("probabilities[humor] = %v, want 0.81", got)
+	}
+}
+
+func TestAskRetriesRateLimitsThenSucceeds(t *testing.T) {
+	var attempts int
+	c := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		attempts++
+		if attempts < 3 {
+			// Retry-After keeps the test from waiting out the backoff.
+			w.Header().Set("Retry-After", "0")
+			w.WriteHeader(http.StatusTooManyRequests)
+			return
+		}
+		// The body has to survive being re-sent on every attempt.
+		var got Request
+		if err := json.NewDecoder(r.Body).Decode(&got); err != nil {
+			t.Errorf("attempt %d: decode request: %v", attempts, err)
+		}
+		if got.State != "hello" {
+			t.Errorf("attempt %d: state = %v, want %q", attempts, got.State, "hello")
+		}
+		_, _ = w.Write([]byte(`{"answers":{"a":{"type":"noul","noul":0.5}}}`))
+	})
+	c.Retries = 2
+
+	resp, err := c.Ask(context.Background(), "hello", map[string]Question{"a": Noul("a")})
+	if err != nil {
+		t.Fatalf("Ask: %v", err)
+	}
+	if attempts != 3 {
+		t.Errorf("attempts = %d, want 3", attempts)
+	}
+	if resp.Answers["a"].Noul == nil {
+		t.Error("answer lost across the retries")
+	}
+}
+
+func TestAskGivesUpAfterTheRetryBudget(t *testing.T) {
+	var attempts int
+	c := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		attempts++
+		w.Header().Set("Retry-After", "0")
+		w.WriteHeader(http.StatusTooManyRequests)
+	})
+	c.Retries = 2
+
+	_, err := c.Ask(context.Background(), "hello", map[string]Question{"a": Noul("a")})
+
+	var apiErr *APIError
+	if !errors.As(err, &apiErr) || apiErr.StatusCode != http.StatusTooManyRequests {
+		t.Fatalf("err = %v, want a 429 APIError", err)
+	}
+	if attempts != 3 {
+		t.Errorf("attempts = %d, want 3 (the first try plus two retries)", attempts)
+	}
+}
+
+// A bad key will be just as bad next time, so it must not be retried.
+func TestAskDoesNotRetryClientErrors(t *testing.T) {
+	var attempts int
+	c := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		attempts++
+		w.WriteHeader(http.StatusUnauthorized)
+	})
+	c.Retries = 3
+
+	if _, err := c.Ask(context.Background(), "hello", map[string]Question{"a": Noul("a")}); err == nil {
+		t.Fatal("Ask succeeded, want an error")
+	}
+	if attempts != 1 {
+		t.Errorf("attempts = %d, want 1", attempts)
+	}
+}
+
+func TestBackoffPrefersRetryAfterAndGrows(t *testing.T) {
+	if got := backoff(0, "7"); got != 7*time.Second {
+		t.Errorf("backoff with Retry-After 7 = %v, want 7s", got)
+	}
+	if got := backoff(3, "not a number"); got != 8*time.Second {
+		t.Errorf("backoff(3) = %v, want 8s", got)
+	}
+	if backoff(2, "") <= backoff(1, "") {
+		t.Error("backoff is not growing between attempts")
 	}
 }

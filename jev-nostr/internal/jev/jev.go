@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -158,6 +159,12 @@ type Client struct {
 	Endpoint   string
 	Model      string
 	HTTPClient *http.Client
+
+	// Retries is how many extra attempts a request gets after a rate limit or
+	// an overload. The API asks for exponential backoff rather than an
+	// immediate retry, which is what Retry-After and backoff below provide.
+	// Other failures are not retried: a 401 or a 422 will fail again.
+	Retries int
 }
 
 // New returns a client pointed at the public endpoint and the latest model.
@@ -167,7 +174,22 @@ func New(apiKey string) *Client {
 		Endpoint:   DefaultEndpoint,
 		Model:      DefaultModel,
 		HTTPClient: &http.Client{Timeout: 30 * time.Second},
+		Retries:    2,
 	}
+}
+
+// retryable reports the statuses the API documents as worth trying again.
+func retryable(status int) bool {
+	return status == http.StatusTooManyRequests || status == 529
+}
+
+// backoff is how long to wait before attempt n (counting from 0), honouring a
+// Retry-After header when the server sent one.
+func backoff(attempt int, header string) time.Duration {
+	if secs, err := strconv.Atoi(header); err == nil && secs >= 0 {
+		return time.Duration(secs) * time.Second
+	}
+	return time.Duration(1<<attempt) * time.Second
 }
 
 // Ask puts every question to the model in a single call and decodes the result.
@@ -219,18 +241,41 @@ func (c *Client) AskRaw(ctx context.Context, state any, questions map[string]Que
 		httpClient = http.DefaultClient
 	}
 
+	for attempt := 0; ; attempt++ {
+		// Each attempt needs its own reader: the first one has been consumed.
+		req.Body = io.NopCloser(bytes.NewReader(body))
+
+		data, status, retryAfter, err := c.attempt(httpClient, req)
+		if err != nil {
+			return nil, err
+		}
+		if status == http.StatusOK {
+			return data, nil
+		}
+
+		apiErr := &APIError{StatusCode: status, Body: string(bytes.TrimSpace(data))}
+		if attempt >= c.Retries || !retryable(status) {
+			return nil, apiErr
+		}
+		select {
+		case <-time.After(backoff(attempt, retryAfter)):
+		case <-ctx.Done():
+			return nil, fmt.Errorf("jev: %w while backing off from %w", ctx.Err(), apiErr)
+		}
+	}
+}
+
+// attempt performs one request and reads its body, whatever the status.
+func (c *Client) attempt(httpClient *http.Client, req *http.Request) (body []byte, status int, retryAfter string, err error) {
 	res, err := httpClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("jev: request failed: %w", err)
+		return nil, 0, "", fmt.Errorf("jev: request failed: %w", err)
 	}
 	defer res.Body.Close()
 
 	data, err := io.ReadAll(io.LimitReader(res.Body, maxResponseBytes))
 	if err != nil {
-		return nil, fmt.Errorf("jev: read response: %w", err)
+		return nil, 0, "", fmt.Errorf("jev: read response: %w", err)
 	}
-	if res.StatusCode != http.StatusOK {
-		return nil, &APIError{StatusCode: res.StatusCode, Body: string(bytes.TrimSpace(data))}
-	}
-	return data, nil
+	return data, res.StatusCode, res.Header.Get("Retry-After"), nil
 }

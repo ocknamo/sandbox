@@ -19,8 +19,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ocknamo/sandbox/jev-nostr-cli/internal/jev"
-	"github.com/ocknamo/sandbox/jev-nostr-cli/internal/recommend"
+	"github.com/ocknamo/sandbox/jev-nostr/internal/jev"
+	"github.com/ocknamo/sandbox/jev-nostr/internal/recommend"
 )
 
 // post is the part of a Nostr event this command cares about. A real event

@@ -31,6 +31,15 @@ on:
         required: false
         default: apps
         type: string
+    secrets:
+      env_vars:
+        description: >-
+          Extra environment variables for the deployed service, one KEY=VALUE
+          per line. Declared as a secret rather than an input because the
+          values usually are one; GitHub then masks them in the log. A value
+          must not contain "@", which separates the pair from gcloud's
+          delimiter escape.
+        required: false
 
 jobs:
   deploy:
@@ -96,7 +105,18 @@ jobs:
 
       - name: Deploy to Cloud Run
         id: deploy
+        env:
+          ENV_VARS: ${{ secrets.env_vars }}
         run: |
+          # One --update-env-vars per pair, each with gcloud's "^@^" delimiter
+          # escape so that a value containing a comma is not split into two
+          # variables. Pairs left out of the list keep whatever the service
+          # already has.
+          extra=()
+          while IFS= read -r pair; do
+            [ -n "$pair" ] && extra+=(--update-env-vars "^@^$pair")
+          done <<< "$ENV_VARS"
+
           gcloud run deploy "$SERVICE" \
             --project="${{ vars.GCP_PROJECT_ID }}" \
             --image="${{ steps.build.outputs.image }}" \
@@ -107,6 +127,7 @@ jobs:
             --max-instances=3 \
             --memory=256Mi \
             --cpu=1 \
+            "${extra[@]}" \
             --quiet
           URL=$(gcloud run services describe "$SERVICE" \
             --project="${{ vars.GCP_PROJECT_ID }}" \
