@@ -19,6 +19,7 @@ const (
 	KeyPromotional = "promotional"
 	KeySubstance   = "substance"
 	KeyKind        = "kind"
+	KeyLanguage    = "language"
 )
 
 // substanceLevels is the rubric behind KeySubstance, ordered from least to
@@ -40,6 +41,33 @@ var kindOptions = map[string]string{
 	"musing":  "A personal observation, feeling, or open question.",
 	"chatter": "A greeting, a reaction, or noise carrying no content.",
 	"promo":   "Advertising, solicitation, or a scam.",
+}
+
+// languageOptions is the rubric behind KeyLanguage.
+//
+// The answer that matters here is not the winning option but the whole
+// probability distribution: "how Japanese does this read" is probabilities
+// ["ja"], and a caller filtering on it can change its mind about which
+// language it wants without asking anything again. Asking one choice covers
+// every language at once, where a noul per language would cost a question each.
+//
+// The descriptions stay to one word because every one of them is read on every
+// request, and a language needs no explaining.
+var languageOptions = map[string]string{
+	"ja": "Japanese",
+	"en": "English",
+	"zh": "Chinese",
+	"ko": "Korean",
+	"ru": "Russian",
+	"de": "German",
+	"fr": "French",
+	"es": "Spanish",
+	"pt": "Portuguese",
+	// Not a language: a post can be emoji, punctuation, a bare URL or a string
+	// of symbols, and calling that English would poison an English timeline.
+	"none": "No discernible language: only emoji, symbols, numbers or a bare URL.",
+	// Everything the list above does not name.
+	"other": "A language not listed among the options.",
 }
 
 // Questions is the whole set, put to the model in a single request.
@@ -85,6 +113,11 @@ func Questions() map[string]jev.Question {
 		KeyKind: jev.Choice(
 			"What kind of post is this?",
 			kindOptions,
+		),
+
+		KeyLanguage: jev.Choice(
+			"What language is this post written in?",
+			languageOptions,
 		),
 	}
 }
