@@ -162,13 +162,13 @@ func TestRankPutsStrongestAppealFirstAndBreaksTiesOnSubstance(t *testing.T) {
 
 func TestQuestionsCoverEveryKeyEvaluateReads(t *testing.T) {
 	q := Questions()
-	for _, key := range []string{KeyInsight, KeyHumor, KeyRelatable, KeyPromotional, KeySubstance, KeyKind} {
+	for _, key := range []string{KeyInsight, KeyHumor, KeyRelatable, KeyPromotional, KeySubstance, KeyKind, KeyLanguage} {
 		if _, ok := q[key]; !ok {
 			t.Errorf("Questions() has no %q", key)
 		}
 	}
-	if len(q) != 6 {
-		t.Errorf("Questions() has %d entries, want 6", len(q))
+	if len(q) != 7 {
+		t.Errorf("Questions() has %d entries, want 7", len(q))
 	}
 
 	// The API requires criteria for a choice and a score, and accepts between
@@ -209,5 +209,67 @@ func TestLegendForPicksTheNearestLevel(t *testing.T) {
 	}
 	if got := legendFor(nil, ptr(1.0)); got != "" {
 		t.Errorf("legendFor with no legend = %q, want empty", got)
+	}
+}
+
+func TestLanguageCarriesTheWholeDistribution(t *testing.T) {
+	a := answers(0.9, 0.1, 0.2, 0.0)
+	a[KeyLanguage] = jev.Answer{
+		Type:   jev.TypeChoice,
+		Choice: "ja",
+		// A post can read as more than one language at once, which is the
+		// reason the distribution is kept rather than only the winner.
+		Probabilities: map[string]float64{"ja": 0.62, "en": 0.35, "none": 0.03},
+		Confidence:    ptr(0.62),
+	}
+
+	v := evaluate(t, a)
+
+	if v.Language != "ja" {
+		t.Errorf("language = %q, want ja", v.Language)
+	}
+	if got := v.LanguageScores["en"]; got != 0.35 {
+		t.Errorf("language scores[en] = %v, want 0.35", got)
+	}
+	if len(v.LanguageScores) != 3 {
+		t.Errorf("language scores has %d entries, want 3", len(v.LanguageScores))
+	}
+
+	// Which language a timeline wants is the reader's business, so it must
+	// not touch the verdict.
+	if !v.Recommend {
+		t.Error("a strong post was rejected once a language came back")
+	}
+}
+
+func TestLanguageIsOptional(t *testing.T) {
+	v := evaluate(t, answers(0.9, 0.1, 0.2, 0.0))
+	if v.Language != "" || v.LanguageScores != nil {
+		t.Errorf("language = %q %v, want it absent", v.Language, v.LanguageScores)
+	}
+	if !v.Recommend {
+		t.Error("a strong post was rejected when no language came back")
+	}
+}
+
+func TestLanguageOptionsAreNamedAndDistinct(t *testing.T) {
+	options, ok := Questions()[KeyLanguage].Criteria.(map[string]string)
+	if !ok {
+		t.Fatalf("language criteria = %T, want map[string]string", Questions()[KeyLanguage].Criteria)
+	}
+	// The API allows up to 255 options, but every description is read on
+	// every request, so the list stays short on purpose.
+	if len(options) < 2 || len(options) > 20 {
+		t.Errorf("language has %d options, want a short list", len(options))
+	}
+	for _, key := range []string{"ja", "en"} {
+		if options[key] == "" {
+			t.Errorf("language option %q has no description", key)
+		}
+	}
+	// A post made of emoji is not English; without this option the model
+	// would have to call it something.
+	if options["none"] == "" {
+		t.Error("language has no option for a post with no language in it")
 	}
 }

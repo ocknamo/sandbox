@@ -36,14 +36,20 @@ LLM は人間が読むテキストを返しますが、Jev が返すのは**コ�
 | `promotional` | `noul` | 宣伝・勧誘・誘導か（拒否用） |
 | `substance` | `score` | 読み手にとっての中身の量（5 段階 = `0.0`〜`4.0`） |
 | `kind` | `choice` | 投稿の種類（表示用ラベル） |
+| `language` | `choice` | 何語で書かれているか |
 
 肯定シグナルを3つに分けてあるのは、**投稿はそのうちどれか1つで十分に価値を持つ**
 からです。ダジャレに洞察を求めても仕方がなく、ぼやきに情報量を求めても仕方がない。
 単一の「良い投稿か？」ではこの区別ができません。
 
-**6つ聞いてもコストはほとんど増えません。** 1リクエスト約 350 入力トークンのうち
-300 前後は固定費で、質問は並列に評価されます。高いのは**質問の数ではなくリクエストの数**
-です。
+**7つ聞いてもコストはほとんど増えません。** 1リクエストの入力トークンの多くが固定費で、
+質問は並列に評価されます。高いのは**質問の数ではなくリクエストの数**です。
+
+`language` は `choice` ひとつで済ませています。**欲しいのは勝った選択肢ではなく
+確率分布のほう**で、`probabilities["ja"]` がそのまま「日本語らしさ」になります。
+言語ごとに `noul` を並べると言語の数だけ質問が要りますが、`choice` なら1問で全言語を
+カバーでき、しかも**読み手が後から言語を変えても再判定が不要**です。混在した投稿は
+複数の言語に重みが散るので、しきい値を下げれば拾えます。
 
 Go の SDK は存在しないため、`internal/jev` で `net/http` から直接叩いています。
 
@@ -68,11 +74,11 @@ go run ./cmd/cli
 出力はこうなります（値は実際の応答によります）:
 
 ```text
-asking "jev-latest" 6 questions about 5 posts (appeal >= 0.50, promotional veto >= 0.50)
+asking "jev-latest" 7 questions about 5 posts (appeal >= 0.50, promotional veto >= 0.50)
 
 0be17f5ebe0a  How does the man in the moon get his hair cut? Eclipse i…  (2.1s)
     insight 0.10 | humor 0.90 | relatable 0.19 | promotional 0.03
-    substance 1.43/4 (An ordinary observation: clear, but slight.) | kind humor 0.81
+    substance 1.43/4 (An ordinary observation: clear, but slight.) | kind humor 0.81 | language en 0.94 / ja 0.04
     => RECOMMEND on humor (appeal 0.90)
 ...
 
@@ -130,12 +136,21 @@ API キーは置けません。投稿の取得はリレーから直接なので�
 {"results": [{"id": "…", "insight": 0.90, "humor": 0.09, "relatable": 0.44,
               "promotional": 0.02, "appeal": 0.90, "reason": "insight",
               "substance": 3.84, "substance_top": 4, "kind": "insight",
-              "kind_confidence": 0.98}]}
+              "kind_confidence": 0.98, "language": "ja",
+              "language_scores": {"ja": 0.93, "en": 0.05, "none": 0.02}}]}
 ```
 
 採否を返してしまうと、しきい値がサーバ側に固定されます。シグナルを返せば、
 **スライダーを動かしても再判定は走りません** — 待ち時間ゼロ、追加コストゼロです。
 `recommend.Policy` と同じルールをページ側の `verdict()` が持っています。
+
+`language_scores` も同じ理由で分布ごと返しています。**どの言語のタイムラインが
+欲しいかは投稿の性質ではなく読み手の都合**なので、サーバが決めてしまうと
+読み手が気を変えるたびに聞き直すことになります。
+
+ページは日本語と英語を切り替えられます（初回はブラウザの言語、以降は選択を保存）。
+言語フィルタの選択肢は `/api/questions` から取得しているので、**モデルに実際に
+渡している選択肢と食い違うことがありません**。
 
 | エンドポイント | 内容 |
 | --- | --- |

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nostr おすすめタイムライン — Jev でスコアリング</title>
+<title>Nostr おすすめタイムライン</title>
 <style>
   :root {
     color-scheme: light dark;
@@ -36,6 +36,7 @@
     font: 15px/1.7 system-ui, -apple-system, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
   }
   main { max-width: 860px; margin: 0 auto; padding: 40px 20px 64px; }
+  .titlebar { display: flex; gap: 16px; align-items: baseline; justify-content: space-between; }
   h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
   h2 { font-size: 17px; margin: 0 0 12px; }
   .lede { color: var(--muted); margin: 0 0 28px; }
@@ -57,8 +58,12 @@
     cursor: pointer;
   }
   button.secondary { background: transparent; color: var(--accent); }
+  button.link {
+    background: none; border: none; color: var(--muted);
+    padding: 2px 6px; font-size: 13px; cursor: pointer; text-decoration: underline;
+  }
   button:disabled { opacity: 0.5; cursor: default; }
-  select, input[type=text] {
+  select {
     font: inherit;
     padding: 6px 10px;
     border-radius: 8px;
@@ -72,10 +77,9 @@
   .slider .val { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 3.4em; text-align: right; }
   .slider input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); }
   .slider .hint { grid-column: 1 / -1; font-size: 12.5px; color: var(--muted); margin: -4px 0 0; }
-  .post {
-    border-top: 1px solid var(--line);
-    padding: 14px 0;
-  }
+  .slider.off input[type=range] { opacity: 0.4; }
+  .langrow { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 4px; }
+  .post { border-top: 1px solid var(--line); padding: 14px 0; }
   .post:first-child { border-top: none; }
   .post .content { margin: 0 0 8px; white-space: pre-wrap; overflow-wrap: anywhere; }
   .post.out .content { color: var(--muted); }
@@ -102,70 +106,71 @@
 </head>
 <body>
 <main>
-  <h1>Nostr おすすめタイムライン</h1>
-  <p class="lede">
-    リレーから流れてくる投稿を <a href="https://docs.typesafe.ai/" rel="noopener">Jev</a> に判定させ、
-    おすすめだけ残します。しきい値はブラウザ側で適用しているので、
-    <strong>スライダーを動かしても再判定は走りません</strong>（＝待ち時間ゼロ・追加コストゼロ）。
-  </p>
+  <div class="titlebar">
+    <h1 data-i18n="title"></h1>
+    <button id="ui-lang" class="link" type="button"></button>
+  </div>
+  <p class="lede" data-i18n-html="lede"></p>
 
   <div class="card">
     <div class="row">
-      <button id="start">接続して集める</button>
-      <button id="stop" class="secondary" disabled>停止</button>
+      <button id="start" data-i18n="start"></button>
+      <button id="stop" class="secondary" disabled data-i18n="stop"></button>
       <select id="relay">
-        <option value="wss://yabu.me">yabu.me（日本語が多い）</option>
+        <option value="wss://yabu.me" data-i18n="relayYabu"></option>
         <option value="wss://relay.damus.io">relay.damus.io</option>
         <option value="wss://nos.lol">nos.lol</option>
         <option value="wss://relay.nostr.band">relay.nostr.band</option>
       </select>
-      <span id="status" class="status">未接続</span>
+      <span id="status" class="status"></span>
     </div>
   </div>
 
   <div class="card">
-    <h2>しきい値</h2>
+    <h2 data-i18n="filters"></h2>
     <div class="sliders">
       <div class="slider">
-        <label for="appeal">appeal（insight / humor / relatable の最大値）がこの値以上</label>
+        <label for="appeal" data-i18n="appealLabel"></label>
         <span class="val" id="appeal-val">0.50</span>
         <input type="range" id="appeal" min="0" max="1" step="0.01" value="0.5">
-        <p class="hint">3 つのうち<strong>どれか 1 つ</strong>が越えれば通ります。平均ではありません。ダジャレは洞察がなくても通るべきなので。</p>
+        <p class="hint" data-i18n-html="appealHint"></p>
       </div>
       <div class="slider">
-        <label for="promo">promotional がこの値以上なら拒否</label>
+        <label for="promo" data-i18n="promoLabel"></label>
         <span class="val" id="promo-val">0.50</span>
         <input type="range" id="promo" min="0" max="1" step="0.01" value="0.5">
-        <p class="hint">減点ではなく拒否です。よく書けた広告も広告なので。</p>
+        <p class="hint" data-i18n-html="promoHint"></p>
       </div>
       <div class="slider">
-        <label for="substance">substance がこの値以上（0 で無効）</label>
+        <label for="substance" data-i18n="substanceLabel"></label>
         <span class="val" id="substance-val">0.00</span>
         <input type="range" id="substance" min="0" max="4" step="0.1" value="0">
-        <p class="hint">
-          実験中。<code>score</code> は 0〜4 の期待値で、実測では一番よく分離しました
-          （中身のある投稿 3.5+、<code>gm</code> は 0.00）。1.5 あたりに上げると
-          「ラーメン食べた」のような雑談が落ちます。
-        </p>
+        <p class="hint" data-i18n-html="substanceHint"></p>
+      </div>
+      <div class="slider off" id="lang-slider">
+        <div class="langrow">
+          <label for="lang" data-i18n="langLabel"></label>
+          <select id="lang"></select>
+        </div>
+        <span class="val" id="langness-val">0.50</span>
+        <input type="range" id="langness" min="0" max="1" step="0.01" value="0.5">
+        <p class="hint" data-i18n-html="langHint"></p>
       </div>
     </div>
   </div>
 
   <div class="card">
-    <h2>おすすめ <span id="kept-count" class="status"></span></h2>
-    <div id="kept"><p class="status">まだありません。</p></div>
+    <h2><span data-i18n="kept"></span> <span id="kept-count" class="status"></span></h2>
+    <div id="kept"></div>
   </div>
 
   <div class="card">
-    <h2>除外 <span id="dropped-count" class="status"></span></h2>
-    <div id="dropped"><p class="status">まだありません。</p></div>
+    <h2><span data-i18n="dropped"></span> <span id="dropped-count" class="status"></span></h2>
+    <div id="dropped"></div>
   </div>
 
   <footer>
-    投稿は選んだリレーからブラウザが直接受け取ります。判定だけが API を経由します
-    （<a href="https://api.typesafe.ai" rel="noopener">api.typesafe.ai</a> はブラウザからの
-    オリジンを拒否するうえ、静的ページに API キーは置けないため）。
-    このサービスは実験中のデモで、予告なく停止することがあります。
+    <span data-i18n-html="footer"></span>
     <div id="api-host"></div>
   </footer>
 </main>
@@ -183,13 +188,133 @@ const API = (new URLSearchParams(location.search).get('api') || DEPLOYED_API).re
 const BATCH_SIZE = 8;
 const BATCH_WAIT_MS = 4000;
 
+// The language options are fetched from /api/questions so that the list here
+// cannot drift from the one the model is actually given. This is the fallback
+// for when that call fails.
+const FALLBACK_LANGUAGES = ['ja', 'en', 'zh', 'ko', 'ru', 'de', 'fr', 'es', 'pt', 'none', 'other'];
+
+// Strings marked -html carry inline markup and are written here, never built
+// from anything a relay sent.
+const STRINGS = {
+  ja: {
+    htmlLang: 'ja',
+    switchTo: 'English',
+    title: 'Nostr おすすめタイムライン',
+    docTitle: 'Nostr おすすめタイムライン',
+    lede: 'リレーから流れてくる投稿を <a href="https://docs.typesafe.ai/" rel="noopener">Jev</a> に判定させ、'
+        + 'おすすめだけ残します。しきい値はブラウザ側で適用しているので、'
+        + '<strong>スライダーを動かしても再判定は走りません</strong>（＝待ち時間ゼロ・追加コストゼロ）。',
+    start: '接続して集める',
+    stop: '停止',
+    relayYabu: 'yabu.me（日本語が多い）',
+    filters: 'しきい値',
+    appealLabel: 'appeal（insight / humor / relatable の最大値）がこの値以上',
+    appealHint: '3 つのうち<strong>どれか 1 つ</strong>が越えれば通ります。平均ではありません。ダジャレは洞察がなくても通るべきなので。',
+    promoLabel: 'promotional がこの値以上なら拒否',
+    promoHint: '減点ではなく拒否です。よく書けた広告も広告なので。',
+    substanceLabel: 'substance がこの値以上（0 で無効）',
+    substanceHint: '<code>score</code> は 0〜4 の期待値で、実測では一番よく分離しました'
+        + '（中身のある投稿 3.5+、<code>gm</code> は 0.00）。1.5 あたりに上げると雑談が落ちます。',
+    langLabel: '言語',
+    langHint: 'その言語らしさがこの値以上の投稿だけ残します。判定は 1 つの <code>choice</code> 質問で、'
+        + '返ってくる確率分布がそのまま「らしさ」です。'
+        + '混在した投稿は複数の言語に重みが散るので、しきい値を下げると拾えます。',
+    langAll: 'すべて',
+    langNone: '言語なし（絵文字・記号のみ）',
+    langOther: 'その他の言語',
+    kept: 'おすすめ',
+    dropped: '除外',
+    empty: 'まだありません。',
+    count: (n) => `${n} 件`,
+    idle: '未接続',
+    connecting: (host) => `${host} に接続中…`,
+    connected: (host) => `${host} に接続、投稿を待っています`,
+    scoring: (n) => `判定中… (${n} 件のリクエスト)`,
+    scored: (n) => `${n} 件を判定済み`,
+    partial: (ok, bad, err) => `${ok} 件を判定、${bad} 件は失敗（${err}）`,
+    scoreFailed: (err) => `判定に失敗: ${err}`,
+    relayFailed: 'リレーに接続できませんでした',
+    disconnected: '切断されました',
+    stopped: '停止しました',
+    vetoed: '宣伝として拒否',
+    keptBecause: (why) => `${why} で採用`,
+    belowSubstance: 'substance 不足',
+    belowLang: (lang) => `${lang} らしさ不足`,
+    belowAppeal: (why, v) => `最高でも ${why} ${v}`,
+    apiHost: 'スコアリング API: ',
+    footer: '投稿は選んだリレーからブラウザが直接受け取ります。判定だけが API を経由します'
+        + '（<a href="https://api.typesafe.ai" rel="noopener">api.typesafe.ai</a> はブラウザからの'
+        + 'オリジンを拒否するうえ、静的ページに API キーは置けないため）。'
+        + 'このサービスは実験中のデモで、予告なく停止することがあります。',
+  },
+  en: {
+    htmlLang: 'en',
+    switchTo: '日本語',
+    title: 'Nostr recommended timeline',
+    docTitle: 'Nostr recommended timeline',
+    lede: 'Posts arriving from a relay are judged by <a href="https://docs.typesafe.ai/" rel="noopener">Jev</a>, '
+        + 'and only the recommended ones are kept. The thresholds are applied in your browser, so '
+        + '<strong>moving a slider re-scores nothing</strong> — no wait, no extra cost.',
+    start: 'Connect and collect',
+    stop: 'Stop',
+    relayYabu: 'yabu.me (mostly Japanese)',
+    filters: 'Thresholds',
+    appealLabel: 'appeal (the highest of insight / humor / relatable) at or above',
+    appealHint: '<strong>Any one</strong> of the three clearing this is enough. Not the average: a pun has earned its place without insight.',
+    promoLabel: 'reject when promotional is at or above',
+    promoHint: 'A veto, not a penalty. A well-written advertisement is still an advertisement.',
+    substanceLabel: 'substance at or above (0 disables it)',
+    substanceHint: '<code>score</code> is an expected level from 0 to 4, and it separates posts better than anything else measured so far '
+        + '(3.5+ for posts with something in them, 0.00 for <code>gm</code>). Around 1.5 the chatter drops out.',
+    langLabel: 'Language',
+    langHint: 'Keeps only posts that read at least this much like the chosen language. One <code>choice</code> question answers it, '
+        + 'and the probability distribution it returns is the "reads like" score. '
+        + 'A mixed post spreads its weight over several languages, so lower the threshold to catch those.',
+    langAll: 'Any',
+    langNone: 'No language (emoji or symbols only)',
+    langOther: 'Another language',
+    kept: 'Recommended',
+    dropped: 'Filtered out',
+    empty: 'Nothing yet.',
+    count: (n) => `${n}`,
+    idle: 'Not connected',
+    connecting: (host) => `Connecting to ${host}…`,
+    connected: (host) => `Connected to ${host}, waiting for posts`,
+    scoring: (n) => `Scoring… (${n} request${n === 1 ? '' : 's'})`,
+    scored: (n) => `${n} post${n === 1 ? '' : 's'} scored`,
+    partial: (ok, bad, err) => `${ok} scored, ${bad} failed (${err})`,
+    scoreFailed: (err) => `Scoring failed: ${err}`,
+    relayFailed: 'Could not connect to the relay',
+    disconnected: 'Disconnected',
+    stopped: 'Stopped',
+    vetoed: 'vetoed as promotional',
+    keptBecause: (why) => `kept on ${why}`,
+    belowSubstance: 'below substance',
+    belowLang: (lang) => `not ${lang} enough`,
+    belowAppeal: (why, v) => `best was ${why} ${v}`,
+    apiHost: 'Scoring API: ',
+    footer: 'Posts come straight from the relay you pick; only the judging goes through the API '
+        + '(<a href="https://api.typesafe.ai" rel="noopener">api.typesafe.ai</a> refuses a browser origin, '
+        + 'and a static page has nowhere to keep an API key). '
+        + 'This is an experimental demo and may be taken down without notice.',
+  },
+};
+
 const el = (id) => document.getElementById(id);
 const startEl = el('start'), stopEl = el('stop'), relayEl = el('relay'), statusEl = el('status');
 const keptEl = el('kept'), droppedEl = el('dropped');
 const keptCountEl = el('kept-count'), droppedCountEl = el('dropped-count');
+const langEl = el('lang'), langSliderEl = el('lang-slider');
+
+// Name the host being called, so a page pointed at the wrong deployment shows
+// it instead of just failing to score anything.
+const apiLink = document.createElement('a');
+apiLink.href = API + '/health';
+apiLink.textContent = new URL(API).host;
+apiLink.rel = 'noopener';
 
 // scored holds every post that has come back, newest first. Verdicts are never
-// stored: they are recomputed from the sliders on every render, which is what
+// stored: they are recomputed from the controls on every render, which is what
 // makes moving a slider free.
 let scored = [];
 let pending = [];       // posts collected from the relay, not yet sent
@@ -197,29 +322,119 @@ let seen = new Set();   // event ids, so a reconnect does not pay twice
 let socket = null;
 let batchTimer = null;
 let inFlight = 0;
+let languageKeys = FALLBACK_LANGUAGES;
+
+let uiLang = 'ja';
+try {
+  const saved = localStorage.getItem('jev-ui-lang');
+  if (saved && STRINGS[saved]) uiLang = saved;
+  else if (!navigator.language.startsWith('ja')) uiLang = 'en';
+} catch { /* private mode: the default stands */ }
+
+const t = () => STRINGS[uiLang];
+
+// languageName leans on Intl for the names of real languages, so the list does
+// not need a translation of every language into every UI language. The two
+// options that are not languages get their own wording.
+function languageName(code) {
+  if (code === 'none') return t().langNone;
+  if (code === 'other') return t().langOther;
+  try {
+    return new Intl.DisplayNames([uiLang], { type: 'language' }).of(code) || code;
+  } catch {
+    return code;
+  }
+}
+
+// lastStatus remembers how to say the current status again after a language
+// switch, rather than leaving a stale sentence behind.
+let lastStatus = { key: 'idle', args: [], isError: false };
+
+function setStatus(key, args = [], isError = false) {
+  lastStatus = { key, args, isError };
+  const value = t()[key];
+  statusEl.textContent = typeof value === 'function' ? value(...args) : value;
+  statusEl.classList.toggle('err', isError);
+}
+
+function applyLanguage() {
+  document.documentElement.lang = t().htmlLang;
+  document.title = t().docTitle;
+  el('ui-lang').textContent = t().switchTo;
+
+  for (const node of document.querySelectorAll('[data-i18n]')) {
+    node.textContent = t()[node.dataset.i18n];
+  }
+  for (const node of document.querySelectorAll('[data-i18n-html]')) {
+    // These strings are constants defined above, never relay content.
+    node.innerHTML = t()[node.dataset.i18nHtml];
+  }
+
+  el('api-host').replaceChildren(t().apiHost, apiLink);
+
+  buildLanguageOptions();
+  setStatus(lastStatus.key, lastStatus.args, lastStatus.isError);
+  render();
+}
+
+function buildLanguageOptions() {
+  const current = langEl.value;
+  langEl.replaceChildren();
+
+  const any = document.createElement('option');
+  any.value = '';
+  any.textContent = t().langAll;
+  langEl.append(any);
+
+  // The two languages this page itself speaks come first, the reader's own
+  // ahead of the other, because those are the ones actually reached for. The
+  // rest follow by the name being shown rather than by the two-letter code,
+  // which would read as an arbitrary shuffle. The two options that are not
+  // languages sit at the end, where a list of languages expects its
+  // exceptions.
+  const rank = (code) => {
+    if (code === 'other') return 4;
+    if (code === 'none') return 3;
+    if (code === uiLang) return 0;
+    if (STRINGS[code]) return 1;
+    return 2;
+  };
+  const ordered = [...languageKeys].sort((a, b) =>
+    (rank(a) - rank(b)) || languageName(a).localeCompare(languageName(b), uiLang));
+
+  for (const code of ordered) {
+    const opt = document.createElement('option');
+    opt.value = code;
+    opt.textContent = languageName(code);
+    langEl.append(opt);
+  }
+  langEl.value = languageKeys.includes(current) ? current : '';
+}
 
 function thresholds() {
   return {
     appeal: parseFloat(el('appeal').value),
     promotional: parseFloat(el('promo').value),
     substance: parseFloat(el('substance').value),
+    language: langEl.value,
+    langness: parseFloat(el('langness').value),
   };
 }
 
 // verdict is the same rule as internal/recommend, applied in the browser: the
-// strongest of the three positive signals, with promotion as a veto.
-function verdict(r, t) {
-  if (r.promotional >= t.promotional) return { keep: false, why: 'promotional', veto: true };
-  if (t.substance > 0 && (r.substance ?? 0) < t.substance) {
+// strongest of the three positive signals, with promotion as a veto. Language
+// is a filter on top, never part of what the model decided.
+function verdict(r, c) {
+  if (r.promotional >= c.promotional) return { keep: false, why: 'promotional', veto: true };
+  if (c.language) {
+    const score = (r.language_scores || {})[c.language] ?? 0;
+    if (score < c.langness) return { keep: false, why: 'language', veto: false };
+  }
+  if (c.substance > 0 && (r.substance ?? 0) < c.substance) {
     return { keep: false, why: 'substance', veto: false };
   }
-  if (r.appeal >= t.appeal) return { keep: true, why: r.reason, veto: false };
+  if (r.appeal >= c.appeal) return { keep: true, why: r.reason, veto: false };
   return { keep: false, why: r.reason, veto: false };
-}
-
-function setStatus(text, isError) {
-  statusEl.textContent = text;
-  statusEl.classList.toggle('err', !!isError);
 }
 
 function signalBar(name, value, max, negative) {
@@ -228,6 +443,18 @@ function signalBar(name, value, max, negative) {
     <span class="name">${name}</span>
     <span class="track"><span class="fill${negative ? ' neg' : ''}" style="width:${(frac * 100).toFixed(1)}%"></span></span>
     <span class="num">${value.toFixed(2)}</span>`;
+}
+
+// topLanguages renders the distribution rather than only the winner, because a
+// post can read half one language and half another, and that is exactly the
+// case a threshold is being moved to catch.
+function topLanguages(scores) {
+  return Object.entries(scores || {})
+    .filter(([, v]) => v >= 0.01)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 2)
+    .map(([code, v]) => `${code} ${v.toFixed(2)}`)
+    .join(' / ');
 }
 
 function postCard(r, v) {
@@ -241,23 +468,34 @@ function postCard(r, v) {
 
   const meta = document.createElement('div');
   meta.className = 'meta';
+
   const tag = document.createElement('span');
   if (v.veto) {
     tag.className = 'tag veto';
-    tag.textContent = '宣伝として拒否';
+    tag.textContent = t().vetoed;
   } else if (v.keep) {
     tag.className = 'tag why';
-    tag.textContent = `${v.why} で採用`;
+    tag.textContent = t().keptBecause(v.why);
   } else {
     tag.className = 'tag';
-    tag.textContent = v.why === 'substance' ? 'substance 不足' : `最高でも ${v.why} ${r.appeal.toFixed(2)}`;
+    if (v.why === 'substance') tag.textContent = t().belowSubstance;
+    else if (v.why === 'language') tag.textContent = t().belowLang(languageName(thresholds().language));
+    else tag.textContent = t().belowAppeal(v.why, r.appeal.toFixed(2));
   }
   meta.append(tag);
+
   if (r.kind) {
     const kind = document.createElement('span');
     kind.className = 'tag';
     kind.textContent = `${r.kind} ${r.kind_confidence.toFixed(2)}`;
     meta.append(kind);
+  }
+  const langs = topLanguages(r.language_scores);
+  if (langs) {
+    const lang = document.createElement('span');
+    lang.className = 'tag';
+    lang.textContent = langs;
+    meta.append(lang);
   }
   if (r.substance_legend) {
     const legend = document.createElement('span');
@@ -280,31 +518,45 @@ function postCard(r, v) {
 }
 
 function render() {
-  const t = thresholds();
+  const c = thresholds();
+  langSliderEl.classList.toggle('off', !c.language);
+
   const kept = [], dropped = [];
   for (const r of scored) {
-    const v = verdict(r, t);
+    const v = verdict(r, c);
     (v.keep ? kept : dropped).push([r, v]);
   }
   // Strongest appeal first, substance breaking ties: the same order the API
   // would serve.
   kept.sort((a, b) => (b[0].appeal - a[0].appeal) || ((b[0].substance ?? 0) - (a[0].substance ?? 0)));
 
-  for (const [target, list, counter, empty] of [
-    [keptEl, kept, keptCountEl, 'まだありません。'],
-    [droppedEl, dropped, droppedCountEl, 'まだありません。'],
+  for (const [target, list, counter] of [
+    [keptEl, kept, keptCountEl],
+    [droppedEl, dropped, droppedCountEl],
   ]) {
     target.replaceChildren();
-    counter.textContent = list.length ? `${list.length} 件` : '';
+    counter.textContent = list.length ? t().count(list.length) : '';
     if (!list.length) {
       const p = document.createElement('p');
       p.className = 'status';
-      p.textContent = empty;
+      p.textContent = t().empty;
       target.append(p);
       continue;
     }
     for (const [r, v] of list) target.append(postCard(r, v));
   }
+}
+
+async function loadLanguageOptions() {
+  try {
+    const res = await fetch(`${API}/api/questions`);
+    const data = await res.json();
+    const criteria = data.questions?.language?.criteria;
+    if (criteria && typeof criteria === 'object') {
+      languageKeys = Object.keys(criteria);
+      buildLanguageOptions();
+    }
+  } catch { /* the fallback list is already in place */ }
 }
 
 async function sendBatch() {
@@ -314,7 +566,7 @@ async function sendBatch() {
 
   const batch = pending.splice(0, 30);
   inFlight++;
-  setStatus(`判定中… (${inFlight} 件のリクエスト)`);
+  setStatus('scoring', [inFlight]);
   try {
     const res = await fetch(`${API}/api/score`, {
       method: 'POST',
@@ -332,11 +584,10 @@ async function sendBatch() {
 
     scored = [...fresh, ...scored].slice(0, 120);
     render();
-    setStatus(failed.length
-      ? `${fresh.length} 件を判定、${failed.length} 件は失敗（${failed[0].error}）`
-      : `${scored.length} 件を判定済み`, failed.length > 0);
+    if (failed.length) setStatus('partial', [fresh.length, failed.length, failed[0].error], true);
+    else setStatus('scored', [scored.length]);
   } catch (err) {
-    setStatus(`判定に失敗: ${err.message || err}`, true);
+    setStatus('scoreFailed', [err.message || String(err)], true);
   } finally {
     inFlight--;
   }
@@ -358,13 +609,14 @@ function queue(event) {
 function start() {
   stop();
   const url = relayEl.value;
-  setStatus(`${new URL(url).host} に接続中…`);
+  const host = new URL(url).host;
+  setStatus('connecting', [host]);
   startEl.disabled = true;
   stopEl.disabled = false;
 
   socket = new WebSocket(url);
   socket.addEventListener('open', () => {
-    setStatus(`${new URL(url).host} に接続、投稿を待っています`);
+    setStatus('connected', [host]);
     // NIP-01: kinds:[1] is a plain text note. limit seeds the stream with a
     // few recent ones so the page is not blank while waiting.
     socket.send(JSON.stringify(['REQ', 'timeline', { kinds: [1], limit: 10 }]));
@@ -375,11 +627,11 @@ function start() {
     // Relay frames are ["EVENT", <subscription>, <event>].
     if (Array.isArray(frame) && frame[0] === 'EVENT' && frame[2]) queue(frame[2]);
   });
-  socket.addEventListener('error', () => setStatus('リレーに接続できませんでした', true));
+  socket.addEventListener('error', () => setStatus('relayFailed', [], true));
   socket.addEventListener('close', () => {
     startEl.disabled = false;
     stopEl.disabled = true;
-    if (socket) setStatus('切断されました');
+    if (socket) setStatus('disconnected');
   });
 }
 
@@ -396,24 +648,29 @@ function stop() {
 }
 
 startEl.addEventListener('click', start);
-stopEl.addEventListener('click', () => { stop(); setStatus('停止しました'); });
+stopEl.addEventListener('click', () => { stop(); setStatus('stopped'); });
+langEl.addEventListener('change', render);
 
-for (const [id, valId, digits] of [['appeal', 'appeal-val', 2], ['promo', 'promo-val', 2], ['substance', 'substance-val', 2]]) {
+el('ui-lang').addEventListener('click', () => {
+  uiLang = uiLang === 'ja' ? 'en' : 'ja';
+  try { localStorage.setItem('jev-ui-lang', uiLang); } catch { /* nothing to do */ }
+  applyLanguage();
+});
+
+for (const [id, valId] of [
+  ['appeal', 'appeal-val'], ['promo', 'promo-val'],
+  ['substance', 'substance-val'], ['langness', 'langness-val'],
+]) {
   const input = el(id), out = el(valId);
-  const update = () => { out.textContent = parseFloat(input.value).toFixed(digits); render(); };
-  input.addEventListener('input', update);
-  update();
+  input.addEventListener('input', () => {
+    out.textContent = parseFloat(input.value).toFixed(2);
+    render();
+  });
+  out.textContent = parseFloat(input.value).toFixed(2);
 }
 
-// Name the host being called, so a page pointed at the wrong deployment shows
-// it instead of just failing to score anything.
-{
-  const link = document.createElement('a');
-  link.href = API + '/health';
-  link.textContent = new URL(API).host;
-  link.rel = 'noopener';
-  el('api-host').append('スコアリング API: ', link);
-}
+applyLanguage();
+loadLanguageOptions();
 </script>
 </body>
 </html>

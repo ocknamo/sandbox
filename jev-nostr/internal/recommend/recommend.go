@@ -49,6 +49,13 @@ type Verdict struct {
 	Kind            string
 	KindConfidence  float64
 
+	// Language is the language the model settled on, but LanguageScores is
+	// the useful part: the whole distribution, so that a caller can ask how
+	// Japanese a post reads without caring which language won. A post can be
+	// 0.6 Japanese and 0.4 English, and a Japanese timeline may well want it.
+	Language       string
+	LanguageScores map[string]float64
+
 	Recommend bool
 
 	// Vetoed marks a post rejected as promotional rather than for lack of
@@ -62,6 +69,10 @@ type Verdict struct {
 // good joke is not a weak essay: a post that scores 0.9 on humour and 0.1 on
 // insight has earned its place, and averaging would bury it under a post that
 // is mediocre at everything. Any one reason to read something is a reason.
+//
+// Language is carried through and never acted on. Which language a timeline
+// wants is not a property of the post, and a service that decided it here
+// would have to be asked again every time a reader changed their mind.
 //
 // The substance score is carried through but not yet part of the decision. It
 // is a graded value rather than a yes/no, so folding it in means choosing how
@@ -97,6 +108,10 @@ func Evaluate(answers map[string]jev.Answer, policy Policy) (Verdict, error) {
 		if a.Confidence != nil {
 			v.KindConfidence = *a.Confidence
 		}
+	}
+	if a, ok := answers[KeyLanguage]; ok {
+		v.Language = a.Choice
+		v.LanguageScores = a.Probabilities
 	}
 
 	v.Appeal, v.Reason = strongest(map[string]float64{

@@ -13,9 +13,11 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"math"
 	"os"
 	"os/signal"
 	"slices"
+	"strings"
 	"syscall"
 	"time"
 
@@ -145,7 +147,8 @@ func printSignals(p post, v recommend.Verdict, elapsed time.Duration) {
 			substance += " (" + v.SubstanceLegend + ")"
 		}
 	}
-	fmt.Printf("    substance %s | kind %s %.2f\n", substance, v.Kind, v.KindConfidence)
+	fmt.Printf("    substance %s | kind %s %.2f | language %s\n",
+		substance, v.Kind, v.KindConfidence, languages(v.LanguageScores, v.Language))
 
 	switch {
 	case v.Vetoed:
@@ -174,6 +177,33 @@ func printTimeline(results []judged) {
 		fmt.Printf("  %d. %s  %.2f %-9s  %s\n",
 			i+1, short(r.post.ID), r.verdict.Appeal, r.verdict.Reason, preview(r.post.Content, 48))
 	}
+}
+
+// languages renders the language distribution, strongest first, keeping only
+// the options the model gave real weight. The winner alone would hide the
+// interesting case: a post that reads half Japanese and half English.
+func languages(scores map[string]float64, winner string) string {
+	if len(scores) == 0 {
+		return winner
+	}
+	keys := make([]string, 0, len(scores))
+	for k, v := range scores {
+		if v >= 0.01 {
+			keys = append(keys, k)
+		}
+	}
+	slices.SortFunc(keys, func(a, b string) int {
+		if d := scores[b] - scores[a]; d != 0 {
+			return int(math.Copysign(1, d))
+		}
+		return strings.Compare(a, b)
+	})
+
+	parts := make([]string, 0, len(keys))
+	for _, k := range keys {
+		parts = append(parts, fmt.Sprintf("%s %.2f", k, scores[k]))
+	}
+	return strings.Join(parts, " / ")
 }
 
 func loadPosts(path string) ([]post, error) {

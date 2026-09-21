@@ -53,6 +53,13 @@ type Result struct {
 	Kind           string  `json:"kind,omitempty"`
 	KindConfidence float64 `json:"kind_confidence,omitempty"`
 
+	// Language names the winning option; LanguageScores is the distribution
+	// behind it, which is what a caller filtering by "how Japanese is this"
+	// actually reads. Sent in full for the same reason no verdict is sent:
+	// the choice of language belongs to whoever is reading.
+	Language       string             `json:"language,omitempty"`
+	LanguageScores map[string]float64 `json:"language_scores,omitempty"`
+
 	// Error explains a post the model could not be asked about. One failure
 	// costs its own post and nothing else, which matters when a page is
 	// scoring a live feed and would rather show nine results than none.
@@ -153,5 +160,7 @@ func (s *Scorer) one(ctx context.Context, p Post) Result {
 	out.SubstanceLegend = verdict.SubstanceLegend
 	out.Kind = verdict.Kind
 	out.KindConfidence = verdict.KindConfidence
+	out.Language = verdict.Language
+	out.LanguageScores = verdict.LanguageScores
 	return out
 }

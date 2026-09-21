@@ -174,8 +174,8 @@ func TestQuestionsDescribesWhatIsAsked(t *testing.T) {
 	if err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil {
 		t.Fatalf("decode: %v", err)
 	}
-	if len(got.Questions) != 6 {
-		t.Errorf("got %d questions, want 6", len(got.Questions))
+	if len(got.Questions) != 7 {
+		t.Errorf("got %d questions, want 7", len(got.Questions))
 	}
 	if q := got.Questions["humor"]; q.Type != "noul" || q.Instructions == "" {
 		t.Errorf("humor question = %+v", q)
