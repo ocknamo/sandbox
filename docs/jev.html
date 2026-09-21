@@ -96,6 +96,13 @@
   .radar .shape { fill: var(--accent); fill-opacity: 0.22; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; }
   .radar .peak { fill: var(--accent); }
   #axis-order:empty { display: none; }
+  .radar .axislabel { fill: var(--muted); font-size: 9px; }
+  @media (max-width: 560px) {
+    /* The radar sits beside the signals on a wide card; on a phone there is
+       no room beside anything, so it goes underneath. */
+    .postbody { flex-direction: column; align-items: center; }
+    .postbody .left { width: 100%; }
+  }
   .radar figcaption { font-size: 11px; color: var(--muted); text-align: center; margin-top: 2px; font-variant-numeric: tabular-nums; }
   .post { border-top: 1px solid var(--line); padding: 14px 0; }
   .post:first-child { border-top: none; }
@@ -602,15 +609,25 @@ function topLanguages(scores) {
 // 0 to 1 with rings, never normalised per post, so a faint post stays visibly
 // faint. The summed interest is printed underneath, because that is the number
 // the filter actually uses and no polygon conveys it.
-const RADAR_SIZE = 110;
+// The box is wider than it is tall because the labels at three and nine
+// o'clock need horizontal room that the ones at twelve and six do not. Sizing
+// the box to the plot instead is what clipped them: a label has to fit inside
+// the viewBox, and "テクノロジー" is wider than the chart.
+// A starting box, widened to fit the labels once they have been measured; see
+// fitRadars. Guessing the width from the plot is what clipped "料理・グルメ"
+// into "理・グル…": a label anchored at the left vertex grows leftwards, and
+// how far depends on the font, the language and the word.
+const RADAR_W = 178, RADAR_H = 118, RADAR_R = 38;
 const RADAR_RINGS = [0.25, 0.5, 0.75, 1];
 
+// Labels are dropped past this many axes; below it they are truncated, since a
+// radar this size has room for a word, not a phrase.
+const RADAR_MAX_LABELS = 8;
+const RADAR_LABEL_CHARS = 5;
+
 function radar(r, axes) {
-  const cx = RADAR_SIZE / 2, cy = RADAR_SIZE / 2;
-  // No room is kept for labels: naming an axis on every card either clips the
-  // text or shrinks the shape to nothing at this size. The axis order is said
-  // once above the list instead, and the values are in the tooltip.
-  const radius = RADAR_SIZE / 2 - 6;
+  const cx = RADAR_W / 2, cy = RADAR_H / 2;
+  const radius = RADAR_R;
   const at = (i, frac) => {
     // Start at twelve o'clock and go clockwise, the way a reader expects.
     const angle = (i / axes.length) * 2 * Math.PI - Math.PI / 2;
@@ -618,9 +635,9 @@ function radar(r, axes) {
   };
 
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('viewBox', `0 0 ${RADAR_SIZE} ${RADAR_SIZE}`);
-  svg.setAttribute('width', RADAR_SIZE);
-  svg.setAttribute('height', RADAR_SIZE);
+  svg.setAttribute('viewBox', `0 0 ${RADAR_W} ${RADAR_H}`);
+  svg.setAttribute('width', RADAR_W);
+  svg.setAttribute('height', RADAR_H);
   svg.setAttribute('role', 'img');
 
   const add = (name, attrs, cls) => {
@@ -649,6 +666,26 @@ function radar(r, axes) {
   if (values[peak] > 0) {
     const [x, y] = at(peak, values[peak]);
     add('circle', { cx: x.toFixed(1), cy: y.toFixed(1), r: 2.5 }, 'peak');
+  }
+
+  // Naming the axes on the chart itself, because a reader scrolled down to a
+  // card cannot see a legend that lives at the top of the page.
+  if (axes.length <= RADAR_MAX_LABELS) {
+    axes.forEach((code, i) => {
+      const [x, y] = at(i, 1);
+      // Push the label clear of the outer ring along its own spoke.
+      const dx = x - cx, dy = y - cy;
+      const len = Math.hypot(dx, dy) || 1;
+      const lx = x + (dx / len) * 7;
+      const ly = y + (dy / len) * 7;
+      const label = add('text', { x: lx.toFixed(1), y: (ly + 3).toFixed(1) }, 'axislabel');
+      label.setAttribute('text-anchor', lx < cx - 1 ? 'end' : lx > cx + 1 ? 'start' : 'middle');
+      const name = topicName(code);
+      label.textContent = name.length > RADAR_LABEL_CHARS ? name.slice(0, RADAR_LABEL_CHARS) + '…' : name;
+      const full = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+      full.textContent = name;
+      label.append(full);
+    });
   }
 
   // The values themselves, for a reader who cannot read the shape and for one
@@ -755,6 +792,37 @@ function postCard(r, v) {
   return node;
 }
 
+// fitRadars grows every radar's viewBox until the labels fit inside it.
+//
+// getBBox needs the element to be in the document, so this runs after the
+// cards are appended rather than while they are built. The box is measured
+// once and applied to all of them: a viewBox that differed per card would
+// scale the plots differently, and comparing shapes across cards is the whole
+// reason the axes are fixed in the first place.
+function fitRadars() {
+  const svgs = document.querySelectorAll('.radar svg');
+  if (!svgs.length) return;
+
+  const pad = 2;
+  let minX = 0, minY = 0, maxX = RADAR_W, maxY = RADAR_H;
+  for (const svg of svgs) {
+    let box;
+    try { box = svg.getBBox(); } catch { return; }   // not rendered yet
+    if (!box.width && !box.height) return;
+    minX = Math.min(minX, box.x - pad);
+    minY = Math.min(minY, box.y - pad);
+    maxX = Math.max(maxX, box.x + box.width + pad);
+    maxY = Math.max(maxY, box.y + box.height + pad);
+  }
+
+  const w = maxX - minX, h = maxY - minY;
+  for (const svg of svgs) {
+    svg.setAttribute('viewBox', `${minX.toFixed(1)} ${minY.toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}`);
+    svg.setAttribute('width', w.toFixed(1));
+    svg.setAttribute('height', h.toFixed(1));
+  }
+}
+
 function render() {
   const c = thresholds();
   langSliderEl.classList.toggle('off', !c.language);
@@ -791,6 +859,8 @@ function render() {
     }
     for (const [r, v] of list) target.append(postCard(r, v));
   }
+
+  fitRadars();
 }
 
 // The option lists are read from the service rather than written out here a
