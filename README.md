@@ -98,7 +98,7 @@ GCP 側の作業は不要です。デプロイ用サービスアカウントは�
   [`go-cloudrun-bird/README.md`](go-cloudrun-bird/README.md#フロントエンド)。
 - https://ocknamo.github.io/sandbox/jev.html — Nostr の「おすすめタイムライン」
   （[`docs/jev.html`](docs/jev.html)）。リレーから流れてくる投稿を Jev に判定させ、
-  しきい値と言語フィルタをブラウザ側で適用します（日本語 / 英語表示）。詳細は
+  しきい値・言語・トピックのフィルタをブラウザ側で適用します（日本語 / 英語表示）。詳細は
   [`jev-nostr/README.md`](jev-nostr/README.md)。
 
 ## その他

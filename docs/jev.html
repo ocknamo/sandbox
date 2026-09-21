@@ -79,6 +79,31 @@
   .slider .hint { grid-column: 1 / -1; font-size: 12.5px; color: var(--muted); margin: -4px 0 0; }
   .slider.off input[type=range] { opacity: 0.4; }
   .langrow { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 4px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; grid-column: 1 / -1; margin: 2px 0 6px; }
+  .chip {
+    font: inherit; font-size: 12.5px; line-height: 1.4;
+    padding: 3px 10px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--card); color: var(--muted);
+    cursor: pointer;
+  }
+  .chip[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .chipbar { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; grid-column: 1 / -1; }
+  .postbody { display: flex; gap: 14px; align-items: flex-start; }
+  .postbody .left { flex: 1 1 auto; min-width: 0; }
+  .radar { flex: 0 0 auto; }
+  .radar .ring { fill: none; stroke: var(--line); stroke-width: 1; }
+  .radar .spoke { stroke: var(--line); stroke-width: 1; }
+  .radar .shape { fill: var(--accent); fill-opacity: 0.22; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; }
+  .radar .peak { fill: var(--accent); }
+  #axis-order:empty { display: none; }
+  .radar .axislabel { fill: var(--muted); font-size: 9px; }
+  @media (max-width: 560px) {
+    /* The radar sits beside the signals on a wide card; on a phone there is
+       no room beside anything, so it goes underneath. */
+    .postbody { flex-direction: column; align-items: center; }
+    .postbody .left { width: 100%; }
+  }
+  .radar figcaption { font-size: 11px; color: var(--muted); text-align: center; margin-top: 2px; font-variant-numeric: tabular-nums; }
   .post { border-top: 1px solid var(--line); padding: 14px 0; }
   .post:first-child { border-top: none; }
   .post .content { margin: 0 0 8px; white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -147,6 +172,17 @@
         <input type="range" id="substance" min="0" max="4" step="0.1" value="0">
         <p class="hint" data-i18n-html="substanceHint"></p>
       </div>
+      <div class="slider off" id="topic-slider">
+        <div class="chipbar">
+          <label for="interest" data-i18n="topicLabel"></label>
+          <button type="button" class="chip" id="topic-clear" data-i18n="topicClear"></button>
+        </div>
+        <div class="chips" id="topics"></div>
+        <p class="hint" id="axis-order"></p>
+        <span class="val" id="interest-val">0.40</span>
+        <input type="range" id="interest" min="0" max="1" step="0.01" value="0.4">
+        <p class="hint" data-i18n-html="topicHint"></p>
+      </div>
       <div class="slider off" id="lang-slider">
         <div class="langrow">
           <label for="lang" data-i18n="langLabel"></label>
@@ -188,6 +224,13 @@ const API = (new URLSearchParams(location.search).get('api') || DEPLOYED_API).re
 const BATCH_SIZE = 8;
 const BATCH_WAIT_MS = 4000;
 
+// How many stored posts to ask the relay for on connecting.
+const RELAY_LIMIT = 500;
+
+// How many scored posts to keep. A relay replay can hand over far more than a
+// page can usefully show, and each one holds its own distributions.
+const KEEP_SCORED = 300;
+
 // The language options are fetched from /api/questions so that the list here
 // cannot drift from the one the model is actually given. This is the fallback
 // for when that call fails.
@@ -215,6 +258,24 @@ const STRINGS = {
     substanceLabel: 'substance がこの値以上（0 で無効）',
     substanceHint: '<code>score</code> は 0〜4 の期待値で、実測では一番よく分離しました'
         + '（中身のある投稿 3.5+、<code>gm</code> は 0.00）。1.5 あたりに上げると雑談が落ちます。',
+    topicLabel: '興味のあるトピック（選んだものがレーダーの軸になります）',
+    topicClear: 'すべて解除',
+    topicHint: '選んだトピックの確率を<strong>足した値</strong>がこの値以上なら残します。'
+        + '<code>choice</code> の確率は合計 1 なので、2 つのトピックに跨る投稿は '
+        + 'tech 0.45 / sports 0.40 のように薄まります。両方選んでいれば 0.85 として扱われ、'
+        + 'それが「私の興味のどれかに当たる確率」そのものです。',
+    topicNames: {
+      tech: 'テクノロジー', bitcoin: 'ビットコイン', nostr: 'Nostr', science: '自然科学',
+      health: '健康・医療', politics: '政治・社会', business: '経済・ビジネス',
+      religion: '宗教', philosophy: '哲学・思想', sports: 'スポーツ', games: 'ゲーム',
+      anime: 'アニメ・マンガ', music: '音楽', film: '映画・ドラマ', books: '本・文学',
+      art: 'アート・デザイン', photo: '写真', food: '料理・グルメ', travel: '旅行・地域',
+      nature: '自然・生き物', life: '暮らし・仕事', other: 'その他',
+    },
+    belowTopic: '興味の外',
+    interestIs: (v) => `興味 ${v}`,
+    radarCaption: (v) => `興味 ${v}`,
+    axisOrder: (list) => `レーダーの軸は 12 時から時計回りに ${list}。ホバーで数値が出ます。`,
     langLabel: '言語',
     langHint: 'その言語らしさがこの値以上の投稿だけ残します。判定は 1 つの <code>choice</code> 質問で、'
         + '返ってくる確率分布がそのまま「らしさ」です。'
@@ -266,6 +327,24 @@ const STRINGS = {
     substanceLabel: 'substance at or above (0 disables it)',
     substanceHint: '<code>score</code> is an expected level from 0 to 4, and it separates posts better than anything else measured so far '
         + '(3.5+ for posts with something in them, 0.00 for <code>gm</code>). Around 1.5 the chatter drops out.',
+    topicLabel: 'Topics you are interested in (the ones you pick become the radar axes)',
+    topicClear: 'Clear all',
+    topicHint: 'Keeps a post when the probabilities of the topics you picked, <strong>added together</strong>, '
+        + 'reach this value. A <code>choice</code> sums to 1, so a post spanning two subjects thins out to '
+        + 'tech 0.45 / sports 0.40. Pick both and it counts as 0.85, which is exactly '
+        + '"the chance this post is about something I care about".',
+    topicNames: {
+      tech: 'Technology', bitcoin: 'Bitcoin', nostr: 'Nostr', science: 'Science',
+      health: 'Health', politics: 'Politics', business: 'Business',
+      religion: 'Religion', philosophy: 'Philosophy', sports: 'Sports', games: 'Games',
+      anime: 'Anime', music: 'Music', film: 'Film & TV', books: 'Books',
+      art: 'Art & design', photo: 'Photography', food: 'Food', travel: 'Travel',
+      nature: 'Nature', life: 'Everyday life', other: 'Other',
+    },
+    belowTopic: 'outside your topics',
+    interestIs: (v) => `interest ${v}`,
+    radarCaption: (v) => `interest ${v}`,
+    axisOrder: (list) => `Radar axes, clockwise from twelve: ${list}. Hover for the values.`,
     langLabel: 'Language',
     langHint: 'Keeps only posts that read at least this much like the chosen language. One <code>choice</code> question answers it, '
         + 'and the probability distribution it returns is the "reads like" score. '
@@ -305,6 +384,7 @@ const startEl = el('start'), stopEl = el('stop'), relayEl = el('relay'), statusE
 const keptEl = el('kept'), droppedEl = el('dropped');
 const keptCountEl = el('kept-count'), droppedCountEl = el('dropped-count');
 const langEl = el('lang'), langSliderEl = el('lang-slider');
+const topicsEl = el('topics'), topicSliderEl = el('topic-slider');
 
 // Name the host being called, so a page pointed at the wrong deployment shows
 // it instead of just failing to score anything.
@@ -323,6 +403,8 @@ let socket = null;
 let batchTimer = null;
 let inFlight = 0;
 let languageKeys = FALLBACK_LANGUAGES;
+let topicKeys = [];                 // filled from /api/questions
+let selectedTopics = new Set();     // the reader's interests, and the radar axes
 
 let uiLang = 'ja';
 try {
@@ -330,6 +412,11 @@ try {
   if (saved && STRINGS[saved]) uiLang = saved;
   else if (!navigator.language.startsWith('ja')) uiLang = 'en';
 } catch { /* private mode: the default stands */ }
+
+try {
+  const saved = JSON.parse(localStorage.getItem('jev-topics') || '[]');
+  if (Array.isArray(saved)) selectedTopics = new Set(saved.filter((c) => typeof c === 'string'));
+} catch { /* nothing remembered, which is the same as nothing selected */ }
 
 const t = () => STRINGS[uiLang];
 
@@ -344,6 +431,12 @@ function languageName(code) {
   } catch {
     return code;
   }
+}
+
+// topicName falls back to the raw key, so a topic added to the model shows up
+// as itself rather than disappearing from a page that has no word for it yet.
+function topicName(code) {
+  return t().topicNames[code] || code;
 }
 
 // lastStatus remembers how to say the current status again after a language
@@ -373,8 +466,40 @@ function applyLanguage() {
   el('api-host').replaceChildren(t().apiHost, apiLink);
 
   buildLanguageOptions();
+  buildTopicChips();
   setStatus(lastStatus.key, lastStatus.args, lastStatus.isError);
   render();
+}
+
+function buildTopicChips() {
+  topicsEl.replaceChildren();
+  // Ordered by the name being shown, so the row reads alphabetically in
+  // whichever language the page is in. "other" sits at the end, where a list
+  // of subjects expects its exception.
+  const ordered = [...topicKeys].sort((a, b) =>
+    ((a === 'other') - (b === 'other')) || topicName(a).localeCompare(topicName(b), uiLang));
+
+  for (const code of ordered) {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'chip';
+    chip.dataset.topic = code;
+    chip.textContent = topicName(code);
+    chip.setAttribute('aria-pressed', String(selectedTopics.has(code)));
+    chip.addEventListener('click', () => {
+      if (selectedTopics.has(code)) selectedTopics.delete(code);
+      else selectedTopics.add(code);
+      chip.setAttribute('aria-pressed', String(selectedTopics.has(code)));
+      saveTopics();
+      render();
+    });
+    topicsEl.append(chip);
+  }
+}
+
+function saveTopics() {
+  try { localStorage.setItem('jev-topics', JSON.stringify([...selectedTopics])); }
+  catch { /* private mode: the selection just does not outlive the page */ }
 }
 
 function buildLanguageOptions() {
@@ -418,7 +543,22 @@ function thresholds() {
     substance: parseFloat(el('substance').value),
     language: langEl.value,
     langness: parseFloat(el('langness').value),
+    topics: selectedTopics,
+    interest: parseFloat(el('interest').value),
   };
+}
+
+// interestIn is the chance a post is about something the reader picked.
+//
+// A choice's probabilities sum to 1, so the scores of the chosen topics can be
+// added: a post at tech 0.45 and sports 0.40 clears neither on its own, but a
+// reader interested in both is right to call it 0.85. Asking any single score
+// to clear a threshold would throw away every post that spans two subjects,
+// which is most of the interesting ones.
+function interestIn(r, topics) {
+  let sum = 0;
+  for (const code of topics) sum += (r.topic_scores || {})[code] ?? 0;
+  return sum;
 }
 
 // verdict is the same rule as internal/recommend, applied in the browser: the
@@ -429,6 +569,9 @@ function verdict(r, c) {
   if (c.language) {
     const score = (r.language_scores || {})[c.language] ?? 0;
     if (score < c.langness) return { keep: false, why: 'language', veto: false };
+  }
+  if (c.topics.size && interestIn(r, c.topics) < c.interest) {
+    return { keep: false, why: 'topic', veto: false };
   }
   if (c.substance > 0 && (r.substance ?? 0) < c.substance) {
     return { keep: false, why: 'substance', veto: false };
@@ -457,6 +600,110 @@ function topLanguages(scores) {
     .join(' / ');
 }
 
+// radar draws one post's scores on the topics the reader picked.
+//
+// A radar reads shape rather than length, so it is weaker than a bar at
+// telling two close values apart, and the area it encloses depends on the
+// order of the axes. Two things keep it honest: the axis order is fixed by the
+// selection, never per post, so cards are comparable; and the scale is a fixed
+// 0 to 1 with rings, never normalised per post, so a faint post stays visibly
+// faint. The summed interest is printed underneath, because that is the number
+// the filter actually uses and no polygon conveys it.
+// The box is wider than it is tall because the labels at three and nine
+// o'clock need horizontal room that the ones at twelve and six do not. Sizing
+// the box to the plot instead is what clipped them: a label has to fit inside
+// the viewBox, and "テクノロジー" is wider than the chart.
+// A starting box, widened to fit the labels once they have been measured; see
+// fitRadars. Guessing the width from the plot is what clipped "料理・グルメ"
+// into "理・グル…": a label anchored at the left vertex grows leftwards, and
+// how far depends on the font, the language and the word.
+const RADAR_W = 178, RADAR_H = 118, RADAR_R = 38;
+const RADAR_RINGS = [0.25, 0.5, 0.75, 1];
+
+// Labels are dropped past this many axes; below it they are truncated, since a
+// radar this size has room for a word, not a phrase.
+const RADAR_MAX_LABELS = 8;
+const RADAR_LABEL_CHARS = 5;
+
+function radar(r, axes) {
+  const cx = RADAR_W / 2, cy = RADAR_H / 2;
+  const radius = RADAR_R;
+  const at = (i, frac) => {
+    // Start at twelve o'clock and go clockwise, the way a reader expects.
+    const angle = (i / axes.length) * 2 * Math.PI - Math.PI / 2;
+    return [cx + Math.cos(angle) * radius * frac, cy + Math.sin(angle) * radius * frac];
+  };
+
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', `0 0 ${RADAR_W} ${RADAR_H}`);
+  svg.setAttribute('width', RADAR_W);
+  svg.setAttribute('height', RADAR_H);
+  svg.setAttribute('role', 'img');
+
+  const add = (name, attrs, cls) => {
+    const node = document.createElementNS('http://www.w3.org/2000/svg', name);
+    for (const [k, val] of Object.entries(attrs)) node.setAttribute(k, val);
+    if (cls) node.setAttribute('class', cls);
+    svg.append(node);
+    return node;
+  };
+  const polygon = (points, cls) =>
+    add('polygon', { points: points.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' ') }, cls);
+
+  // Rings and spokes first, so the data sits on top of them.
+  for (const ring of RADAR_RINGS) polygon(axes.map((_, i) => at(i, ring)), 'ring');
+  axes.forEach((_, i) => {
+    const [x, y] = at(i, 1);
+    add('line', { x1: cx, y1: cy, x2: x.toFixed(1), y2: y.toFixed(1) }, 'spoke');
+  });
+
+  const values = axes.map((code) => Math.max(0, Math.min(1, (r.topic_scores || {})[code] ?? 0)));
+  polygon(values.map((v, i) => at(i, v)), 'shape');
+
+  // One dot, on the strongest axis: a marker on every vertex would crowd a
+  // chart this size, and the peak is the only one worth pointing at.
+  const peak = values.indexOf(Math.max(...values));
+  if (values[peak] > 0) {
+    const [x, y] = at(peak, values[peak]);
+    add('circle', { cx: x.toFixed(1), cy: y.toFixed(1), r: 2.5 }, 'peak');
+  }
+
+  // Naming the axes on the chart itself, because a reader scrolled down to a
+  // card cannot see a legend that lives at the top of the page.
+  if (axes.length <= RADAR_MAX_LABELS) {
+    axes.forEach((code, i) => {
+      const [x, y] = at(i, 1);
+      // Push the label clear of the outer ring along its own spoke.
+      const dx = x - cx, dy = y - cy;
+      const len = Math.hypot(dx, dy) || 1;
+      const lx = x + (dx / len) * 7;
+      const ly = y + (dy / len) * 7;
+      const label = add('text', { x: lx.toFixed(1), y: (ly + 3).toFixed(1) }, 'axislabel');
+      label.setAttribute('text-anchor', lx < cx - 1 ? 'end' : lx > cx + 1 ? 'start' : 'middle');
+      const name = topicName(code);
+      label.textContent = name.length > RADAR_LABEL_CHARS ? name.slice(0, RADAR_LABEL_CHARS) + '…' : name;
+      const full = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+      full.textContent = name;
+      label.append(full);
+    });
+  }
+
+  // The values themselves, for a reader who cannot read the shape and for one
+  // who wants the number.
+  const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+  title.textContent = axes.map((code, i) => `${topicName(code)} ${values[i].toFixed(2)}`).join(', ');
+  svg.prepend(title);
+
+  const figure = document.createElement('figure');
+  figure.className = 'radar';
+  figure.style.margin = '0';
+  figure.append(svg);
+  const caption = document.createElement('figcaption');
+  caption.textContent = t().radarCaption(interestIn(r, axes).toFixed(2));
+  figure.append(caption);
+  return figure;
+}
+
 function postCard(r, v) {
   const node = document.createElement('div');
   node.className = 'post' + (v.keep ? '' : ' out');
@@ -478,7 +725,8 @@ function postCard(r, v) {
     tag.textContent = t().keptBecause(v.why);
   } else {
     tag.className = 'tag';
-    if (v.why === 'substance') tag.textContent = t().belowSubstance;
+    if (v.why === 'topic') tag.textContent = t().belowTopic;
+    else if (v.why === 'substance') tag.textContent = t().belowSubstance;
     else if (v.why === 'language') tag.textContent = t().belowLang(languageName(thresholds().language));
     else tag.textContent = t().belowAppeal(v.why, r.appeal.toFixed(2));
   }
@@ -489,6 +737,12 @@ function postCard(r, v) {
     kind.className = 'tag';
     kind.textContent = `${r.kind} ${r.kind_confidence.toFixed(2)}`;
     meta.append(kind);
+  }
+  if (r.topic) {
+    const topic = document.createElement('span');
+    topic.className = 'tag';
+    topic.textContent = `${topicName(r.topic)} ${r.topic_confidence.toFixed(2)}`;
+    meta.append(topic);
   }
   const langs = topLanguages(r.language_scores);
   if (langs) {
@@ -502,7 +756,6 @@ function postCard(r, v) {
     legend.textContent = r.substance_legend;
     meta.append(legend);
   }
-  node.append(meta);
 
   const signals = document.createElement('div');
   signals.className = 'signals';
@@ -512,14 +765,75 @@ function postCard(r, v) {
     signalBar('relatable', r.relatable, 1, false) +
     signalBar('promotional', r.promotional, 1, true) +
     (r.substance == null ? '' : signalBar('substance', r.substance, r.substance_top || 4, false));
-  node.append(signals);
+
+  // The radar needs at least three axes to be a shape at all. With one or two
+  // selected topics the ordinary bars say it better anyway.
+  const axes = [...selectedTopics];
+  if (axes.length >= 3 && r.topic_scores) {
+    const body = document.createElement('div');
+    body.className = 'postbody';
+    const left = document.createElement('div');
+    left.className = 'left';
+    left.append(meta, signals);
+    body.append(left, radar(r, axes));
+    node.append(body);
+  } else {
+    node.append(meta, signals);
+    if (axes.length && r.topic_scores) {
+      const bars = document.createElement('div');
+      bars.className = 'signals';
+      bars.innerHTML = axes
+        .map((code) => signalBar(topicName(code), r.topic_scores[code] ?? 0, 1, false))
+        .join('');
+      node.append(bars);
+    }
+  }
 
   return node;
+}
+
+// fitRadars grows every radar's viewBox until the labels fit inside it.
+//
+// getBBox needs the element to be in the document, so this runs after the
+// cards are appended rather than while they are built. The box is measured
+// once and applied to all of them: a viewBox that differed per card would
+// scale the plots differently, and comparing shapes across cards is the whole
+// reason the axes are fixed in the first place.
+function fitRadars() {
+  const svgs = document.querySelectorAll('.radar svg');
+  if (!svgs.length) return;
+
+  const pad = 2;
+  let minX = 0, minY = 0, maxX = RADAR_W, maxY = RADAR_H;
+  for (const svg of svgs) {
+    let box;
+    try { box = svg.getBBox(); } catch { return; }   // not rendered yet
+    if (!box.width && !box.height) return;
+    minX = Math.min(minX, box.x - pad);
+    minY = Math.min(minY, box.y - pad);
+    maxX = Math.max(maxX, box.x + box.width + pad);
+    maxY = Math.max(maxY, box.y + box.height + pad);
+  }
+
+  const w = maxX - minX, h = maxY - minY;
+  for (const svg of svgs) {
+    svg.setAttribute('viewBox', `${minX.toFixed(1)} ${minY.toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}`);
+    svg.setAttribute('width', w.toFixed(1));
+    svg.setAttribute('height', h.toFixed(1));
+  }
 }
 
 function render() {
   const c = thresholds();
   langSliderEl.classList.toggle('off', !c.language);
+  topicSliderEl.classList.toggle('off', !c.topics.size);
+
+  // Said once rather than drawn on every card: at this size a named axis
+  // either clips or leaves no room for the shape.
+  const axes = [...c.topics];
+  el('axis-order').textContent = axes.length >= 3
+    ? t().axisOrder(axes.map(topicName).join(' → '))
+    : '';
 
   const kept = [], dropped = [];
   for (const r of scored) {
@@ -545,18 +859,33 @@ function render() {
     }
     for (const [r, v] of list) target.append(postCard(r, v));
   }
+
+  fitRadars();
 }
 
-async function loadLanguageOptions() {
+// The option lists are read from the service rather than written out here a
+// second time, so neither can drift from what the model is actually given.
+async function loadOptions() {
   try {
     const res = await fetch(`${API}/api/questions`);
     const data = await res.json();
-    const criteria = data.questions?.language?.criteria;
-    if (criteria && typeof criteria === 'object') {
-      languageKeys = Object.keys(criteria);
+
+    const languages = data.questions?.language?.criteria;
+    if (languages && typeof languages === 'object') {
+      languageKeys = Object.keys(languages);
       buildLanguageOptions();
     }
-  } catch { /* the fallback list is already in place */ }
+    const topics = data.questions?.topic?.criteria;
+    if (topics && typeof topics === 'object') {
+      topicKeys = Object.keys(topics);
+      // Drop anything remembered that the model no longer offers.
+      for (const code of [...selectedTopics]) {
+        if (!topicKeys.includes(code)) selectedTopics.delete(code);
+      }
+      buildTopicChips();
+      render();
+    }
+  } catch { /* the language fallback stands; the topic row stays empty */ }
 }
 
 async function sendBatch() {
@@ -582,7 +911,7 @@ async function sendBatch() {
       .map((r) => ({ ...r, content: byId.get(r.id)?.content ?? '' }));
     const failed = data.results.filter((r) => r.error);
 
-    scored = [...fresh, ...scored].slice(0, 120);
+    scored = [...fresh, ...scored].slice(0, KEEP_SCORED);
     render();
     if (failed.length) setStatus('partial', [fresh.length, failed.length, failed[0].error], true);
     else setStatus('scored', [scored.length]);
@@ -617,9 +946,11 @@ function start() {
   socket = new WebSocket(url);
   socket.addEventListener('open', () => {
     setStatus('connected', [host]);
-    // NIP-01: kinds:[1] is a plain text note. limit seeds the stream with a
-    // few recent ones so the page is not blank while waiting.
-    socket.send(JSON.stringify(['REQ', 'timeline', { kinds: [1], limit: 10 }]));
+    // NIP-01: kinds:[1] is a plain text note. The limit is what a relay
+    // replays from its store before it starts streaming live ones. It is high
+    // because a narrow filter needs a lot of posts to find a few matches, and
+    // every one of them is a paid request: a full replay is roughly 500 calls.
+    socket.send(JSON.stringify(['REQ', 'timeline', { kinds: [1], limit: RELAY_LIMIT }]));
   });
   socket.addEventListener('message', (msg) => {
     let frame;
@@ -657,9 +988,17 @@ el('ui-lang').addEventListener('click', () => {
   applyLanguage();
 });
 
+el('topic-clear').addEventListener('click', () => {
+  selectedTopics.clear();
+  saveTopics();
+  buildTopicChips();
+  render();
+});
+
 for (const [id, valId] of [
   ['appeal', 'appeal-val'], ['promo', 'promo-val'],
   ['substance', 'substance-val'], ['langness', 'langness-val'],
+  ['interest', 'interest-val'],
 ]) {
   const input = el(id), out = el(valId);
   input.addEventListener('input', () => {
@@ -670,7 +1009,7 @@ for (const [id, valId] of [
 }
 
 applyLanguage();
-loadLanguageOptions();
+loadOptions();
 </script>
 </body>
 </html>

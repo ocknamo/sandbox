@@ -60,6 +60,13 @@ type Result struct {
 	Language       string             `json:"language,omitempty"`
 	LanguageScores map[string]float64 `json:"language_scores,omitempty"`
 
+	// Topic works like Language: the distribution is the useful part, because
+	// a reader interested in several subjects sums over them rather than
+	// asking any single score to clear a threshold.
+	Topic           string             `json:"topic,omitempty"`
+	TopicScores     map[string]float64 `json:"topic_scores,omitempty"`
+	TopicConfidence float64            `json:"topic_confidence,omitempty"`
+
 	// Error explains a post the model could not be asked about. One failure
 	// costs its own post and nothing else, which matters when a page is
 	// scoring a live feed and would rather show nine results than none.
@@ -162,5 +169,8 @@ func (s *Scorer) one(ctx context.Context, p Post) Result {
 	out.KindConfidence = verdict.KindConfidence
 	out.Language = verdict.Language
 	out.LanguageScores = verdict.LanguageScores
+	out.Topic = verdict.Topic
+	out.TopicScores = verdict.TopicScores
+	out.TopicConfidence = verdict.TopicConfidence
 	return out
 }
