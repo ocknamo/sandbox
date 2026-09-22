@@ -57,9 +57,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # Pinned, not latest: the bundle is committed, and Bun's output — down
+      # to the content hash in the chunk's filename — changes between Bun
+      # versions. The pin is what lets the rebuild below be a comparison
+      # rather than a coin toss.
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version-file: jev-mystery/web/.bun-version
 
       - name: bun install
         run: bun install --frozen-lockfile
@@ -80,8 +84,9 @@ jobs:
           changed=$(git status --porcelain -- docs/mystery)
           if [ -n "$changed" ]; then
             {
-              echo '`docs/mystery` is out of date. Run `bun run build` in'
-              echo '`jev-mystery/web` and commit the result.'
+              echo '`docs/mystery` is out of date. In `jev-mystery/web`, run'
+              echo '`bun run build` with the Bun version in `.bun-version`,'
+              echo 'and commit the result.'
               echo
               echo '```text'
               echo "$changed"
