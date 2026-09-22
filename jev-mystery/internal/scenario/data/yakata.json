@@ -500,7 +500,7 @@
       "speaker": "mochizuki",
       "match": {
         "what": "Ask the housekeeper Mochizuki about tonight: the shout, finding the body, and the figure she saw in the corridor.",
-        "not_for": "Asking her about the meals she carries, or asking anyone else anything. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
+        "not_for": "Asking her about the meals she carries, or showing her the dog tracks from the master's room, or asking anyone else anything. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
         "examples": [
           "望月さんに話を聞く",
           "家政婦に今夜のことを尋ねる",
@@ -530,7 +530,7 @@
       },
       "match": {
         "what": "Ask the housekeeper about what the meal book shows: the three guests always eating apart.",
-        "not_for": "Asking her about the shout, the body or the figure in the corridor. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
+        "not_for": "Asking her about the shout, the body, the figure in the corridor, or showing her the dog tracks from the master's room. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
         "examples": [
           "献立帳のことを望月さんに聞く",
           "なぜ食事が別々なのか尋ねる",
@@ -544,6 +544,36 @@
       ],
       "sets_flags": [
         "never_together"
+      ]
+    },
+    {
+      "id": "ask_mochizuki_prints",
+      "scenes": [
+        "hall"
+      ],
+      "speaker": "mochizuki",
+      "requires": {
+        "evidence": [
+          "pawprint"
+        ]
+      },
+      "match": {
+        "what": "Put the single set of dog tracks from the master's room to the housekeeper Mochizuki and ask her about them.",
+        "not_for": "Asking her about tonight in general or about the meal book. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
+        "examples": [
+          "足跡のことを望月さんに聞く",
+          "犬の足跡について尋ねる",
+          "あの足跡は犬のものかと望月さんに聞く"
+        ]
+      },
+      "did": "望月節子に、一匹分の足跡のことを尋ねた。",
+      "result": [
+        "「犬の足跡、でございますか。……そんな、まさか」",
+        "望月は言葉を切り、居室のほうへ目をやった。「この館で犬を飼ったことなど、一度もございません」",
+        "「旦那様は獣のたぐいがお嫌いでした。だから、なおのこと分かりません」"
+      ],
+      "sets_flags": [
+        "mochizuki_pressed"
       ]
     },
     {

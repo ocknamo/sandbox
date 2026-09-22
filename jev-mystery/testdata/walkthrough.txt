@@ -33,6 +33,7 @@
 部屋の真ん中に通っている材木に近づく	flavour:pillar
 もう一度、入ってきたところへ戻る	go_hall
 あの部屋にあったのは犬の跡だけでしたと久瀬さんに言う	ask_ruise_prints
+足跡は犬のものだったと望月さんに伝える	ask_mochizuki_prints
 久瀬さん、千歳さんと同じ部屋にいたことはありますか	closed:ruise
 望月さん、この館で犬を飼っていましたか	closed:mochizuki
 いちど腰を下ろして、三人の話を突き合わせてみる	flavour:notebook
