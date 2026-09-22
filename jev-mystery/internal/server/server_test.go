@@ -47,7 +47,7 @@ func (s *stub) Ask(_ context.Context, _ any, qs map[string]jev.Question) (*jev.R
 
 func serve(t *testing.T, s *stub) http.Handler {
 	t.Helper()
-	sc, err := scenario.Builtin("clockwork")
+	sc, err := scenario.Builtin("yakata")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -79,9 +79,9 @@ func post(t *testing.T, h http.Handler, path string, body any) (*httptest.Respon
 }
 
 func TestPlayThrough(t *testing.T) {
-	h := serve(t, &stub{choice: "examine_clock"})
+	h := serve(t, &stub{choice: "examine_ledger"})
 
-	rec, start := post(t, h, "/api/new", map[string]any{"case": "clockwork"})
+	rec, start := post(t, h, "/api/new", map[string]any{"case": "yakata"})
 	if rec.Code != http.StatusOK {
 		t.Fatalf("new: %d", rec.Code)
 	}
@@ -90,7 +90,7 @@ func TestPlayThrough(t *testing.T) {
 		t.Fatal("no state token")
 	}
 
-	rec, turn := post(t, h, "/api/act", map[string]any{"state": token, "input": "柱時計を調べる"})
+	rec, turn := post(t, h, "/api/act", map[string]any{"state": token, "input": "献立帳を調べる"})
 	if rec.Code != http.StatusOK {
 		t.Fatalf("act: %d %s", rec.Code, rec.Body)
 	}
@@ -98,7 +98,7 @@ func TestPlayThrough(t *testing.T) {
 		t.Fatalf("the turn did not match: %v", turn)
 	}
 	if gained, _ := turn["gained"].([]any); len(gained) != 1 {
-		t.Errorf("gained %v, want the clock", turn["gained"])
+		t.Errorf("gained %v, want the meal book", turn["gained"])
 	}
 	view, _ := turn["view"].(map[string]any)
 	if view["finale_open"] != false {
@@ -110,18 +110,18 @@ func TestPlayThrough(t *testing.T) {
 // in the place panel. Without it a move reads as one line of prose and a
 // changed heading, and the player has no reason to search the new room.
 func TestMovingDescribesTheRoom(t *testing.T) {
-	h := serve(t, &stub{choice: "go_study"})
+	h := serve(t, &stub{choice: "go_chamber"})
 
-	_, start := post(t, h, "/api/new", map[string]any{"case": "clockwork"})
+	_, start := post(t, h, "/api/new", map[string]any{"case": "yakata"})
 	if arrival, _ := start["arrival"].([]any); len(arrival) == 0 {
 		t.Error("a new game did not describe the room it opens in")
 	}
 
-	rec, turn := post(t, h, "/api/act", map[string]any{"state": start["state"], "input": "書斎へ行く"})
+	rec, turn := post(t, h, "/api/act", map[string]any{"state": start["state"], "input": "主人の部屋へ行く"})
 	if rec.Code != http.StatusOK {
 		t.Fatalf("act: %d %s", rec.Code, rec.Body)
 	}
-	if turn["moved_to"] != "study" {
+	if turn["moved_to"] != "chamber" {
 		t.Fatalf("the turn did not move: %v", turn)
 	}
 	arrival, _ := turn["arrival"].([]any)
@@ -133,7 +133,7 @@ func TestMovingDescribesTheRoom(t *testing.T) {
 // The case comes from the request, so that one deployment can serve every
 // case and the page can route on it.
 func TestCasesAreListedAndChosenByID(t *testing.T) {
-	h := serve(t, &stub{choice: "examine_clock"})
+	h := serve(t, &stub{choice: "examine_ledger"})
 
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/api/cases", nil))
@@ -141,7 +141,7 @@ func TestCasesAreListedAndChosenByID(t *testing.T) {
 	if err := json.Unmarshal(rec.Body.Bytes(), &listed); err != nil {
 		t.Fatal(err)
 	}
-	if len(listed.Cases) != 1 || listed.Cases[0].ID != "clockwork" || listed.Cases[0].Title == "" {
+	if len(listed.Cases) != 1 || listed.Cases[0].ID != "yakata" || listed.Cases[0].Title == "" {
 		t.Fatalf("cases = %+v", listed.Cases)
 	}
 
@@ -151,11 +151,11 @@ func TestCasesAreListedAndChosenByID(t *testing.T) {
 }
 
 func TestAccusingTooEarlyIsRefused(t *testing.T) {
-	h := serve(t, &stub{choice: "kurata", noul: 0.9, score: 4})
+	h := serve(t, &stub{choice: "ruise", noul: 0.9, score: 4})
 
-	_, start := post(t, h, "/api/new", map[string]any{"case": "clockwork"})
+	_, start := post(t, h, "/api/new", map[string]any{"case": "yakata"})
 	rec, _ := post(t, h, "/api/accuse", map[string]any{
-		"state": start["state"], "answer": "犯人は倉田静です",
+		"state": start["state"], "answer": "犯人は久瀬瑠依です",
 	})
 	if rec.Code != http.StatusConflict {
 		t.Fatalf("accuse: %d, want 409 while the case is not ready", rec.Code)
@@ -163,17 +163,17 @@ func TestAccusingTooEarlyIsRefused(t *testing.T) {
 }
 
 func TestAccusingClosesTheCase(t *testing.T) {
-	h := serve(t, &stub{choice: "kurata", noul: 0.9, score: 4})
+	h := serve(t, &stub{choice: "ruise", noul: 0.9, score: 4})
 	codec, _ := session.New("test key")
 
 	// Start from a state that has everything the finale asks for.
-	st := game.State{Scenario: "clockwork", Scene: "hall", Evidence: []string{"clock", "ledger", "thread"}}
+	st := game.State{Scenario: "yakata", Scene: "hall", Evidence: []string{"meals", "pawprint", "bite"}}
 	token, err := codec.Encode(st)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	rec, out := post(t, h, "/api/accuse", map[string]any{"state": token, "answer": "犯人は倉田静です。柱時計が進めてありました。"})
+	rec, out := post(t, h, "/api/accuse", map[string]any{"state": token, "answer": "犯人は久瀬瑠依です。足跡は一匹分しかありませんでした。"})
 	if rec.Code != http.StatusOK {
 		t.Fatalf("accuse: %d %s", rec.Code, rec.Body)
 	}
@@ -189,9 +189,9 @@ func TestAccusingClosesTheCase(t *testing.T) {
 }
 
 func TestBadStateIsRefused(t *testing.T) {
-	h := serve(t, &stub{choice: "examine_clock"})
+	h := serve(t, &stub{choice: "examine_ledger"})
 	other, _ := session.New("somebody else's key")
-	forged, _ := other.Encode(game.State{Scenario: "clockwork", Scene: "study"})
+	forged, _ := other.Encode(game.State{Scenario: "yakata", Scene: "chamber"})
 
 	for name, tc := range map[string]struct {
 		state string
@@ -199,7 +199,7 @@ func TestBadStateIsRefused(t *testing.T) {
 	}{
 		"forged":                            {forged, http.StatusBadRequest},
 		"a case this service does not have": {sign(t, game.State{Scenario: "elsewhere", Scene: "hall"}), http.StatusConflict},
-		"unknown scene":                     {sign(t, game.State{Scenario: "clockwork", Scene: "atlantis"}), http.StatusBadRequest},
+		"unknown scene":                     {sign(t, game.State{Scenario: "yakata", Scene: "atlantis"}), http.StatusBadRequest},
 	} {
 		t.Run(name, func(t *testing.T) {
 			rec, _ := post(t, h, "/api/act", map[string]any{"state": tc.state, "input": "調べる"})

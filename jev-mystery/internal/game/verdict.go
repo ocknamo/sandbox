@@ -80,7 +80,7 @@ func (e *Engine) Grade(ctx context.Context, s *scenario.Scenario, answer string)
 	if named.Choice != scenario.NoMatch {
 		if c := s.Character(named.Choice); c != nil {
 			v.Named, v.NamedName = c.ID, c.Name
-			v.Correct = c.ID == s.Finale.Culprit
+			v.Correct = s.Finale.Blames(c.ID)
 		}
 	}
 
@@ -165,7 +165,10 @@ func gradeQuestions(s *scenario.Scenario) map[string]jev.Question {
 		What: "The detective names no culprit, hedges between several people " +
 			"without settling on one, or accuses someone who is not on the list.",
 		NotFor: "A statement that does settle on one of the named people, even " +
-			"if it is phrased with some doubt.",
+			"if it is phrased with some doubt. Nor for one that deliberately " +
+			"blames several of the named people together, as its answer rather " +
+			"than out of indecision: that is an accusation, not a hedge, and it " +
+			"belongs to whichever of them it rests on most.",
 	}
 
 	qs := map[string]jev.Question{

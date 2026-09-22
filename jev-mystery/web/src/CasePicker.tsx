@@ -2,7 +2,7 @@
  * The list of cases, which is the route at `#`.
  *
  * The links are plain anchors rather than `<Link>`: setting the hash directly
- * keeps the URL at `#clockwork` instead of the router's `#/clockwork`, and the
+ * keeps the URL at `#yakata` instead of the router's `#/yakata`, and the
  * hash source listens for `hashchange`, so the router follows either way.
  */
 import { For, Show, resource } from "@kanabun/core";

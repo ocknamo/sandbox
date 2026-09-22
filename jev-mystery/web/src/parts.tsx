@@ -145,7 +145,7 @@ export function LogEntry(props: { entry: Entry }) {
  *
  * Only the elements the player reached are named. The rest are counted and
  * left unsaid, because the label of an element is a one-line statement of it:
- * a player who wrote half a solution and was shown "柱時計のずれ" against a ×
+ * a player who wrote half a solution and was shown "一匹分の足跡" against a ×
  * has just been told the other half, which is the one thing this screen must
  * not do. The count still says how much was left, which is what the player
  * actually wants to know.

@@ -21,7 +21,7 @@ func TestBuiltinLoads(t *testing.T) {
 // Flavour describes itself to the model the same way an action does, so it is
 // a spoiler in the same way and carries the same type.
 func TestFlavourDescriptionsCannotBeServed(t *testing.T) {
-	s, err := Builtin("clockwork")
+	s, err := Builtin("yakata")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -37,7 +37,7 @@ func TestFlavourDescriptionsCannotBeServed(t *testing.T) {
 // and hidden text has no JSON encoding. A handler that embedded any of this
 // would fail to encode rather than spoil the case, whatever shape its type had.
 func TestHiddenTextCannotBeServed(t *testing.T) {
-	s, err := Builtin("clockwork")
+	s, err := Builtin("yakata")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,6 +68,14 @@ func TestLoadRejects(t *testing.T) {
 		},
 		"culprit is not a suspect": func(m map[string]any) {
 			finale(m)["culprit"] = "watson"
+		},
+		// A case whose answer is more than one name still names them from the
+		// suspects, and never names the same person twice.
+		"another culprit is not a suspect": func(m map[string]any) {
+			finale(m)["also_culprit"] = []any{"watson"}
+		},
+		"another culprit is the culprit": func(m map[string]any) {
+			finale(m)["also_culprit"] = []any{"moriarty"}
 		},
 		// Endings are tested in order and the player always gets one, so an
 		// unreachable last ending would leave a finished case with no text.
@@ -120,6 +128,26 @@ func TestLoadRejects(t *testing.T) {
 
 	if _, err := Load(encode(t, clone(t, base))); err != nil {
 		t.Fatalf("the unbroken scenario should load: %v", err)
+	}
+}
+
+// A case may answer with more than one name — three suspects who turn out to
+// be one creature — and the grader has one name to work with, so any of the
+// guilty has to count as having named the culprit.
+func TestBlamesTakesEveryCulprit(t *testing.T) {
+	m := clone(t, minimal(t))
+	finale(m)["also_culprit"] = []any{"holmes"}
+	s, err := Load(encode(t, m))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, id := range []string{"moriarty", "holmes"} {
+		if !s.Finale.Blames(id) {
+			t.Errorf("naming %q does not count as naming the culprit", id)
+		}
+	}
+	if s.Finale.Blames("") || s.Finale.Blames("watson") {
+		t.Error("someone outside the case counts as the culprit")
 	}
 }
 

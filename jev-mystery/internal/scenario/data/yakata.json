@@ -1,0 +1,869 @@
+{
+  "id": "yakata",
+  "title": "三つの証言",
+  "byline": "山奥の館。アリバイのない三人の話が、どれも食い違う",
+  "opening": [
+    "霧の深い山道を三時間登ったところに、鷲尾玄三郎の館はある。降りる道はその一本きりだ。",
+    "蒐集家の鷲尾に招かれたあなたは、日暮れに門をくぐった。迎えたのは家政婦の望月節子ひとりだった。",
+    "館には先客が三人いるという。顧問弁護士、主人の甥、それに出入りの営業。三人とも、この二週間ほど泊まり込んでいるそうだ。"
+  ],
+  "incident": [
+    "夜八時すぎ、館じゅうに主人の叫び声が響いた。「やめろー！」――それきり、静かになった。",
+    "望月が居室の戸を開けたとき、鷲尾玄三郎は簞笥の脇に倒れていた。頭を打っている。脚には、大きな獣に噛まれたような傷が三箇所。",
+    "霧で車は出せない。死亡推定時刻にアリバイがないのは、泊まり込んでいる三人だけだった。"
+  ],
+  "start_scene": "hall",
+  "scenes": [
+    {
+      "id": "hall",
+      "name": "玄関広間",
+      "description": [
+        "吹き抜けの広間。外は霧で、窓は白く塗り潰されたようだ。",
+        "壁に主人の写真が並んでいる。帳場机の上には、望月の献立帳が開いたままになっている。"
+      ],
+      "characters": [
+        "mochizuki",
+        "ruise"
+      ]
+    },
+    {
+      "id": "chamber",
+      "name": "主人の居室",
+      "description": [
+        "鷲尾玄三郎が倒れたままだ。頭のそばに、古い桐の簞笥が立っている。",
+        "床は埃が薄く積もっていて、そこに足跡が残っている。窓は庭に面していて、掛け金は内側から下りたままだ。"
+      ],
+      "characters": []
+    },
+    {
+      "id": "guestroom",
+      "name": "二階の客間",
+      "description": [
+        "机に参考書が積み上げてある。背表紙はどれも新しい。",
+        "窓際に目覚まし時計。日程表が一枚、画鋲で壁に留めてある。"
+      ],
+      "characters": [
+        "chitose"
+      ]
+    },
+    {
+      "id": "annex",
+      "name": "離れ",
+      "description": [
+        "渡り廊下の先の一間。壁ぎわに、包みや箱がいくつも積まれている。",
+        "太い柱が一本、床から天井まで通っている。"
+      ],
+      "characters": [
+        "kaido"
+      ]
+    }
+  ],
+  "characters": [
+    {
+      "id": "mochizuki",
+      "name": "望月 節子",
+      "role": "家政婦",
+      "avatar": "👵",
+      "closed": {
+        "knows": [
+          "叫び声を聞いて居室に駆けつけたのは自分である。中には主人のほかに誰もいなかった。",
+          "八時前後は台所から村の診療所へ電話をかけていた。交換手が覚えているはずである。",
+          "三人分の食事を運ぶが、いつも別々の部屋に運んでいる。三人が同じ卓についたことは一度もない。",
+          "この二週間、三人が同じ部屋にいるところを一度も見ていない。廊下ですれ違うときも必ず一人ずつである。",
+          "館に犬はいない。主人は獣のたぐいを一切飼わなかった。",
+          "三人は同じ日の同じ時刻に、揃って門から入ってきた。",
+          "居室の床の埃は、自分が三日前に掃いたきりである。"
+        ],
+        "hides": [
+          "主人の遺言書を盗み読みしたこと。"
+        ],
+        "answers": {
+          "yes": "「はい」",
+          "no": "「いいえ」",
+          "unknown": "「さあ、存じません」"
+        }
+      }
+    },
+    {
+      "id": "ruise",
+      "name": "久瀬 瑠依",
+      "role": "主人の顧問弁護士",
+      "avatar": "👩‍💼",
+      "closed": {
+        "knows": [
+          "八時ごろ、廊下で怪しい人物を見た。眼鏡をかけていたのは間違いない。",
+          "その人物は、手が届くほどすぐ隣にいた。",
+          "主人の叫び声を聞いた。",
+          "叫び声のあとのことは覚えていない。気がついたときには広間にいた。",
+          "自分は三十代の女性で、そのことを疑ったことは一度もない。",
+          "この館で、甥の鷲尾千歳とも営業の海堂実とも、顔を合わせて話したことがない。",
+          "館の規則は主人が決めたもので、自分が決めたものではない。"
+        ],
+        "hides": [
+          "主人と報酬のことで言い争っていたこと。"
+        ],
+        "answers": {
+          "yes": "「ええ、そうです」",
+          "no": "「いいえ。それは私のルールじゃないので」",
+          "unknown": "「さあ。それは私のルールじゃないので」"
+        }
+      }
+    },
+    {
+      "id": "chitose",
+      "name": "鷲尾 千歳",
+      "role": "主人の甥",
+      "avatar": "🧑‍🎓",
+      "closed": {
+        "knows": [
+          "八時ごろ、廊下で怪しい人物を見た。スキンヘッドで、眼鏡はかけていなかった。",
+          "その人物は、手が届くほどすぐ隣にいた。",
+          "主人の叫び声を聞いた。",
+          "叫び声のあとのことは覚えていない。気がついたときには客間の机に向かっていた。",
+          "自分は受験生で、そのことを疑ったことは一度もない。",
+          "この館で、弁護士の久瀬瑠依とも営業の海堂実とも、顔を合わせて話したことがない。",
+          "叔父に学費を出してもらう話になっていた。"
+        ],
+        "hides": [
+          "模試の判定がずっと最低で、参考書を一度も開いていないこと。"
+        ],
+        "answers": {
+          "yes": "「はい、そうです」",
+          "no": "「いえ、違います」",
+          "unknown": "「わかりません。もうすぐ模試なので……」"
+        }
+      }
+    },
+    {
+      "id": "kaido",
+      "name": "海堂 実",
+      "role": "出入りの営業",
+      "avatar": "🧑‍🦲",
+      "closed": {
+        "knows": [
+          "八時ごろ、廊下で怪しい人物を見た。女性だったと思う。",
+          "その人物は、手が届くほどすぐ隣にいた。",
+          "主人の叫び声を聞いた。",
+          "叫び声のあとのことは覚えていない。気がついたときには離れに座っていた。",
+          "自分は営業の男で、そのことを疑ったことは一度もない。",
+          "この館で、弁護士の久瀬瑠依とも甥の鷲尾千歳とも、顔を合わせて話したことがない。",
+          "離れに積んである土産物は、干し肉、牛の大腿骨、鈴のついた輪などである。"
+        ],
+        "hides": [
+          "主人に取引を切られかけていたこと。"
+        ],
+        "answers": {
+          "yes": "「ええ、そうなんです〜」",
+          "no": "「いやあ、違いますよ〜」",
+          "unknown": "「さあ、どうでしょうねえ〜」"
+        }
+      }
+    },
+    {
+      "id": "washio",
+      "name": "鷲尾 玄三郎",
+      "role": "館の主人",
+      "avatar": "🧓"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "pawprint",
+      "name": "一匹分の足跡",
+      "description": "居室の埃に残る足跡は、大きな犬のものが一匹分だけ。人の足跡はどこにもない。"
+    },
+    {
+      "id": "bite",
+      "name": "三箇所の噛み傷",
+      "description": "遺体の脚の噛み傷は三箇所。歯並びが三つとも違い、同時についている。"
+    },
+    {
+      "id": "meals",
+      "name": "望月の献立帳",
+      "description": "十四日分、三人ぶんの食事が別々の部屋へ運ばれている。三人が同じ卓についた日は一度もない。"
+    }
+  ],
+  "actions": [
+    {
+      "id": "look",
+      "match": {
+        "what": "Look around the room the player is standing in; take in the surroundings again.",
+        "not_for": "Examining one particular object or person.",
+        "examples": [
+          "あたりを見回す",
+          "部屋を見る",
+          "周囲を確認する"
+        ]
+      },
+      "did": "あたりを見回した。",
+      "result": [
+        "もう一度、ゆっくりと目を走らせる。"
+      ]
+    },
+    {
+      "id": "go_hall",
+      "scenes": [
+        "chamber",
+        "guestroom",
+        "annex"
+      ],
+      "match": {
+        "what": "Go to the entrance hall, the big room at the front of the house.",
+        "not_for": "Going to the master's room, the upstairs guest room or the annex.",
+        "examples": [
+          "広間へ戻る",
+          "玄関のほうへ行く",
+          "吹き抜けの部屋に戻る"
+        ]
+      },
+      "did": "玄関広間へ戻った。",
+      "result": [
+        "霧はまだ晴れない。窓はどれも白いままだ。"
+      ],
+      "moves_to": "hall"
+    },
+    {
+      "id": "go_chamber",
+      "scenes": [
+        "hall",
+        "guestroom",
+        "annex"
+      ],
+      "match": {
+        "what": "Go to the master's own room, where the body is.",
+        "not_for": "Going to the entrance hall, the guest room or the annex.",
+        "examples": [
+          "主人の部屋へ行く",
+          "現場に向かう",
+          "倒れている場所へ"
+        ]
+      },
+      "did": "主人の居室へ向かった。",
+      "result": [
+        "戸は開いたままだ。敷居をまたぐ足を、いちど止める。"
+      ],
+      "moves_to": "chamber"
+    },
+    {
+      "id": "go_guestroom",
+      "scenes": [
+        "hall",
+        "chamber",
+        "annex"
+      ],
+      "match": {
+        "what": "Go up to the guest room on the first floor, where the nephew is staying.",
+        "not_for": "Going to the entrance hall, the master's room or the annex.",
+        "examples": [
+          "二階の客間へ行く",
+          "甥の部屋に向かう",
+          "階段を上がる"
+        ]
+      },
+      "did": "二階の客間へ上がった。",
+      "result": [
+        "階段が一段ごとに鳴る。踊り場から見下ろすと、広間には誰もいなかった。"
+      ],
+      "moves_to": "guestroom"
+    },
+    {
+      "id": "go_annex",
+      "scenes": [
+        "hall",
+        "chamber",
+        "guestroom"
+      ],
+      "match": {
+        "what": "Go across to the annex at the end of the covered walkway.",
+        "not_for": "Going to the entrance hall, the master's room or the guest room.",
+        "examples": [
+          "離れへ行く",
+          "渡り廊下を渡る",
+          "営業の男のところへ"
+        ]
+      },
+      "did": "渡り廊下を渡って離れへ行った。",
+      "result": [
+        "板張りの廊下は、踏むたびに霧の湿りを返してくる。"
+      ],
+      "moves_to": "annex"
+    },
+    {
+      "id": "examine_ledger",
+      "scenes": [
+        "hall"
+      ],
+      "match": {
+        "what": "Examine the housekeeper's meal book lying open on the writing desk in the hall.",
+        "not_for": "Asking the housekeeper about the meals, or examining the photographs on the wall.",
+        "examples": [
+          "献立帳を調べる",
+          "帳場机の帳面を読む",
+          "食事の記録を確かめる"
+        ]
+      },
+      "did": "献立帳を調べた。",
+      "result": [
+        "十四日分、几帳面に付けてある。朝も昼も夜も、三人ぶんの膳が三つの部屋へ別々に運ばれている。",
+        "三人が同じ卓についた日は、一日もない。"
+      ],
+      "repeat": [
+        "何度めくっても、膳は別々の部屋へ運ばれている。"
+      ],
+      "gives_evidence": [
+        "meals"
+      ]
+    },
+    {
+      "id": "examine_body",
+      "scenes": [
+        "chamber"
+      ],
+      "match": {
+        "what": "Examine the dead man himself: the body, the head wound, the marks on his legs.",
+        "not_for": "Examining the chest of drawers, the floor or the window.",
+        "examples": [
+          "遺体を調べる",
+          "傷を見る",
+          "主人の様子を確かめる"
+        ]
+      },
+      "did": "遺体を調べた。",
+      "result": [
+        "頭の傷は一つ。倒れた拍子に簞笥の角へ打ちつけたかたちだ。血はその角にも付いている。",
+        "脚の噛み傷は三箇所。並んでいるのに、歯の列がそれぞれ違う。噛んだのは同じ口ではない。"
+      ],
+      "repeat": [
+        "噛み傷は、何度数えても三箇所ある。"
+      ],
+      "gives_evidence": [
+        "bite"
+      ],
+      "sets_flags": [
+        "saw_body"
+      ]
+    },
+    {
+      "id": "examine_prints",
+      "scenes": [
+        "chamber"
+      ],
+      "match": {
+        "what": "Examine the marks in the dust on the floor of the master's room.",
+        "not_for": "Examining the body, the chest of drawers or the window.",
+        "examples": [
+          "床の足跡を調べる",
+          "埃の跡を見る",
+          "足跡をたどる"
+        ]
+      },
+      "did": "床の足跡を調べた。",
+      "result": [
+        "埃の上に残っているのは、大きな犬の足跡が一匹分だけだった。戸口から簞笥の前まで、まっすぐに。",
+        "人の足跡はどこにもない。主人のものも、他の誰のものも。"
+      ],
+      "repeat": [
+        "足跡は一匹分のまま、増えも減りもしない。"
+      ],
+      "gives_evidence": [
+        "pawprint"
+      ]
+    },
+    {
+      "id": "examine_tansu",
+      "scenes": [
+        "chamber"
+      ],
+      "match": {
+        "what": "Examine the old chest of drawers standing beside the body.",
+        "not_for": "Examining the body itself, the floor or the window.",
+        "examples": [
+          "簞笥を調べる",
+          "簞笥の角を見る",
+          "桐の簞笥を確かめる"
+        ]
+      },
+      "did": "簞笥を調べた。",
+      "result": [
+        "腰の高さの角に、血と髪が少し付いている。引き出しはどれも閉まったままだ。",
+        "簞笥は壁ぎわから半歩ぶん、ずれて動いている。誰かが後ずさってぶつかったかたちだ。"
+      ],
+      "repeat": [
+        "角の血は乾きかけている。"
+      ],
+      "sets_flags": [
+        "saw_tansu"
+      ]
+    },
+    {
+      "id": "ask_mochizuki",
+      "scenes": [
+        "hall"
+      ],
+      "speaker": "mochizuki",
+      "match": {
+        "what": "Ask the housekeeper Mochizuki about tonight: the shout, finding the body, her evening.",
+        "not_for": "Asking her about the meals she carries, or asking any of the three guests anything. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
+        "examples": [
+          "望月さんに話を聞く",
+          "家政婦に今夜のことを尋ねる",
+          "叫び声のことを聞く"
+        ]
+      },
+      "did": "望月節子に、今夜のことを尋ねた。",
+      "result": [
+        "「『やめろー』と。あんな大きな声は初めて聞きました」",
+        "「駆けつけたときには、旦那様のほかに誰もおりませんでした。廊下でも、誰ともすれ違っておりません」"
+      ],
+      "sets_flags": [
+        "heard_scream"
+      ]
+    },
+    {
+      "id": "ask_mochizuki_meals",
+      "scenes": [
+        "hall"
+      ],
+      "speaker": "mochizuki",
+      "requires": {
+        "evidence": [
+          "meals"
+        ]
+      },
+      "match": {
+        "what": "Ask the housekeeper about what the meal book shows: the three guests always eating apart.",
+        "not_for": "Asking her about the shout or about finding the body. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
+        "examples": [
+          "献立帳のことを望月さんに聞く",
+          "なぜ食事が別々なのか尋ねる",
+          "三人は一緒に食べないのか聞く"
+        ]
+      },
+      "did": "望月節子に、別々に運ばれる食事のことを尋ねた。",
+      "result": [
+        "「お三方とも、部屋でお召し上がりになります。そういうご希望だと伺っております」",
+        "「……申し上げてよいものか。この二週間、お三方が同じ部屋にいらっしゃるのを、わたくしは一度も見ておりません」"
+      ],
+      "sets_flags": [
+        "never_together"
+      ]
+    },
+    {
+      "id": "ask_ruise",
+      "scenes": [
+        "hall"
+      ],
+      "speaker": "ruise",
+      "match": {
+        "what": "Ask the lawyer Kuse Ruise about the evening and what she saw in the corridor.",
+        "not_for": "Showing her the tracks from the master's room, or asking the housekeeper, the nephew or the salesman anything. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
+        "examples": [
+          "久瀬さんに話を聞く",
+          "弁護士に廊下のことを尋ねる",
+          "彼女が見たものを聞く"
+        ]
+      },
+      "did": "久瀬瑠依に、廊下で見たものを尋ねた。",
+      "result": [
+        "「八時ごろでしたか。廊下で見ました。眼鏡をかけていたのは間違いありません」",
+        "「ええ、すぐ隣に。手が届くほどのところに立っていました」",
+        "「そのあとですか。……叫び声は聞きました。気がついたら、ここに立っていて」"
+      ],
+      "sets_flags": [
+        "heard_ruise"
+      ]
+    },
+    {
+      "id": "ask_ruise_prints",
+      "scenes": [
+        "hall"
+      ],
+      "speaker": "ruise",
+      "requires": {
+        "evidence": [
+          "pawprint"
+        ]
+      },
+      "match": {
+        "what": "Put the single set of dog tracks to the lawyer Kuse Ruise and press her about it.",
+        "not_for": "Asking her about the corridor in general. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
+        "examples": [
+          "足跡のことを久瀬さんに問う",
+          "犬の足跡について問い詰める",
+          "一匹分の足跡を突きつける"
+        ]
+      },
+      "did": "久瀬瑠依に、一匹分の足跡のことを問うた。",
+      "result": [
+        "「犬。……この館に犬はいないはずですが」",
+        "彼女はしばらく黙り、それから書類を揃えるような手つきをした。",
+        "「わたくしが何かを隠していると仰るなら、どうぞ。ただ、それは私のルールじゃないので」"
+      ],
+      "sets_flags": [
+        "ruise_pressed"
+      ]
+    },
+    {
+      "id": "ask_chitose",
+      "scenes": [
+        "guestroom"
+      ],
+      "speaker": "chitose",
+      "match": {
+        "what": "Ask the nephew Washio Chitose about the evening and what he saw in the corridor.",
+        "not_for": "Asking the housekeeper, the lawyer or the salesman anything. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
+        "examples": [
+          "千歳くんに話を聞く",
+          "甥に廊下のことを尋ねる",
+          "彼が見たものを聞く"
+        ]
+      },
+      "did": "鷲尾千歳に、廊下で見たものを尋ねた。",
+      "result": [
+        "「見ました。スキンヘッドで、眼鏡はかけていませんでした。それは確かです」",
+        "「距離ですか？ すぐ隣です。肩が触れそうなくらい」",
+        "「……あの、もうすぐ模試なので、そろそろいいですか」"
+      ],
+      "sets_flags": [
+        "heard_chitose"
+      ]
+    },
+    {
+      "id": "ask_kaido",
+      "scenes": [
+        "annex"
+      ],
+      "speaker": "kaido",
+      "match": {
+        "what": "Ask the salesman Kaido Minoru about the evening and what he saw in the corridor.",
+        "not_for": "Asking him about the souvenirs piled in the annex, or asking the housekeeper, the lawyer or the nephew anything. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
+        "examples": [
+          "海堂さんに話を聞く",
+          "営業の男に廊下のことを尋ねる",
+          "彼が見たものを聞く"
+        ]
+      },
+      "did": "海堂実に、廊下で見たものを尋ねた。",
+      "result": [
+        "「見ましたよ〜。女性だったと思います。はい、たぶん女性です」",
+        "「すぐ隣でしてね。手が届くくらいのところに」",
+        "「叫び声のあと？ いやあ、気がついたらここに座っていたんですよ〜」"
+      ],
+      "sets_flags": [
+        "heard_kaido"
+      ]
+    },
+    {
+      "id": "examine_gifts",
+      "scenes": [
+        "annex"
+      ],
+      "match": {
+        "what": "Examine the parcels and boxes of souvenirs piled against the wall of the annex.",
+        "not_for": "Asking the salesman about the corridor, or looking at the pillar.",
+        "examples": [
+          "土産物を調べる",
+          "積んである包みを見る",
+          "箱の中身を確かめる"
+        ]
+      },
+      "did": "積まれた土産物を調べた。",
+      "result": [
+        "干し肉の塊。牛の大腿骨。鈴のついた輪が三つ。どれも人が食べるものでも、身につけるものでもない。",
+        "「営業先で頂いたんです〜」と、背中のほうで声がした。"
+      ],
+      "repeat": [
+        "干し肉も骨も、封が切られたままだ。"
+      ],
+      "sets_flags": [
+        "saw_gifts"
+      ]
+    }
+  ],
+  "flavours": [
+    {
+      "id": "mountain",
+      "match": {
+        "what": "Take in the mountain outside: the fog, the one road down, how far the house is from anywhere.",
+        "not_for": "Going to another room, or examining a particular object.",
+        "examples": [
+          "外の霧を眺める",
+          "山のほうを見る",
+          "窓の外を確かめる"
+        ]
+      },
+      "did": "霧の向こうを眺めた。",
+      "text": [
+        "霧は木の高さまで下りていて、門の外は白いだけだ。降りる道は一本きりで、今夜は誰も通れない。",
+        "この館にいる者だけで、話は閉じている。"
+      ]
+    },
+    {
+      "id": "notebook",
+      "match": {
+        "what": "Stop and put the case in order: going back over what has been heard, thinking, writing in a notebook.",
+        "not_for": "Asking the game what to do next or for a hint, and examining any object in the room.",
+        "examples": [
+          "手帳を開いて整理する",
+          "ここまでを考えてみる",
+          "聞いたことを書き出す"
+        ]
+      },
+      "did": "手帳を開き、ここまでを書き出した。",
+      "text": [
+        "女性。眼鏡。スキンヘッド。三つ並べて書いてみる。",
+        "三人の証言は互いを打ち消している。ふつうなら二人が嘘をついていることになる――誰も嘘をついていないのでなければ。"
+      ]
+    },
+    {
+      "id": "photographs",
+      "scenes": [
+        "hall"
+      ],
+      "match": {
+        "what": "Look at the photographs hanging along the wall of the entrance hall.",
+        "not_for": "Examining the meal book on the writing desk, or asking anyone about the pictures.",
+        "examples": [
+          "壁の写真を見る",
+          "飾ってある写真を眺める",
+          "額を確かめる"
+        ]
+      },
+      "did": "壁の写真を眺めた。",
+      "text": [
+        "どれも主人ひとりで写っている。蒐集した品を抱えたものばかりで、人と並んだ写真が一枚もない。",
+        "いちばん新しい一枚には、日付だけが二週間前と書き添えてある。"
+      ]
+    },
+    {
+      "id": "mirror",
+      "scenes": [
+        "chamber"
+      ],
+      "match": {
+        "what": "Look at the tall mirror standing in the master's room, and the cloth over it.",
+        "not_for": "Examining the body, the chest of drawers, the floor or the window.",
+        "examples": [
+          "姿見を見る",
+          "布の掛かった鏡を確かめる",
+          "鏡を覗く"
+        ]
+      },
+      "did": "布の掛かった姿見を見た。",
+      "text": [
+        "姿見には厚い布が掛けてある。埃の積もり方からして、かけたのは最近ではない。",
+        "布を上げると、映るのはあなた一人だ。"
+      ]
+    },
+    {
+      "id": "window",
+      "scenes": [
+        "chamber"
+      ],
+      "match": {
+        "what": "Look at the window of the master's room and how it is fastened.",
+        "not_for": "Examining the body, the chest of drawers, the floor or the mirror.",
+        "examples": [
+          "窓を確かめる",
+          "掛け金を見る",
+          "窓の外を覗く"
+        ]
+      },
+      "did": "窓の掛け金を確かめた。",
+      "text": [
+        "掛け金は内側から下りている。桟にも敷居にも、泥ひとつ付いていない。",
+        "外から入った者はいない。入ったものは、館の中にいたことになる。"
+      ]
+    },
+    {
+      "id": "textbook",
+      "scenes": [
+        "guestroom"
+      ],
+      "match": {
+        "what": "Look at the pile of study books and the timetable in the guest room.",
+        "not_for": "Asking the nephew anything.",
+        "examples": [
+          "参考書を手に取る",
+          "机の上の本を見る",
+          "壁の日程表を読む"
+        ]
+      },
+      "did": "参考書と日程表を眺めた。",
+      "text": [
+        "参考書はどれも背が固く、一度も開かれた形跡がない。",
+        "壁の日程表は模試の日付が赤く囲ってあり、そのまわりの二週間はまるごと空白だった。"
+      ]
+    },
+    {
+      "id": "pillar",
+      "scenes": [
+        "annex"
+      ],
+      "match": {
+        "what": "Look at the thick pillar running through the annex, floor to ceiling.",
+        "not_for": "Examining the souvenirs, or asking the salesman anything.",
+        "examples": [
+          "柱を見る",
+          "太い柱を確かめる",
+          "床から天井までの柱を調べる"
+        ]
+      },
+      "did": "離れの柱を確かめた。",
+      "text": [
+        "腰の高さのところに、太い鎖が打ちつけてある。鎖の先には何も繋がれていない。",
+        "床の板は、その鎖を中心にして円く擦り減っている。"
+      ]
+    }
+  ],
+  "misses": {
+    "default": [
+      "何も起こらない。"
+    ],
+    "move": [
+      "そちらへ通じる道は、いまは見当たらない。"
+    ],
+    "search": [
+      "目を走らせたが、取り立てて見るべきものはない。"
+    ],
+    "ask": [
+      "問いは宙に浮いたまま、答えは返ってこない。"
+    ],
+    "talk": [
+      "相手は目を伏せただけだった。"
+    ],
+    "meta": [
+      "誰も教えてはくれない。見て、聞いて、自分で決めるしかない。",
+      "――はい か いいえ で答えられることなら、その場にいる人に、そのまま訊いてしまってもいい。"
+    ],
+    "nonsense": [
+      "……いまは、そんな場合ではない。"
+    ],
+    "declare": [
+      "まだ早い。名指しするには、手の中のものが足りない。"
+    ]
+  },
+  "finale": {
+    "requires_evidence": [
+      "pawprint",
+      "bite",
+      "meals"
+    ],
+    "label": "全員を広間に集める",
+    "match": {
+      "what": "Gather everyone together to announce the solution and name the killer.",
+      "not_for": "Asking one person a question, or accusing someone in passing during a conversation.",
+      "examples": [
+        "全員を広間に集める",
+        "みんなを集めて真相を話す",
+        "推理を披露する"
+      ]
+    },
+    "prompt": [
+      "望月が三つの部屋を回り、広間へ来るように伝えた。",
+      "廊下を渡ってくる足音が聞こえる。――ひと組だけ。",
+      "あなたの見立てを、言葉にしてください。誰が、どうやって、なぜ。"
+    ],
+    "truth": [
+      "犯人は三人全員である。正確には、一匹全員だった。",
+      "久瀬瑠依、鷲尾千歳、海堂実は別々の人間ではない。女性の頭、眼鏡の青年の頭、スキンヘッドの男の頭を持つ、一匹の三つ首のケルベロスである。三人が同じ日の同じ時刻に門をくぐり、二週間のあいだ一度も同席せず、食事が必ず別々の部屋へ運ばれ、廊下ですれ違うときも必ず一人ずつだったのはそのためである。",
+      "だから三人の目撃証言は食い違いながら、どれも正しい。廊下で「怪しい人物」を見たとき、三つの首はそれぞれ隣り合う別の首を見ていた。海堂の首は瑠依の首を見て「女性だった」と言い、瑠依の首は千歳の首を見て「眼鏡をかけていた」と言い、千歳の首は海堂の首を見て「スキンヘッドで眼鏡はかけていなかった」と言った。三人とも、その人物は手が届くほどすぐ隣にいたと証言している。誰一人として嘘をついていない。",
+      "現場に残っていた足跡が一匹分の犬のものだけで、人の足跡がまったくないのは、あの部屋に入ったのが一匹だけだからである。窓は内側から留まっていて、外から入った者はいない。",
+      "三つの首はそれぞれ別々に主人へ噛みつき、脅し、追い詰めた。遺体の脚の噛み傷が三箇所あって歯並びがそれぞれ違うのは、噛んだ口が三つあったからである。館じゅうに響いた「やめろー！」という叫びは、三つの口に同時に追い詰められた主人のものだ。",
+      "死因そのものは刺傷でも咬傷でもなく、争った拍子に簞笥の角へ頭を打ったことによる。狙って振るわれた一撃ではない。だが後ずさる主人を簞笥まで追い詰めたのは三つの首すべてであり、誰か一つを選び出すことはできない。"
+    ],
+    "suspects": [
+      "ruise",
+      "chitose",
+      "kaido",
+      "mochizuki"
+    ],
+    "culprit": "ruise",
+    "also_culprit": [
+      "chitose",
+      "kaido"
+    ],
+    "points": [
+      {
+        "id": "one_beast",
+        "label": "三人は一匹",
+        "question": "Does the detective's statement say that the three guests are not three separate people at all, but the three heads of a single creature — one body with a woman's head, a bespectacled youth's head and a shaven-headed man's head? It counts however it is worded, and whether or not the word Cerberus is used, as long as the three are identified as one being."
+      },
+      {
+        "id": "testimony",
+        "label": "食い違わない証言",
+        "question": "Does the detective's statement explain the three contradictory descriptions of the figure in the corridor by saying that each head was looking at one of the other heads on the same body, so that all three accounts are true and none of the three lied? It counts however it is worded, as long as the contradiction is resolved by the witnesses seeing each other rather than by anyone lying."
+      },
+      {
+        "id": "prints",
+        "label": "一匹分の足跡",
+        "question": "Does the detective's statement say that the only tracks in the master's room are a single animal's, with no human footprints at all, because only one body ever entered that room? It counts however it is worded, as long as the single set of tracks is tied to there having been only one body."
+      },
+      {
+        "id": "death",
+        "label": "簞笥の角",
+        "question": "Does the detective's statement say that the master died from striking his head on the corner of the chest of drawers while being driven back, rather than from the bites, and that the three heads bit and cornered him — which is why there are three bite marks with different sets of teeth and why he was heard shouting? It counts however it is worded, as long as the fatal injury is the chest of drawers and the three heads are what drove him into it."
+      }
+    ],
+    "coherence_levels": [
+      "名指しがあるだけで、理由らしい理由がない。",
+      "理由はあるが、事件の出来事とほとんど噛み合っていない。",
+      "筋は通るが、要になるところが抜けている。",
+      "出来事の大半を説明できていて、順序もつながっている。",
+      "隙なく組み上がっていて、どの部分も次の部分を支えている。"
+    ],
+    "endings": [
+      {
+        "id": "true",
+        "require_culprit": true,
+        "min_points": 4,
+        "min_coherence": 2.5,
+        "title": "一匹全員",
+        "text": [
+          "三人は広間の同じ場所に立っていた。いや、立っていたのは一人分の幅だった。",
+          "久瀬瑠依が「それは私のルールじゃないので」と言い、鷲尾千歳が「模試が」と言いかけ、海堂実が「いやあ」と笑った。三つの声は、同じ胸のあたりから出ていた。",
+          "望月節子が膝をついて、初めて三人ぶんの膳を一つの卓に運ばなくてよかった理由を理解した。"
+        ]
+      },
+      {
+        "id": "close",
+        "require_culprit": true,
+        "min_points": 2,
+        "title": "残りは本人たちの口から",
+        "text": [
+          "名指しされた一人が口を開き、そのあとを、どういうわけか別の声が引き取った。",
+          "「そこまで分かっておられるなら、あとは申し上げます」",
+          "三つの声が代わる代わる話すあいだ、足音はついに一組も増えなかった。"
+        ]
+      },
+      {
+        "id": "named",
+        "require_culprit": true,
+        "title": "名指し",
+        "text": [
+          "名を呼ばれた一人は、まっすぐにあなたを見返した。",
+          "「なぜ私なのか、説明していただけますか」",
+          "答えに詰まったあなたの言葉は、霧の匂いのする広間に吸われて消えた。"
+        ]
+      },
+      {
+        "id": "sharp",
+        "min_points": 3,
+        "title": "仕掛けだけが残った",
+        "text": [
+          "足跡のことも、証言の食い違いのことも、あなたの言うとおりだった。",
+          "ただ、あなたは最後に誰の名も呼ばなかったか、呼んではいけない名を呼んだ。",
+          "三人は――三つの首は、順番に頷いて、それぞれの部屋へ戻っていった。"
+        ]
+      },
+      {
+        "id": "fail",
+        "title": "霧が晴れる",
+        "text": [
+          "三人は顔を見合わせ、一人ずつ広間を出ていった。廊下の足音は、やはり一組だけだった。",
+          "朝になって霧が晴れ、山を降りる道が開いた。降りていったのは、三人ではなかったという。"
+        ]
+      }
+    ]
+  }
+}

@@ -96,7 +96,7 @@ func orElse(v, fallback float64) float64 {
 
 func load(t *testing.T) *scenario.Scenario {
 	t.Helper()
-	s, err := scenario.Builtin("clockwork")
+	s, err := scenario.Builtin("yakata")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -105,18 +105,18 @@ func load(t *testing.T) *scenario.Scenario {
 
 func TestPlayAppliesAMatch(t *testing.T) {
 	s := load(t)
-	f := &fake{choice: "examine_clock", prob: 0.8, conf: 0.9, intent: IntentSearch}
+	f := &fake{choice: "examine_ledger", prob: 0.8, conf: 0.9, intent: IntentSearch}
 	e := &Engine{Asker: f, Policy: DefaultPolicy()}
 
-	st, turn, err := e.Play(context.Background(), s, New(s), "柱時計を調べる")
+	st, turn, err := e.Play(context.Background(), s, New(s), "献立帳を調べる")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if !turn.Matched || turn.Outcome == nil {
 		t.Fatal("the turn should have matched")
 	}
-	if !st.HasEvidence("clock") {
-		t.Error("the action gives the clock and the state did not take it")
+	if !st.HasEvidence("meals") {
+		t.Error("the action gives the meal book and the state did not take it")
 	}
 	if st.Turn != 1 {
 		t.Errorf("turn = %d, want 1", st.Turn)
@@ -129,9 +129,9 @@ func TestPlayAppliesAMatch(t *testing.T) {
 func TestPlayRejectsAWeakMatch(t *testing.T) {
 	s := load(t)
 	for name, f := range map[string]*fake{
-		"low probability": {choice: "examine_clock", prob: 0.2, conf: 0.9, intent: IntentSearch},
-		"low confidence":  {choice: "examine_clock", prob: 0.8, conf: 0.1, intent: IntentSearch},
-		"loses to none":   {choice: "examine_clock", prob: 0.45, conf: 0.9, intent: IntentSearch},
+		"low probability": {choice: "examine_ledger", prob: 0.2, conf: 0.9, intent: IntentSearch},
+		"low confidence":  {choice: "examine_ledger", prob: 0.8, conf: 0.1, intent: IntentSearch},
+		"loses to none":   {choice: "examine_ledger", prob: 0.45, conf: 0.9, intent: IntentSearch},
 		"chose none":      {choice: scenario.NoMatch, prob: 0.9, conf: 0.9, intent: IntentNonsense},
 		"invented an id":  {choice: "fly_away", prob: 0.9, conf: 0.9, intent: IntentNonsense},
 	} {
@@ -144,7 +144,7 @@ func TestPlayRejectsAWeakMatch(t *testing.T) {
 			if turn.Matched {
 				t.Fatal("this should not have matched")
 			}
-			if st.HasEvidence("clock") {
+			if st.HasEvidence("meals") {
 				t.Error("a miss must not hand out evidence")
 			}
 			if len(turn.Text) == 0 {
@@ -161,7 +161,7 @@ func TestPlayAnswersAnEarlyAccusation(t *testing.T) {
 	f := &fake{choice: scenario.NoMatch, prob: 0.9, conf: 0.9, intent: IntentTalk, declare: 0.9}
 	e := &Engine{Asker: f, Policy: DefaultPolicy()}
 
-	_, turn, err := e.Play(context.Background(), s, New(s), "犯人は倉田さんだ")
+	_, turn, err := e.Play(context.Background(), s, New(s), "犯人は久瀬さんだ")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -182,12 +182,12 @@ func TestOnlyReachableActionsAreOffered(t *testing.T) {
 	if !ok {
 		t.Fatalf("the action question carries %T, not options", f.asked[KeyAction].Criteria)
 	}
-	if _, offered := options["examine_window"]; offered {
-		// It lives in the study and the player is in the hall.
+	if _, offered := options["examine_body"]; offered {
+		// It lives in the master's room and the player is in the hall.
 		t.Error("an action from another room was offered")
 	}
-	if _, offered := options["ask_kurata_ledger"]; offered {
-		// It needs the ledger, which the player has not found.
+	if _, offered := options["ask_ruise_prints"]; offered {
+		// It needs the tracks, which the player has not found.
 		t.Error("an action whose requirements are unmet was offered")
 	}
 	if _, offered := options[scenario.NoMatch]; !offered {
@@ -199,12 +199,12 @@ func TestOnlyReachableActionsAreOffered(t *testing.T) {
 	// A yes-or-no question is judged on its own rather than competing with
 	// the actions for one distribution. That is the whole reason a player can
 	// ask one in whatever words occur to them.
-	for _, id := range []string{scenario.ClosedPrefix + "kurata", scenario.ClosedPrefix + "reiko"} {
+	for _, id := range []string{scenario.ClosedPrefix + "mochizuki", scenario.ClosedPrefix + "ruise"} {
 		if _, offered := options[id]; offered {
 			t.Errorf("%s is competing with the actions for the vote", id)
 		}
 	}
-	for _, key := range []string{KeyClosed, KeyAskee, KeyFlavour, scenario.ClosedPrefix + "kurata"} {
+	for _, key := range []string{KeyClosed, KeyAskee, KeyFlavour, scenario.ClosedPrefix + "mochizuki"} {
 		if _, asked := f.asked[key]; !asked {
 			t.Errorf("the turn did not ask %q", key)
 		}
@@ -214,7 +214,7 @@ func TestOnlyReachableActionsAreOffered(t *testing.T) {
 func TestFinaleIsOfferedOnceTheCaseIsReady(t *testing.T) {
 	s := load(t)
 	st := New(s)
-	st.Evidence = []string{"clock", "ledger", "thread"}
+	st.Evidence = []string{"meals", "pawprint", "bite"}
 
 	f := &fake{choice: scenario.FinaleAction, prob: 0.9, conf: 0.9, intent: IntentTalk, declare: 0.9}
 	e := &Engine{Asker: f, Policy: DefaultPolicy()}
@@ -245,7 +245,7 @@ func TestTheModelSeesTheSurroundings(t *testing.T) {
 	if !ok {
 		t.Fatalf("state is %T", f.state)
 	}
-	if view.Place != "玄関ホール" || len(view.People) != 2 {
+	if view.Place != "玄関広間" || len(view.People) != 2 {
 		t.Errorf("view = %+v, want the hall and the two people in it", view)
 	}
 	if view.Input != "彼女に聞く" {
@@ -266,16 +266,16 @@ func TestPlayRejectsEmptyInput(t *testing.T) {
 func TestApplyIsIdempotent(t *testing.T) {
 	s := load(t)
 	st := New(s)
-	st.Scene = "study"
-	desk := s.Action("examine_desk")
+	st.Scene = "chamber"
+	body := s.Action("examine_body")
 
-	st, first := Apply(s, st, desk)
-	if len(first.Gained) != 1 || first.Gained[0] != "ledger" {
-		t.Fatalf("first pass gained %v, want the ledger", first.Gained)
+	st, first := Apply(s, st, body)
+	if len(first.Gained) != 1 || first.Gained[0] != "bite" {
+		t.Fatalf("first pass gained %v, want the bite marks", first.Gained)
 	}
 
 	before := len(st.Evidence)
-	st, second := Apply(s, st, desk)
+	st, second := Apply(s, st, body)
 	if len(st.Evidence) != before {
 		t.Error("the second pass handed out the evidence again")
 	}
@@ -296,28 +296,28 @@ func TestAClosedQuestionIsAnswered(t *testing.T) {
 	s := load(t)
 	f := &fake{
 		choice: scenario.NoMatch, prob: 0.9, conf: 0.9, intent: IntentAsk,
-		closed: 0.9, askee: "kurata", said: scenario.AnswerNo,
+		closed: 0.9, askee: "mochizuki", said: scenario.AnswerNo,
 	}
 	e := &Engine{Asker: f, Policy: DefaultPolicy()}
 
-	_, turn, err := e.Play(context.Background(), s, New(s), "倉田さん、あなたが犯人ですか")
+	_, turn, err := e.Play(context.Background(), s, New(s), "望月さん、あなたが犯人ですか")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if !turn.Matched || turn.Outcome == nil {
 		t.Fatal("the question went unanswered")
 	}
-	if turn.Choice != scenario.ClosedPrefix+"kurata" {
-		t.Errorf("choice = %q, want the closed question to kurata", turn.Choice)
+	if turn.Choice != scenario.ClosedPrefix+"mochizuki" {
+		t.Errorf("choice = %q, want the closed question to mochizuki", turn.Choice)
 	}
 	if turn.Answer != scenario.AnswerNo {
 		t.Errorf("answer = %q, want %q", turn.Answer, scenario.AnswerNo)
 	}
 	// The culprit denies it, in her own words, and the state does not move.
-	if got, want := turn.Text[0], s.Character("kurata").Closed.Answers.Say(scenario.AnswerNo); got != want {
+	if got, want := turn.Text[0], s.Character("mochizuki").Closed.Answers.Say(scenario.AnswerNo); got != want {
 		t.Errorf("said %q, want %q", got, want)
 	}
-	if turn.Outcome.Speaker != "kurata" || len(turn.Outcome.Gained) != 0 {
+	if turn.Outcome.Speaker != "mochizuki" || len(turn.Outcome.Gained) != 0 {
 		t.Errorf("outcome = %+v", turn.Outcome)
 	}
 }
@@ -330,11 +330,11 @@ func TestAnInputThatIsNotAQuestionGetsNoAnswer(t *testing.T) {
 	s := load(t)
 	f := &fake{
 		choice: scenario.NoMatch, prob: 0.9, conf: 0.9, intent: IntentTalk,
-		closed: 0.2, askee: "kurata", said: scenario.AnswerYes,
+		closed: 0.2, askee: "mochizuki", said: scenario.AnswerYes,
 	}
 	e := &Engine{Asker: f, Policy: DefaultPolicy()}
 
-	_, turn, err := e.Play(context.Background(), s, New(s), "倉田さんをじっと見る")
+	_, turn, err := e.Play(context.Background(), s, New(s), "望月さんをじっと見る")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -370,7 +370,7 @@ func TestAnUnsureAnswerBecomesIDoNotKnow(t *testing.T) {
 	s := load(t)
 	f := &fake{
 		choice: scenario.NoMatch, prob: 0.9, conf: 0.9, intent: IntentAsk,
-		closed: 0.9, askee: "kurata", said: scenario.AnswerYes, saidProb: 0.3,
+		closed: 0.9, askee: "mochizuki", said: scenario.AnswerYes, saidProb: 0.3,
 	}
 	e := &Engine{Asker: f, Policy: DefaultPolicy()}
 
@@ -390,11 +390,11 @@ func TestThePersonAskedCanRefuseTheQuestion(t *testing.T) {
 	s := load(t)
 	f := &fake{
 		choice: scenario.NoMatch, prob: 0.9, conf: 0.9, intent: IntentAsk,
-		closed: 0.9, askee: "kurata", said: notClosed,
+		closed: 0.9, askee: "mochizuki", said: notClosed,
 	}
 	e := &Engine{Asker: f, Policy: DefaultPolicy()}
 
-	_, turn, err := e.Play(context.Background(), s, New(s), "倉田さん、今夜のことを話してください")
+	_, turn, err := e.Play(context.Background(), s, New(s), "望月さん、今夜のことを話してください")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -409,16 +409,16 @@ func TestThePersonAskedCanRefuseTheQuestion(t *testing.T) {
 func TestAnAuthoredActionBeatsAClosedQuestion(t *testing.T) {
 	s := load(t)
 	f := &fake{
-		choice: "ask_kurata_evening", prob: 0.8, conf: 0.9, intent: IntentAsk,
-		closed: 0.95, askee: "kurata", said: scenario.AnswerNo,
+		choice: "ask_mochizuki", prob: 0.8, conf: 0.9, intent: IntentAsk,
+		closed: 0.95, askee: "mochizuki", said: scenario.AnswerNo,
 	}
 	e := &Engine{Asker: f, Policy: DefaultPolicy()}
 
-	_, turn, err := e.Play(context.Background(), s, New(s), "倉田さん、九時に会ったんですか")
+	_, turn, err := e.Play(context.Background(), s, New(s), "望月さん、八時に電話していたんですか")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if turn.Choice != "ask_kurata_evening" || turn.Answer != "" {
+	if turn.Choice != "ask_mochizuki" || turn.Answer != "" {
 		t.Errorf("turn = %+v, want the authored answer", turn)
 	}
 }
@@ -455,22 +455,22 @@ func TestFlavourAnswersWhatTheActionsMissed(t *testing.T) {
 func TestAnActionBeatsFlavour(t *testing.T) {
 	s := load(t)
 	f := &fake{
-		choice: "examine_clock", prob: 0.8, conf: 0.9, intent: IntentSearch,
+		choice: "examine_ledger", prob: 0.8, conf: 0.9, intent: IntentSearch,
 		flavour: "photographs",
 	}
 	e := &Engine{Asker: f, Policy: DefaultPolicy()}
 
-	_, turn, err := e.Play(context.Background(), s, New(s), "柱時計を調べる")
+	_, turn, err := e.Play(context.Background(), s, New(s), "献立帳を調べる")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if turn.Choice != "examine_clock" {
+	if turn.Choice != "examine_ledger" {
 		t.Errorf("choice = %q, want the action", turn.Choice)
 	}
 }
 
-// Flavour is gated like an action: one written for the study is not offered
-// in the hall.
+// Flavour is gated like an action: one written for the master's room is not
+// offered in the hall.
 func TestFlavourIsGatedByScene(t *testing.T) {
 	s := load(t)
 	f := &fake{choice: scenario.NoMatch, prob: 0.9, conf: 0.9, flavour: scenario.NoMatch}
@@ -483,8 +483,8 @@ func TestFlavourIsGatedByScene(t *testing.T) {
 	if !ok {
 		t.Fatalf("the flavour question carries %T, not options", f.asked[KeyFlavour].Criteria)
 	}
-	if _, offered := options["glass"]; offered {
-		t.Error("flavour from the study was offered in the hall")
+	if _, offered := options["mirror"]; offered {
+		t.Error("flavour from the master's room was offered in the hall")
 	}
 	if _, offered := options["photographs"]; !offered {
 		t.Error("the hall's own flavour was not offered")
@@ -498,20 +498,20 @@ func TestFlavourIsGatedByScene(t *testing.T) {
 // nothing has no reason to search the place they just arrived in.
 func TestMovingDescribesTheRoomArrivedIn(t *testing.T) {
 	s := load(t)
-	f := &fake{choice: "go_study", prob: 0.8, conf: 0.9, intent: IntentMove}
+	f := &fake{choice: "go_chamber", prob: 0.8, conf: 0.9, intent: IntentMove}
 	e := &Engine{Asker: f, Policy: DefaultPolicy()}
 
-	_, turn, err := e.Play(context.Background(), s, New(s), "書斎へ行く")
+	_, turn, err := e.Play(context.Background(), s, New(s), "主人の部屋へ行く")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(turn.Arrival) == 0 {
 		t.Fatal("moving said nothing about where the player now is")
 	}
-	if got, want := turn.Arrival[0], s.Scene("study").Description[0]; got != want {
-		t.Errorf("arrival = %q, want the study's description", got)
+	if got, want := turn.Arrival[0], s.Scene("chamber").Description[0]; got != want {
+		t.Errorf("arrival = %q, want the master's room description", got)
 	}
-	// Nobody is in the study, and saying so is part of the description.
+	// Nobody is in the room with the body, and saying so is part of it.
 	if last := turn.Arrival[len(turn.Arrival)-1]; last != "ここには誰もいない。" {
 		t.Errorf("arrival ends %q", last)
 	}
@@ -521,10 +521,10 @@ func TestMovingDescribesTheRoomArrivedIn(t *testing.T) {
 // would otherwise repeat the place panel on every line.
 func TestAnActionThatStaysPutDescribesNothing(t *testing.T) {
 	s := load(t)
-	f := &fake{choice: "examine_clock", prob: 0.8, conf: 0.9, intent: IntentSearch}
+	f := &fake{choice: "examine_ledger", prob: 0.8, conf: 0.9, intent: IntentSearch}
 	e := &Engine{Asker: f, Policy: DefaultPolicy()}
 
-	_, turn, err := e.Play(context.Background(), s, New(s), "柱時計を調べる")
+	_, turn, err := e.Play(context.Background(), s, New(s), "献立帳を調べる")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -539,16 +539,16 @@ func TestDescribeNamesThePeopleInTheRoom(t *testing.T) {
 	s := load(t)
 	lines := Describe(s, New(s))
 	last := lines[len(lines)-1]
-	for _, want := range []string{"倉田 静", "曽根 玲子"} {
+	for _, want := range []string{"望月 節子", "久瀬 瑠依"} {
 		if !strings.Contains(last, want) {
 			t.Errorf("%q does not name %s", last, want)
 		}
 	}
 
 	st := New(s)
-	st.Scene = "terrace"
-	if lines := Describe(s, st); !strings.Contains(lines[len(lines)-1], "南条 悟") {
-		t.Errorf("the terrace does not name its one person: %q", lines)
+	st.Scene = "annex"
+	if lines := Describe(s, st); !strings.Contains(lines[len(lines)-1], "海堂 実") {
+		t.Errorf("the annex does not name its one person: %q", lines)
 	}
 }
 
@@ -567,9 +567,9 @@ func TestTheStoryTravelsOnlyWhereItIsAnswerable(t *testing.T) {
 		t.Error("the people here can be asked, but the plot was withheld")
 	}
 
-	// The study: a body and no one to ask.
+	// The master's room: a body and no one to ask.
 	st := New(s)
-	st.Scene = "study"
+	st.Scene = "chamber"
 	if _, _, err := e.Play(context.Background(), s, st, "何かする"); err != nil {
 		t.Fatal(err)
 	}

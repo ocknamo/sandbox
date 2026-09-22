@@ -315,6 +315,13 @@ type Finale struct {
 	Suspects []string `json:"suspects"`
 	Culprit  string   `json:"culprit"`
 
+	// AlsoCulprit names the other people an accusation may name and still be
+	// right. It is for a case whose answer is not one person — two who did it
+	// together, or three who turn out to be one — where the grader must still
+	// return a single name, because a choice returns one option. Naming any of
+	// them counts as naming the culprit; nothing else about them changes.
+	AlsoCulprit []string `json:"also_culprit,omitempty"`
+
 	Points []Point `json:"points"`
 
 	// CoherenceLevels is the rubric for how well the accusation hangs together
@@ -545,6 +552,14 @@ func (s *Scenario) validateFinale() error {
 	if !contains(f.Suspects, f.Culprit) {
 		return fmt.Errorf("scenario: finale culprit %q is not among the suspects", f.Culprit)
 	}
+	for _, id := range f.AlsoCulprit {
+		if id == f.Culprit {
+			return fmt.Errorf("scenario: finale names %q as culprit twice", id)
+		}
+		if !contains(f.Suspects, id) {
+			return fmt.Errorf("scenario: finale also_culprit %q is not among the suspects", id)
+		}
+	}
 	for _, e := range f.RequiresEvidence {
 		if _, ok := s.evidence[e]; !ok {
 			return fmt.Errorf("scenario: finale requires unknown evidence %q", e)
@@ -643,6 +658,13 @@ func (s *Scenario) Miss(intent string) []string {
 		return text
 	}
 	return s.Misses["default"]
+}
+
+// Blames says whether naming this person counts as naming the culprit. It is
+// how the grader decides a case whose answer is more than one name: the
+// accusation still settles on one person, and any of the guilty will do.
+func (f Finale) Blames(id string) bool {
+	return id != "" && (id == f.Culprit || contains(f.AlsoCulprit, id))
 }
 
 // SuspectNames lists the suspects in scenario order, as name and role, for the
