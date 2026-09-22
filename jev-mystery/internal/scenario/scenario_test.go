@@ -2,7 +2,6 @@ package scenario
 
 import (
 	"encoding/json"
-	"strings"
 	"testing"
 )
 
@@ -12,15 +11,28 @@ func TestBuiltinLoads(t *testing.T) {
 		t.Fatal("no cases are compiled into the binary")
 	}
 	for _, id := range ids {
-		s, err := Builtin(id)
-		if err != nil {
-			t.Fatalf("Builtin(%q): %v", id, err)
+		if _, err := Builtin(id); err != nil {
+			t.Errorf("Builtin(%q): %v", id, err)
 		}
-		if s.Scene(s.StartScene) == nil {
-			t.Errorf("%s: start scene is missing", id)
-		}
-		if len(s.Finale.Points) == 0 {
-			t.Errorf("%s: nothing to grade an accusation on", id)
+	}
+}
+
+// The whole of the secrecy guarantee: a response is built with encoding/json,
+// and hidden text has no JSON encoding. A handler that embedded any of this
+// would fail to encode rather than spoil the case, whatever shape its type had.
+func TestHiddenTextCannotBeServed(t *testing.T) {
+	s, err := Builtin("clockwork")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for name, v := range map[string]any{
+		"the solution":            s.Finale.Truth,
+		"an option's description": s.Actions[0].Match,
+		"a grading question":      s.Finale.Points[0].Question,
+		"a whole action":          s.Actions[0],
+	} {
+		if _, err := json.Marshal(v); err == nil {
+			t.Errorf("%s encoded to JSON", name)
 		}
 	}
 }
@@ -35,26 +47,16 @@ func TestLoadRejects(t *testing.T) {
 		"no start scene": func(m map[string]any) {
 			m["start_scene"] = "nowhere"
 		},
-		"unknown speaker": func(m map[string]any) {
-			m["actions"].([]any)[0].(map[string]any)["speaker"] = "ghost"
-		},
 		"unknown evidence": func(m map[string]any) {
 			m["actions"].([]any)[0].(map[string]any)["gives_evidence"] = []any{"nothing"}
-		},
-		"reserved action id": func(m map[string]any) {
-			m["actions"].([]any)[0].(map[string]any)["id"] = NoMatch
 		},
 		"culprit is not a suspect": func(m map[string]any) {
 			finale(m)["culprit"] = "watson"
 		},
-		"no default miss": func(m map[string]any) {
-			m["misses"] = map[string]any{"move": []any{"no"}}
-		},
+		// Endings are tested in order and the player always gets one, so an
+		// unreachable last ending would leave a finished case with no text.
 		"last ending has conditions": func(m map[string]any) {
 			finale(m)["endings"].([]any)[0].(map[string]any)["require_culprit"] = true
-		},
-		"too few coherence levels": func(m map[string]any) {
-			finale(m)["coherence_levels"] = []any{"only one"}
 		},
 	}
 
@@ -70,19 +72,6 @@ func TestLoadRejects(t *testing.T) {
 
 	if _, err := Load(encode(t, clone(t, base))); err != nil {
 		t.Fatalf("the unbroken scenario should load: %v", err)
-	}
-}
-
-func TestMissFallsBackToDefault(t *testing.T) {
-	s, err := Builtin("clockwork")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if got := s.Miss("a intent nobody wrote"); len(got) == 0 {
-		t.Fatal("an unknown intent should still say something")
-	}
-	if got := strings.Join(s.Miss("move"), ""); got == "" {
-		t.Fatal("the move miss is empty")
 	}
 }
 

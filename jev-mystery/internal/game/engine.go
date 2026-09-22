@@ -225,18 +225,10 @@ func stateFor(s *scenario.Scenario, st State, input string) playerView {
 func questions(s *scenario.Scenario, avail []*scenario.Action, finaleOpen bool) map[string]jev.Question {
 	options := make(map[string]jev.Option, len(avail)+2)
 	for _, a := range avail {
-		options[a.ID] = jev.Option{
-			What:     a.Match.What,
-			NotFor:   a.Match.NotFor,
-			Examples: a.Match.Examples,
-		}
+		options[a.ID] = option(a.Match)
 	}
 	if finaleOpen {
-		options[scenario.FinaleAction] = jev.Option{
-			What:     s.Finale.Match.What,
-			NotFor:   s.Finale.Match.NotFor,
-			Examples: s.Finale.Match.Examples,
-		}
+		options[scenario.FinaleAction] = option(s.Finale.Match)
 	}
 	options[scenario.NoMatch] = jev.Option{
 		What: "The input asks for something none of the other options describe, " +
@@ -276,6 +268,16 @@ func questions(s *scenario.Scenario, avail []*scenario.Action, finaleOpen bool) 
 				"together for the reveal? False for merely asking someone about a " +
 				"suspect, or for accusing someone in conversation without claiming " +
 				"to have solved the case."),
+	}
+}
+
+// option is the one place an action's description leaves the server, and it
+// leaves towards the model rather than towards the player.
+func option(m scenario.Match) jev.Option {
+	return jev.Option{
+		What:     string(m.What),
+		NotFor:   string(m.NotFor),
+		Examples: scenario.Plain(m.Examples),
 	}
 }
 

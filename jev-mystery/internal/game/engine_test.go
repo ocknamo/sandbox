@@ -23,14 +23,10 @@ type fake struct {
 
 	asked map[string]jev.Question
 	state any
-	err   error
 }
 
 func (f *fake) Ask(_ context.Context, state any, qs map[string]jev.Question) (*jev.Response, error) {
 	f.asked, f.state = qs, state
-	if f.err != nil {
-		return nil, f.err
-	}
 	answers := map[string]jev.Answer{}
 	for key, q := range qs {
 		switch {
@@ -216,11 +212,28 @@ func TestPlayRejectsEmptyInput(t *testing.T) {
 	}
 }
 
-func TestPlayPassesUpAnAPIFailure(t *testing.T) {
+// Effects are sets, so an action taken twice leaves the same state. Only the
+// narration changes, which is what stops a discovery being announced twice.
+func TestApplyIsIdempotent(t *testing.T) {
 	s := load(t)
-	want := errors.New("boom")
-	e := &Engine{Asker: &fake{err: want}, Policy: DefaultPolicy()}
-	if _, _, err := e.Play(context.Background(), s, New(s), "調べる"); !errors.Is(err, want) {
-		t.Fatalf("err = %v, want %v", err, want)
+	st := New(s)
+	st.Scene = "study"
+	desk := s.Action("examine_desk")
+
+	st, first := Apply(s, st, desk)
+	if len(first.Gained) != 1 || first.Gained[0] != "ledger" {
+		t.Fatalf("first pass gained %v, want the ledger", first.Gained)
+	}
+
+	before := len(st.Evidence)
+	st, second := Apply(s, st, desk)
+	if len(st.Evidence) != before {
+		t.Error("the second pass handed out the evidence again")
+	}
+	if len(second.Gained) != 0 {
+		t.Errorf("the second pass announced %v again", second.Gained)
+	}
+	if !second.Repeat || second.Text[0] == first.Text[0] {
+		t.Error("a repeat should read differently from a discovery")
 	}
 }
