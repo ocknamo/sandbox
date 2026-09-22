@@ -31,9 +31,12 @@ type fake struct {
 	saidProb  float64
 
 	// flavour is the entry the second pass lands on, once the actions have
-	// all missed.
+	// all missed. flavourNone is what is left sitting on `none`: a scene with
+	// several flavour entries spreads its weight across them, so the winner
+	// can be well under half and still be the answer.
 	flavour     string
 	flavourProb float64
+	flavourNone float64
 
 	asked map[string]jev.Question
 	state any
@@ -68,7 +71,11 @@ func (f *fake) Ask(_ context.Context, state any, qs map[string]jev.Question) (*j
 		case key == KeyAskee:
 			answers[key] = choiceAnswer(f.askee, orElse(f.askeeProb, 0.9), 0.9)
 		case key == KeyFlavour:
-			answers[key] = choiceAnswer(f.flavour, orElse(f.flavourProb, 0.9), 0.9)
+			a := choiceAnswer(f.flavour, orElse(f.flavourProb, 0.9), 0.9)
+			if f.flavourNone > 0 {
+				a.Probabilities[scenario.NoMatch] = f.flavourNone
+			}
+			answers[key] = a
 		case key == KeyCulprit:
 			answers[key] = jev.Answer{Type: jev.TypeChoice, Choice: f.choice,
 				Probabilities: map[string]float64{f.choice: f.prob}}
@@ -186,7 +193,7 @@ func TestOnlyReachableActionsAreOffered(t *testing.T) {
 		// It lives in the master's room and the player is in the hall.
 		t.Error("an action from another room was offered")
 	}
-	if _, offered := options["ask_ruise_prints"]; offered {
+	if _, offered := options["ask_mochizuki_prints"]; offered {
 		// It needs the tracks, which the player has not found.
 		t.Error("an action whose requirements are unmet was offered")
 	}
@@ -199,10 +206,8 @@ func TestOnlyReachableActionsAreOffered(t *testing.T) {
 	// A yes-or-no question is judged on its own rather than competing with
 	// the actions for one distribution. That is the whole reason a player can
 	// ask one in whatever words occur to them.
-	for _, id := range []string{scenario.ClosedPrefix + "mochizuki", scenario.ClosedPrefix + "ruise"} {
-		if _, offered := options[id]; offered {
-			t.Errorf("%s is competing with the actions for the vote", id)
-		}
+	if _, offered := options[scenario.ClosedPrefix+"mochizuki"]; offered {
+		t.Error("the closed question is competing with the actions for the vote")
 	}
 	for _, key := range []string{KeyClosed, KeyAskee, KeyFlavour, scenario.ClosedPrefix + "mochizuki"} {
 		if _, asked := f.asked[key]; !asked {
@@ -245,8 +250,8 @@ func TestTheModelSeesTheSurroundings(t *testing.T) {
 	if !ok {
 		t.Fatalf("state is %T", f.state)
 	}
-	if view.Place != "玄関広間" || len(view.People) != 2 {
-		t.Errorf("view = %+v, want the hall and the two people in it", view)
+	if view.Place != "玄関広間" || len(view.People) != 1 {
+		t.Errorf("view = %+v, want the hall and the one person in it", view)
 	}
 	if view.Input != "彼女に聞く" {
 		t.Errorf("input = %q", view.Input)
@@ -452,6 +457,42 @@ func TestFlavourAnswersWhatTheActionsMissed(t *testing.T) {
 	}
 }
 
+// Flavour answers on less than an action needs. It is read only after every
+// action has missed and it moves nothing, so the cost of being loose is two
+// lines of scenery that were not quite asked for — against a miss, which
+// says "何も起こらない" and teaches the player nothing at all.
+func TestFlavourAnswersOnLessThanAnAction(t *testing.T) {
+	s := load(t)
+	policy := DefaultPolicy()
+
+	for name, tc := range map[string]struct {
+		prob float64
+		want bool
+	}{
+		"under an action's floor, over its own": {prob: policy.Match - 0.05, want: true},
+		"under its own floor":                   {prob: policy.Flavour - 0.05, want: false},
+	} {
+		t.Run(name, func(t *testing.T) {
+			// The hall carries three flavour entries, so the weight this one
+			// does not hold is spread over its neighbours rather than piled
+			// onto `none`.
+			f := &fake{
+				choice: scenario.NoMatch, prob: 0.9, conf: 0.9,
+				flavour: "photographs", flavourProb: tc.prob, flavourNone: 0.2,
+			}
+			e := &Engine{Asker: f, Policy: policy}
+
+			_, turn, err := e.Play(context.Background(), s, New(s), "何かする")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got := turn.Choice == scenario.FlavourPrefix+"photographs"; got != tc.want {
+				t.Errorf("choice = %q at %.2f, want flavour = %v", turn.Choice, tc.prob, tc.want)
+			}
+		})
+	}
+}
+
 func TestAnActionBeatsFlavour(t *testing.T) {
 	s := load(t)
 	f := &fake{
@@ -538,17 +579,20 @@ func TestAnActionThatStaysPutDescribesNothing(t *testing.T) {
 func TestDescribeNamesThePeopleInTheRoom(t *testing.T) {
 	s := load(t)
 	lines := Describe(s, New(s))
-	last := lines[len(lines)-1]
-	for _, want := range []string{"望月 節子", "久瀬 瑠依"} {
-		if !strings.Contains(last, want) {
-			t.Errorf("%q does not name %s", last, want)
-		}
+	if last := lines[len(lines)-1]; !strings.Contains(last, "望月 節子") {
+		t.Errorf("%q does not name the housekeeper", last)
 	}
 
+	// The three suspects wait in one room, so that line has to carry all of
+	// them rather than only whoever the scenario happened to list first.
 	st := New(s)
-	st.Scene = "annex"
-	if lines := Describe(s, st); !strings.Contains(lines[len(lines)-1], "海堂 実") {
-		t.Errorf("the annex does not name its one person: %q", lines)
+	st.Scene = "guestroom"
+	parlour := Describe(s, st)
+	named := parlour[len(parlour)-1]
+	for _, want := range []string{"久瀬 瑠依", "鷲尾 千歳", "海堂 実"} {
+		if !strings.Contains(named, want) {
+			t.Errorf("the parlour does not name %s: %q", want, named)
+		}
 	}
 }
 
@@ -559,7 +603,7 @@ func TestTheStoryTravelsOnlyWhereItIsAnswerable(t *testing.T) {
 	f := &fake{choice: scenario.NoMatch, prob: 0.9, conf: 0.9}
 	e := &Engine{Asker: f, Policy: DefaultPolicy()}
 
-	// The hall: two people who can be asked.
+	// The hall: somebody who can be asked.
 	if _, _, err := e.Play(context.Background(), s, New(s), "何かする"); err != nil {
 		t.Fatal(err)
 	}

@@ -5,13 +5,14 @@
   "opening": [
     "霧の深い山道を三時間登ったところに、鷲尾玄三郎の館はある。降りる道はその一本きりだ。",
     "蒐集家の鷲尾に招かれたあなたは、日暮れに門をくぐった。出迎えたのは家政婦の望月節子と、運転手の仁科徹、それに節子の孫の鈴で、三人は挨拶をすませると台所へ戻っていった。",
-    "館には先客が三人いるという。顧問弁護士の久瀬瑠依、主人の甥の鷲尾千歳、それに出入りの営業の海堂実。千歳は二階の客間に、海堂は渡り廊下の先の離れに、それぞれ部屋を与えられ、この二週間ほど泊まり込んでいるそうだ。"
+    "館には先客が三人いるという。顧問弁護士の久瀬瑠依、主人の甥の鷲尾千歳、それに出入りの営業の海堂実。久瀬は広間の隣の小部屋、千歳は二階の客間、海堂は渡り廊下の先の離れと、それぞれ部屋を与えられ、この二週間ほど泊まり込んでいるそうだ。"
   ],
   "incident": [
     "夜八時すぎ、館じゅうに主人の叫び声が響いた。「やめろー！」――それきり、静かになった。",
     "望月が居室の戸を開けたとき、鷲尾玄三郎は簞笥の脇に倒れていた。頭を打っている。脚には、大きな獣に噛まれたような傷が三箇所。",
     "そのとき望月は台所で村の診療所に電話をかけていて、仁科と鈴も台所にいた。霧で車は出せない。死亡推定時刻にアリバイがないのは、泊まり込んでいる三人だけだった。",
-    "そして、その少し前に廊下で「怪しい人物」を見たという者が、三人いる。"
+    "そして、その少し前に廊下で「怪しい人物」を見たという者が、三人いる。",
+    "アリバイのない三人は、いま二階の客間に集められている。望月が叫び声のあと駆け回ったとき、三人はすでにその部屋に揃っていたという。"
   ],
   "start_scene": "hall",
   "scenes": [
@@ -24,8 +25,7 @@
         "奥に、二階へ上がる階段、台所へ続く廊下、そして離れへ渡る渡り廊下への戸口がある。"
       ],
       "characters": [
-        "mochizuki",
-        "ruise"
+        "mochizuki"
       ]
     },
     {
@@ -50,14 +50,26 @@
       ]
     },
     {
+      "id": "corridor",
+      "name": "廊下",
+      "description": [
+        "長い廊下。灯りは二つおきにしか点いていなくて、明るいところと暗いところが交互に続く。",
+        "床板がきしむ。戸も窓もなく、通り過ぎるためだけの場所で、ほかには何もない。"
+      ],
+      "characters": []
+    },
+    {
       "id": "guestroom",
       "name": "二階の客間",
       "description": [
         "机に参考書が積み上げてある。背表紙はどれも新しい。",
-        "窓際に目覚まし時計。日程表が一枚、画鋲で壁に留めてある。"
+        "窓際に目覚まし時計。日程表が一枚、画鋲で壁に留めてある。",
+        "長椅子が一つと、灯りの点いたランプが一つ。壁に影が落ちている。"
       ],
       "characters": [
-        "chitose"
+        "ruise",
+        "chitose",
+        "kaido"
       ]
     },
     {
@@ -67,9 +79,7 @@
         "渡り廊下の先の一間。壁ぎわに、包みや箱がいくつも積まれている。",
         "太い柱が一本、床から天井まで通っている。"
       ],
-      "characters": [
-        "kaido"
-      ]
+      "characters": []
     }
   ],
   "characters": [
@@ -86,7 +96,8 @@
           "叫び声を聞いて居室に駆けつけたのは自分である。中には主人のほかに誰もいなかった。",
           "八時前後は台所から村の診療所へ電話をかけていた。交換手が覚えているはずである。そのあいだ仁科と鈴も台所にいた。",
           "三人分の食事を運ぶが、いつも別々の部屋に運んでいる。三人が同じ卓についたことは一度もない。",
-          "この二週間、三人が同じ部屋にいるところを一度も見ていない。廊下ですれ違うときも必ず一人ずつである。",
+          "今夜までの二週間、三人が同じ部屋にいるところを一度も見ていない。廊下ですれ違うときも必ず一人ずつだった。",
+          "叫び声のあと客間を覗くと、三人が揃ってそこにいた。三人が同じ部屋にいるのを見たのは、この二週間で初めてである。",
           "館に犬はいない。主人は獣のたぐいを一切飼わなかった。",
           "夕方、居室を整えたときには床はきれいだった。あの泥は、そのあとに付いたものである。"
         ],
@@ -160,10 +171,10 @@
         "knows": [
           "八時ごろは広間の隣の小部屋にひとりでいたと思う。証明できる者はいない。",
           "主人の叫び声を聞いた。",
-          "叫び声のあとのことは覚えていない。気がついたときには広間に立っていた。",
+          "叫び声のあとのことは覚えていない。気がつくと、この客間に三人とも揃っていた。どうやってここへ来たのかは覚えていない。",
           "廊下で誰かとすれ違った覚えはない。",
           "自分は三十代の女性で、そのことを疑ったことは一度もない。",
-          "この館で、甥の鷲尾千歳とも営業の海堂実とも、顔を合わせて話したことがない。",
+          "今夜までは、甥の鷲尾千歳とも営業の海堂実とも、顔を合わせて話したことが一度もなかった。",
           "館の規則は主人が決めたもので、自分が決めたものではない。"
         ],
         "hides": [
@@ -186,10 +197,10 @@
         "knows": [
           "八時ごろは客間にひとりでいたと思う。証明できる者はいない。",
           "主人の叫び声を聞いた。",
-          "叫び声のあとのことは覚えていない。気がついたときには机に向かっていた。",
+          "叫び声のあとのことは覚えていない。気がつくと、この客間に三人とも揃っていた。どうやってここへ来たのかは覚えていない。",
           "廊下で誰かとすれ違った覚えはない。",
           "自分は受験生で、そのことを疑ったことは一度もない。",
-          "この館で、弁護士の久瀬瑠依とも営業の海堂実とも、顔を合わせて話したことがない。",
+          "今夜までは、弁護士の久瀬瑠依とも営業の海堂実とも、顔を合わせて話したことが一度もなかった。",
           "叔父に学費を出してもらう話になっていた。"
         ],
         "hides": [
@@ -212,10 +223,10 @@
         "knows": [
           "八時ごろは離れにひとりでいたと思う。証明できる者はいない。",
           "主人の叫び声を聞いた。",
-          "叫び声のあとのことは覚えていない。気がついたときには離れに座っていた。",
+          "叫び声のあとのことは覚えていない。気がつくと、この客間に三人とも揃っていた。どうやってここへ来たのかは覚えていない。",
           "廊下で誰かとすれ違った覚えはない。",
           "自分は営業の男で、そのことを疑ったことは一度もない。",
-          "この館で、弁護士の久瀬瑠依とも甥の鷲尾千歳とも、顔を合わせて話したことがない。",
+          "今夜までは、弁護士の久瀬瑠依とも甥の鷲尾千歳とも、顔を合わせて話したことが一度もなかった。",
           "離れに積んである土産物は、干し肉、牛の大腿骨、鈴のついた輪などである。"
         ],
         "hides": [
@@ -251,17 +262,22 @@
       "id": "meals",
       "name": "望月の献立帳",
       "description": "十四日分、三人ぶんの食事が別々の部屋へ運ばれている。三人が同じ卓についた日は一度もない。"
+    },
+    {
+      "id": "painting",
+      "name": "壁の絵",
+      "description": "廊下の暗がりに掛かっていた額。首が三つある黒い犬が、門の前に伏せている。名前は思い出せない。"
     }
   ],
   "actions": [
     {
       "id": "look",
       "match": {
-        "what": "Look around the room the player is standing in; take in the surroundings again.",
-        "not_for": "Examining one particular object or person.",
+        "what": "Take in the whole room again with nothing particular in mind: a plain look around, the kind a player types when they have just arrived or want the description repeated.",
+        "not_for": "Looking at, watching, peering at or noticing any one thing in the room — an object, a window, a desk, a wall in the dark, a picture, or how the people here are sitting. An input with a target of its own belongs to whatever covers that target, never here.",
         "examples": [
           "あたりを見回す",
-          "部屋を見る",
+          "もう一度ここを見る",
           "周囲を確認する"
         ]
       },
@@ -275,12 +291,13 @@
       "scenes": [
         "chamber",
         "kitchen",
+        "corridor",
         "guestroom",
         "annex"
       ],
       "match": {
         "what": "Go to the entrance hall, the big room at the front of the house.",
-        "not_for": "Going to the master's room, the kitchen, the upstairs guest room or the annex.",
+        "not_for": "Going to the master's room, the kitchen, the corridor, the guest room or the annex.",
         "examples": [
           "広間へ戻る",
           "玄関のほうへ行く",
@@ -298,12 +315,13 @@
       "scenes": [
         "hall",
         "kitchen",
+        "corridor",
         "guestroom",
         "annex"
       ],
       "match": {
         "what": "Go to the master's own room, where the body is.",
-        "not_for": "Going to the entrance hall, the kitchen, the guest room or the annex.",
+        "not_for": "Going to the entrance hall, the kitchen, the corridor, the guest room or the annex.",
         "examples": [
           "主人の部屋へ行く",
           "現場に向かう",
@@ -321,12 +339,13 @@
       "scenes": [
         "hall",
         "chamber",
+        "corridor",
         "guestroom",
         "annex"
       ],
       "match": {
         "what": "Go to the kitchen at the end of the corridor, where the driver and the child are.",
-        "not_for": "Going to the entrance hall, the master's room, the guest room or the annex.",
+        "not_for": "Going to the entrance hall, the master's room, the corridor, the guest room or the annex.",
         "examples": [
           "台所へ行く",
           "竈のある部屋に向かう",
@@ -345,20 +364,22 @@
         "hall",
         "chamber",
         "kitchen",
+        "corridor",
         "annex"
       ],
       "match": {
-        "what": "Go up to the guest room on the first floor, where the nephew is staying.",
-        "not_for": "Going to the entrance hall, the master's room, the kitchen or the annex.",
+        "what": "Go up to the guest room on the first floor, where the three suspects are waiting together.",
+        "not_for": "Going to the entrance hall, the master's room, the kitchen, the corridor or the annex.",
         "examples": [
           "二階の客間へ行く",
-          "甥の部屋に向かう",
+          "三人のところへ向かう",
           "階段を上がる"
         ]
       },
       "did": "二階の客間へ上がった。",
       "result": [
-        "階段が一段ごとに鳴る。踊り場から見下ろすと、廊下の奥までまっすぐに見えた。"
+        "階段が一段ごとに鳴る。踊り場から見下ろすと、廊下の奥までまっすぐに見えた。",
+        "客間の戸を開けると、三人がいっせいにこちらを向いた。"
       ],
       "moves_to": "guestroom"
     },
@@ -368,15 +389,16 @@
         "hall",
         "chamber",
         "kitchen",
+        "corridor",
         "guestroom"
       ],
       "match": {
-        "what": "Go across to the annex at the end of the covered walkway.",
-        "not_for": "Going to the entrance hall, the master's room, the kitchen or the guest room.",
+        "what": "Go across to the annex at the end of the covered walkway, the room the salesman was given and is not in.",
+        "not_for": "Going to the entrance hall, the master's room, the kitchen, the corridor or the guest room.",
         "examples": [
           "離れへ行く",
           "渡り廊下を渡る",
-          "営業の男のところへ"
+          "営業の男の部屋を見に行く"
         ]
       },
       "did": "渡り廊下を渡って離れへ行った。",
@@ -384,6 +406,30 @@
         "板張りの廊下は、踏むたびに霧の湿りを返してくる。"
       ],
       "moves_to": "annex"
+    },
+    {
+      "id": "go_corridor",
+      "scenes": [
+        "hall",
+        "chamber",
+        "kitchen",
+        "guestroom",
+        "annex"
+      ],
+      "match": {
+        "what": "Go out into the corridor itself — the passage the three witnesses were looking at.",
+        "not_for": "Going to the entrance hall, the master's room, the kitchen, the guest room or the annex.",
+        "examples": [
+          "廊下へ出る",
+          "三人が見たという場所に立ってみる",
+          "通路のほうへ行く"
+        ]
+      },
+      "did": "廊下へ出た。",
+      "result": [
+        "灯りと灯りのあいだは、思っていたより暗い。"
+      ],
+      "moves_to": "corridor"
     },
     {
       "id": "examine_ledger",
@@ -493,6 +539,33 @@
       ]
     },
     {
+      "id": "examine_painting",
+      "scenes": [
+        "corridor"
+      ],
+      "match": {
+        "what": "Go up to the walls of the dim corridor and look at them closely, hunting for whatever the dark is hiding.",
+        "not_for": "Standing where the witnesses stood and working out what each of them could see from there.",
+        "examples": [
+          "廊下をよく調べる",
+          "壁に近づいてみる",
+          "暗がりに目を凝らす"
+        ]
+      },
+      "did": "廊下の壁を調べた。",
+      "result": [
+        "灯りの届かないところに、額が一つ掛かっていた。埃を払う。",
+        "首の三つある黒い犬が、門の前に伏せている。三つの頭はそれぞれ別のほうを向いていて、目だけがこちらを見ていた。",
+        "地獄の門を守る番犬だ、というのは覚えている。名前は……なんだっけ、これ。喉まで出かかって、出てこない。"
+      ],
+      "repeat": [
+        "何度見ても名前は出てこない。首の数だけは、確かに三つある。"
+      ],
+      "gives_evidence": [
+        "painting"
+      ]
+    },
+    {
       "id": "ask_mochizuki",
       "scenes": [
         "hall"
@@ -500,7 +573,7 @@
       "speaker": "mochizuki",
       "match": {
         "what": "Ask the housekeeper Mochizuki about tonight: the shout, finding the body, and the figure she saw in the corridor.",
-        "not_for": "Asking her about the meals she carries, or showing her the dog tracks from the master's room, or asking anyone else anything. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
+        "not_for": "Asking her where anybody is, or where everyone has got to. Asking her about the meals she carries, or showing her the dog tracks from the master's room, or asking anyone else anything. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
         "examples": [
           "望月さんに話を聞く",
           "家政婦に今夜のことを尋ねる",
@@ -518,6 +591,32 @@
       ]
     },
     {
+      "id": "ask_mochizuki_where",
+      "scenes": [
+        "hall"
+      ],
+      "speaker": "mochizuki",
+      "match": {
+        "what": "Ask the housekeeper where everybody in the house is right now — who is in which room, where to find a particular person, or simply where everyone has got to.",
+        "not_for": "Asking her what she saw or heard tonight, about the meals she carries, or about the dog tracks. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
+        "examples": [
+          "みんなはどこにいるんですか",
+          "ほかの人たちの居場所を教えてください",
+          "千歳さんはどこに"
+        ]
+      },
+      "did": "望月節子に、みんながどこにいるのかを尋ねた。",
+      "result": [
+        "「お三方は、二階の客間でございます。旦那様のことがありましてから、ずっとあちらに」",
+        "「仁科と、孫の鈴は台所に。わたくしもたいていは台所か、この広間におります」",
+        "「海堂様のお荷物は渡り廊下の先の離れに置いたままですが、ご本人は客間のほうに」",
+        "「旦那様は……お部屋にそのままでございます。この霧では、お医者様も駐在さんも上がって来られませんので」"
+      ],
+      "sets_flags": [
+        "asked_where"
+      ]
+    },
+    {
       "id": "ask_mochizuki_meals",
       "scenes": [
         "hall"
@@ -530,7 +629,7 @@
       },
       "match": {
         "what": "Ask the housekeeper about what the meal book shows: the three guests always eating apart.",
-        "not_for": "Asking her about the shout, the body, the figure in the corridor, or showing her the dog tracks from the master's room. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
+        "not_for": "Asking her where anybody is, or where everyone has got to. Asking her about the shout, the body, the figure in the corridor, or showing her the dog tracks from the master's room. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
         "examples": [
           "献立帳のことを望月さんに聞く",
           "なぜ食事が別々なのか尋ねる",
@@ -559,7 +658,7 @@
       },
       "match": {
         "what": "Put the single set of dog tracks from the master's room to the housekeeper Mochizuki and ask her about them.",
-        "not_for": "Asking her about tonight in general or about the meal book. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
+        "not_for": "Asking her where anybody is, or where everyone has got to. Asking her about tonight in general or about the meal book. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
         "examples": [
           "足跡のことを望月さんに聞く",
           "犬の足跡について尋ねる",
@@ -579,12 +678,12 @@
     {
       "id": "ask_ruise",
       "scenes": [
-        "hall"
+        "guestroom"
       ],
       "speaker": "ruise",
       "match": {
-        "what": "Ask the lawyer Kuse Ruise where she was and what she remembers of the evening.",
-        "not_for": "Showing her the tracks from the master's room, or asking anyone else anything. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
+        "what": "Ask the lawyer Kuse Ruise — the woman of the three waiting in the parlour — where she was and what she remembers of the evening.",
+        "not_for": "Showing her the tracks from the master's room, or putting the same question to the bespectacled nephew Chitose or the shaven-headed salesman Kaido, who are sitting in the same room. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
         "examples": [
           "久瀬さんに話を聞く",
           "弁護士に今夜のことを尋ねる",
@@ -594,7 +693,7 @@
       "did": "久瀬瑠依に、八時ごろのことを尋ねた。",
       "result": [
         "「隣の小部屋にひとりでおりました。証明してくださる方は、いません」",
-        "「叫び声は聞きました。……そのあとのことが、どうも。気がついたら、ここに立っていて」",
+        "「叫び声は聞きました。……そのあとのことが、どうも。気がついたら、三人でこの部屋におりました」",
         "「廊下ですか。いいえ、どなたともすれ違っておりません」"
       ],
       "sets_flags": [
@@ -604,7 +703,7 @@
     {
       "id": "ask_ruise_prints",
       "scenes": [
-        "hall"
+        "guestroom"
       ],
       "speaker": "ruise",
       "requires": {
@@ -614,7 +713,7 @@
       },
       "match": {
         "what": "Put the single set of dog tracks to the lawyer Kuse Ruise and press her about it.",
-        "not_for": "Asking her where she was during the evening. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
+        "not_for": "Asking her where she was during the evening, or putting the tracks to the housekeeper, the nephew or the salesman. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
         "examples": [
           "足跡のことを久瀬さんに問う",
           "犬の足跡について問い詰める",
@@ -748,8 +847,8 @@
       ],
       "speaker": "chitose",
       "match": {
-        "what": "Ask the nephew Washio Chitose where he was and what he remembers of the evening.",
-        "not_for": "Asking anyone else anything. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
+        "what": "Ask the nephew Washio Chitose — the youth in glasses among the three waiting in the parlour — where he was and what he remembers of the evening.",
+        "not_for": "Putting the same question to the lawyer Kuse Ruise or the shaven-headed salesman Kaido, who are sitting in the same room. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
         "examples": [
           "千歳くんに話を聞く",
           "甥に今夜のことを尋ねる",
@@ -758,8 +857,8 @@
       },
       "did": "鷲尾千歳に、八時ごろのことを尋ねた。",
       "result": [
-        "「ここにいました。ひとりです。証明できる人は……いません」",
-        "「叫び声は聞きました。そのあとですか。気がついたら、この机に向かっていて」",
+        "「この部屋にいました。ひとりです。証明できる人は……いません」",
+        "「叫び声は聞きました。そのあとですか。気がついたら、三人でここに座っていて」",
         "「廊下では誰にも会っていません。……あの、もうすぐ模試なので」"
       ],
       "sets_flags": [
@@ -769,12 +868,12 @@
     {
       "id": "ask_kaido",
       "scenes": [
-        "annex"
+        "guestroom"
       ],
       "speaker": "kaido",
       "match": {
-        "what": "Ask the salesman Kaido Minoru where he was and what he remembers of the evening.",
-        "not_for": "Asking him about the souvenirs piled in the annex, or asking anyone else anything. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
+        "what": "Ask the salesman Kaido Minoru — the shaven-headed man among the three waiting in the parlour — where he was and what he remembers of the evening.",
+        "not_for": "Asking about the souvenirs piled in the annex, or putting the same question to the lawyer Kuse Ruise or the bespectacled nephew Chitose, who are sitting in the same room. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
         "examples": [
           "海堂さんに話を聞く",
           "営業の男に今夜のことを尋ねる",
@@ -783,8 +882,8 @@
       },
       "did": "海堂実に、八時ごろのことを尋ねた。",
       "result": [
-        "「ここで荷ほどきをしてましてね〜。ひとりです。困りましたねえ、証明できませんや」",
-        "「叫び声は聞きましたよ。そのあと？ いやあ、気がついたらここに座っていたんです〜」",
+        "「離れで荷ほどきをしてましてね〜。ひとりです。困りましたねえ、証明できませんや」",
+        "「叫び声は聞きましたよ。そのあと？ いやあ、気がついたら三人でここに座っていたんです〜」",
         "「廊下ですか。どなたともすれ違っていませんねえ」"
       ],
       "sets_flags": [
@@ -808,7 +907,7 @@
       "did": "積まれた土産物を調べた。",
       "result": [
         "干し肉の塊。牛の大腿骨。鈴のついた輪が三つ。どれも人が食べるものでも、身につけるものでもない。",
-        "「営業先で頂いたんです〜」と、背中のほうで声がした。"
+        "海堂の荷である。本人は二階の客間にいて、この部屋には誰もいない。"
       ],
       "repeat": [
         "干し肉も骨も、封が切られたままだ。"
@@ -934,7 +1033,7 @@
       ]
     },
     {
-      "id": "corridor",
+      "id": "sightline",
       "scenes": [
         "kitchen"
       ],
@@ -949,8 +1048,48 @@
       },
       "did": "台所口から廊下の奥を眺めた。",
       "text": [
-        "廊下は長く、灯りは二つおきにしか点いていない。奥を通る者は、明かりと明かりのあいだで一度だけ照らされる。",
-        "階段はその途中にあって、上からも、手すりの隙間からも、同じ場所が見下ろせる。"
+        "戸口に立つと、廊下の奥が細長く切り取られて見える。望月はここから人影を見たことになる。",
+        "見えるのは横顔だけだ。こちらを向いていない顔のことは、ここからでは分からない。"
+      ]
+    },
+    {
+      "id": "lamps",
+      "scenes": [
+        "corridor"
+      ],
+      "match": {
+        "what": "Stand in the corridor and work out who could see this spot, and from where.",
+        "not_for": "Searching the walls of the corridor closely.",
+        "examples": [
+          "ここから何が見えるか確かめる",
+          "三人の立っていた場所を順に見る",
+          "見通しを確かめてみる"
+        ]
+      },
+      "did": "廊下に立って、見える範囲を確かめた。",
+      "text": [
+        "台所の戸口、階段の上、手すりの隙間。三つとも、この明かりの下を別々の角度から見下ろしている。",
+        "ここを通る者は、明かりと明かりのあいだで一度だけ照らされる。誰がどの向きから見るかで、見えるものは変わるだろう。"
+      ]
+    },
+    {
+      "id": "seats",
+      "scenes": [
+        "guestroom"
+      ],
+      "match": {
+        "what": "Watch how the three of them are sitting: where they are placed in the room, how close together, how they hold themselves.",
+        "not_for": "Asking any of them a question, or looking at the study books and the timetable.",
+        "examples": [
+          "三人の様子をうかがう",
+          "座り方を観察する",
+          "距離の取り方を見る"
+        ]
+      },
+      "did": "三人の座り方を眺めた。",
+      "text": [
+        "三人は長椅子の端に、肩の触れそうな近さで並んでいる。部屋はこれだけ広いのに、誰も離れて座ろうとしない。",
+        "ランプは一つきりで、壁に落ちている影も一つきりだった。"
       ]
     },
     {
@@ -1038,13 +1177,14 @@
       ]
     },
     "prompt": [
-      "望月が三つの部屋を回り、広間へ来るように伝えた。仁科と鈴は、階段の下に並んで立っている。",
+      "望月が客間の三人に、広間へ下りてくるように伝えた。仁科と鈴は、階段の下に並んで立っている。",
       "廊下を渡ってくる足音が聞こえる。――ひと組だけ。",
       "あなたの見立てを、言葉にしてください。誰が、どうやって、なぜ。"
     ],
     "truth": [
       "犯人は容疑者三人の全員である。正確には、一匹全員だった。",
       "久瀬瑠依、鷲尾千歳、海堂実は別々の人間ではない。女性の頭、眼鏡の青年の頭、スキンヘッドの男の頭を持つ、一匹の三つ首のケルベロスである。二週間前、仁科が駅から乗せたのは一人だけなのに門をくぐったのは三人だったこと、その二週間、三人が一度も同席せず、食事が必ず別々の部屋へ運ばれ、廊下ですれ違うときも必ず一人ずつだったのは、そのためである。",
+      "いま三人が二階の客間に揃っているのも同じ理由による。三人とも「叫び声のあとの記憶がなく、気がついたら三人でこの部屋にいた」と言い、望月が叫び声のあと客間を覗いたときには、すでに三人が揃っていた。別々の部屋にいた三人が同時に一つの部屋へ移ることはできないが、もともと一匹であれば、どこにいようと三つの首は必ず揃っている。長椅子に肩の触れる近さで並び、ランプ一つの下に影が一つしか落ちていないのも、体が一つだからである。",
       "だから三人の目撃証言は食い違いながら、どれも正しい。八時少し前に廊下を通ったのはこの一匹で、望月節子は台所口から女性の首を、仁科徹は階段の上から眼鏡の首を、望月鈴は手すりの隙間からスキンヘッドの首を見た。それぞれの位置から見えた首が違っただけで、三人とも「ひとりだった」と言っているのも正しい。一匹だったからである。誰の証言も間違っておらず、三人の容疑者も嘘をついていない。三つの首には、叫び声のあとの記憶がない。鈴が聞いた「足が四つあるみたいな」足音は、その一匹が走り去る音である。",
       "現場に残っていた足跡が一匹分の犬のものだけで、人の足跡がまったくないのは、あの部屋に入ったのが一匹だけだからである。窓は内側から留まっていて、外から入った者はいない。",
       "三つの首はそれぞれ別々に主人へ噛みつき、脅し、追い詰めた。遺体の脚の噛み傷が三箇所あって歯並びがそれぞれ違うのは、噛んだ口が三つあったからである。館じゅうに響いた「やめろー！」という叫びは、三つの口に同時に追い詰められた主人のものだ。",
