@@ -63,7 +63,8 @@
       "id": "mochizuki",
       "name": "望月 節子",
       "role": "家政婦",
-      "avatar": "👵",
+      "avatar": "👩",
+      "image": "portraits/yakata/mochizuki.png",
       "closed": {
         "knows": [
           "叫び声を聞いて居室に駆けつけたのは自分である。中には主人のほかに誰もいなかった。",
@@ -89,6 +90,7 @@
       "name": "久瀬 瑠依",
       "role": "主人の顧問弁護士",
       "avatar": "👩‍💼",
+      "image": "portraits/yakata/ruise.png",
       "closed": {
         "knows": [
           "八時ごろ、廊下で怪しい人物を見た。眼鏡をかけていたのは間違いない。",
@@ -114,6 +116,7 @@
       "name": "鷲尾 千歳",
       "role": "主人の甥",
       "avatar": "🧑‍🎓",
+      "image": "portraits/yakata/chitose.png",
       "closed": {
         "knows": [
           "八時ごろ、廊下で怪しい人物を見た。スキンヘッドで、眼鏡はかけていなかった。",
@@ -139,6 +142,7 @@
       "name": "海堂 実",
       "role": "出入りの営業",
       "avatar": "🧑‍🦲",
+      "image": "portraits/yakata/kaido.png",
       "closed": {
         "knows": [
           "八時ごろ、廊下で怪しい人物を見た。女性だったと思う。",
@@ -163,7 +167,8 @@
       "id": "washio",
       "name": "鷲尾 玄三郎",
       "role": "館の主人",
-      "avatar": "🧓"
+      "avatar": "🧓",
+      "image": "portraits/yakata/washio.png"
     }
   ],
   "evidence": [

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/ocknamo/sandbox/jev-mystery/internal/game"
@@ -147,6 +148,48 @@ func TestCasesAreListedAndChosenByID(t *testing.T) {
 
 	if rec, _ := post(t, h, "/api/new", map[string]any{"case": "atlantis"}); rec.Code != http.StatusNotFound {
 		t.Fatalf("new with an unknown case: %d, want 404", rec.Code)
+	}
+}
+
+// The pictures a case ships with are served by this service, because that is
+// where the case lives: a character's `image` is a path the page resolves
+// against whatever service it is talking to.
+func TestPortraitsAreServed(t *testing.T) {
+	h := serve(t, &stub{choice: "examine_ledger"})
+	sc, err := scenario.Builtin("yakata")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var image string
+	for _, c := range sc.Characters {
+		if c.Image != "" && !strings.Contains(c.Image, "://") {
+			image = c.Image
+			break
+		}
+	}
+	if image == "" {
+		t.Skip("the case ships no pictures of its own")
+	}
+
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/"+image, nil))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("GET /%s: %d", image, rec.Code)
+	}
+	if got := rec.Header().Get("Content-Type"); !strings.HasPrefix(got, "image/png") {
+		t.Errorf("content-type = %q", got)
+	}
+	if rec.Body.Len() == 0 {
+		t.Error("the portrait came back empty")
+	}
+
+	// A picture the case does not ship is a 404 like anything else, rather
+	// than a path into the container.
+	rec = httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/"+scenario.PortraitPrefix+"nobody.png", nil))
+	if rec.Code != http.StatusNotFound {
+		t.Errorf("an unknown portrait: %d, want 404", rec.Code)
 	}
 }
 

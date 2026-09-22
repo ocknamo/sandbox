@@ -188,6 +188,7 @@ state に入った筋書きを真正面から見ながら「いいえ」と答�
 | `POST /api/new` | `{"case": "yakata"}` で開始。状態トークンを返す |
 | `POST /api/act` | `{"state", "input"}` で 1 ターン |
 | `POST /api/accuse` | `{"state", "answer"}` で推理を採点し、エンディングを返す |
+| `GET /portraits/...` | 事件が持っている肖像（バイナリに埋め込み） |
 
 **どの事件かは状態トークンの中にあります。** リクエストで指定するのは開始のときだけで、
 途中のターンは自称しません。話の途中で別の事件にすり替えることはできません。
@@ -327,7 +328,7 @@ walkthrough は、何も測っていません。
   "scenes":     [{ "id": "hall", "name": "...", "description": ["..."], "characters": ["..."] }],
   "characters": [{
     "id": "...", "name": "...", "role": "...", "avatar": "👩‍💼",
-    "image": "https://example.com/kurata.png",
+    "image": "portraits/yakata/mochizuki.png",
     "closed": {
       "knows": ["この人物が見たこと・したこと・聞かされたこと"],
       "hides": ["知っているが認めないこと（犯人なら自分の犯行）"],
@@ -360,8 +361,14 @@ walkthrough は、何も測っていません。
 `avatar` は必須の一文字で、`image` は任意です。`image` を書くとその絵が肖像になり、
 書かなければ `avatar` がそのまま肖像になります。**絵が読み込めなかったときも `avatar` に
 戻る**ので、絵を付けた人物にも `avatar` は要ります（無いとシナリオが読み込めません）。
-`image` に書けるのは `http` / `https` の URL か、ページから見た相対パスだけです。
+`image` に書けるのは `http` / `https` の URL か、**サービスから見た相対パス**だけです。
 `data:` や `javascript:` は絵ではないので弾きます。
+
+**肖像は `internal/scenario/data/portraits/<事件 ID>/` に置きます。** 事件の JSON と同じく
+バイナリに埋め込まれ、`GET /portraits/...` で配られます。`image` に
+`portraits/yakata/ruise.png` と書けば、ページは**いま話している相手のサービス**に対して
+それを解決します（`?api=` でローカルに向ければ、絵もそちらから来ます）。肖像は事件の一部で、
+事件はこちら側にあるので、絵だけページの隣に置く理由がありません。
 
 **`avatar` には人物の絵文字を使ってください。** 肖像は顔の並ぶ欄に出るので、道具の絵文字を
 混ぜると「持ち物」ではなく「顔が抜けている人」に見えます。役柄は隣に文字で出ているので、

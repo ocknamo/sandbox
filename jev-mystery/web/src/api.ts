@@ -12,6 +12,18 @@ const DEPLOYED_API = "https://jev-mystery-api-329294726644.asia-northeast1.run.a
 /** The service to talk to. `?api=` points the page at a local server. */
 export const API = (new URLSearchParams(location.search).get("api") ?? DEPLOYED_API).replace(/\/+$/, "");
 
+/**
+ * Where a picture a case ships with actually lives.
+ *
+ * A portrait belongs to the case, and the case is served by the service, not
+ * by this page: a relative `image` is resolved against whatever service this
+ * page is talking to, so pointing `?api=` at a local server brings its
+ * pictures along with its cases. An absolute URL is left alone.
+ */
+export function portrait(image: string): string {
+  return /^https?:\/\//i.test(image) ? image : `${API}/${image.replace(/^\/+/, "")}`;
+}
+
 /** One case, as the picker lists it. A title is not a spoiler. */
 export interface CaseSummary {
   id: string;
@@ -32,7 +44,10 @@ export interface Person {
   role: string;
   /** A glyph, drawn when there is no picture or the picture fails to load. */
   avatar: string;
-  /** A portrait, when the case ships one. Absent means the glyph is it. */
+  /**
+   * A portrait, when the case ships one. Absent means the glyph is it. It is
+   * a URL, or a path to resolve against the service: see `portrait`.
+   */
   image?: string;
 }
 

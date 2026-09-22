@@ -67,6 +67,13 @@ func New(o Options) http.Handler {
 	mux.HandleFunc("POST /api/act", h.act)
 	mux.HandleFunc("POST /api/accuse", h.accuse)
 
+	// The pictures a case ships with. They are served from here rather than
+	// from beside the page because they belong to the case, and the case lives
+	// on this side: a character's `image` is a path relative to this service,
+	// and the page resolves it against wherever it is talking to.
+	mux.Handle("GET /"+scenario.PortraitPrefix,
+		http.StripPrefix("/"+scenario.PortraitPrefix, portraitServer()))
+
 	mux.HandleFunc("GET /", h.notFound)
 
 	logger := o.Logger
@@ -77,6 +84,17 @@ func New(o Options) http.Handler {
 }
 
 type handlers struct{ opts Options }
+
+// portraitServer serves the embedded pictures. They are part of a case, so
+// they never change without a deploy, and a browser may keep one for as long
+// as it likes.
+func portraitServer() http.Handler {
+	files := http.FileServer(http.FS(scenario.Portraits()))
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "public, max-age=86400")
+		files.ServeHTTP(w, r)
+	})
+}
 
 func (h *handlers) health(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})

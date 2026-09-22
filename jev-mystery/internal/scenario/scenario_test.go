@@ -2,6 +2,7 @@ package scenario
 
 import (
 	"encoding/json"
+	"io/fs"
 	"strings"
 	"testing"
 )
@@ -14,6 +15,32 @@ func TestBuiltinLoads(t *testing.T) {
 	for _, id := range ids {
 		if _, err := Builtin(id); err != nil {
 			t.Errorf("Builtin(%q): %v", id, err)
+		}
+	}
+}
+
+// A case names its pictures by a path the service serves, so a name with no
+// file behind it is a face that silently falls back to a glyph in front of a
+// player. It is worth catching here instead.
+func TestBuiltinPortraitsExist(t *testing.T) {
+	files := Portraits()
+	for _, id := range BuiltinIDs() {
+		s, err := Builtin(id)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, c := range s.Characters {
+			if c.Image == "" || strings.Contains(c.Image, "://") {
+				continue
+			}
+			name, ok := strings.CutPrefix(c.Image, PortraitPrefix)
+			if !ok {
+				t.Errorf("%s: %s has image %q, which is not served from %q", id, c.ID, c.Image, PortraitPrefix)
+				continue
+			}
+			if _, err := fs.Stat(files, name); err != nil {
+				t.Errorf("%s: %s has image %q: %v", id, c.ID, c.Image, err)
+			}
 		}
 	}
 }

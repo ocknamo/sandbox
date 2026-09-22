@@ -85,9 +85,10 @@ type Character struct {
 	Avatar string `json:"avatar"`
 
 	// Image is a portrait to draw instead of the glyph — an absolute URL, or a
-	// path the page can resolve. It is optional, and deliberately so: a case
-	// is playable written with nothing but glyphs, and a picture that fails to
-	// load falls back to one.
+	// path relative to the service, which is where the pictures a case ships
+	// with are served from (see PortraitPrefix). It is optional, and
+	// deliberately so: a case is playable written with nothing but glyphs, and
+	// a picture that fails to load falls back to one.
 	Image string `json:"image,omitempty"`
 
 	// Closed makes this person answerable with yes, no or "I don't know". A
@@ -489,8 +490,9 @@ func (s *Scenario) validate() error {
 // checkImage rejects a portrait the page could not draw. A picture is fetched
 // by the browser from whatever this says, so the schemes are the two that name
 // a picture — http and https — and anything without a scheme is taken as a
-// path relative to the page. Everything else, `data:` and `javascript:` among
-// them, is a way of putting something other than a picture on the screen.
+// path relative to the service. Everything else, `data:` and `javascript:`
+// among them, is a way of putting something other than a picture on the
+// screen.
 func checkImage(id, image string) error {
 	if image == "" {
 		return nil
