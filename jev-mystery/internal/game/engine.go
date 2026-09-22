@@ -411,8 +411,14 @@ func closedQuestion(c *scenario.Character) jev.Question {
 			b.WriteString("\n")
 		}
 	}
-	b.WriteString("Answer 'unknown' when the question is outside what they know, ")
-	b.WriteString("or when they would refuse to answer at all.")
+	// "Unknown" is for the edge of what they know, not for awkwardness.
+	// Letting it also mean "would rather not say" turns every hidden thing
+	// into a dodge, and a suspect who cannot remember whether she served tea
+	// an hour ago is not concealing anything — she is malfunctioning.
+	b.WriteString("Answer 'unknown' only when the question is outside what they know. ")
+	b.WriteString("Someone hiding something denies it instead: they answer the way ")
+	b.WriteString("that keeps what they are hiding hidden, and keeps their earlier ")
+	b.WriteString("account standing, even when that answer is a lie.")
 
 	return jev.Choice(b.String(), map[string]string{
 		scenario.AnswerYes:     "They would say yes.",
