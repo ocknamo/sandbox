@@ -50,9 +50,19 @@
 
 ```
 ブラウザ ──POST /api/act──> Cloud Run ──> api.typesafe.ai
-  （物語と、いる場所と、       （シナリオと      （入力を分類する）
+  （物語と、いる場所と、       （全事件と        （入力を分類する）
     手の中のものだけ）          API キーを持つ）
 ```
+
+| エンドポイント | 役割 |
+| --- | --- |
+| `GET /api/cases` | 遊べる事件の一覧（ID・題・添え書きだけ） |
+| `POST /api/new` | `{"case": "clockwork"}` で開始。状態トークンを返す |
+| `POST /api/act` | `{"state", "input"}` で 1 ターン |
+| `POST /api/accuse` | `{"state", "answer"}` で推理を採点し、エンディングを返す |
+
+**どの事件かは状態トークンの中にあります。** リクエストで指定するのは開始のときだけで、
+途中のターンは自称しません。話の途中で別の事件にすり替えることはできません。
 
 | パッケージ | 役割 |
 | --- | --- |
@@ -61,6 +71,7 @@
 | `internal/session` | プレイ状況を署名付きトークンにしてブラウザに預ける |
 | `internal/server` | HTTP。ここが「見せてよいもの」の境界 |
 | `internal/jev` | System One API のクライアント（`jev-nostr` と同じもの） |
+| `web` | フロントエンド（[kanabun](https://github.com/ocknamo/kanabun)）。ビルド結果は `docs/mystery/` |
 
 `internal/jev` は jev-nostr からのコピーです。このリポジトリはサービスごとに別モジュールで、
 Go は他モジュールの `internal` を import させないため、共有ではなく複製しています。
@@ -94,18 +105,56 @@ export TYPESAFE_API_KEY=...
 go run ./cmd/server           # http://localhost:8080
 ```
 
-ページは `docs/mystery.html`（GitHub Pages）です。ローカルのサーバに向けるには
+ページは `docs/mystery/`（GitHub Pages）です。ローカルのサーバに向けるには
 `?api=http://localhost:8080` を付けます。
 
 | 環境変数 | 既定値 | 内容 |
 | --- | --- | --- |
 | `TYPESAFE_API_KEY` | （必須） | 無いと起動しない |
-| `SCENARIO` | `clockwork` | 埋め込まれた事件の ID |
 | `GAME_SECRET` | （毎回ランダム） | 状態トークンの署名鍵。本番では必ず設定する |
 | `JEV_MODEL` | `jev-latest` | モデル識別子 |
 | `MATCH_THRESHOLD` / `CONFIDENCE_THRESHOLD` / `POINT_THRESHOLD` | 0.40 / 0.35 / 0.50 | しきい値 |
 | `GAME_DEBUG` | | `1` でモデルの生の数字をレスポンスに含める（調整用） |
 | `TYPESAFE_ENDPOINT` | | 接続先の差し替え（スタブ用） |
+
+### フロントエンド
+
+[kanabun](https://github.com/ocknamo/kanabun)（`@kanabun/core` + `@kanabun/router`）で
+書いてあります。ソースは `web/`、ビルド結果は `docs/mystery/` です。
+
+```sh
+cd web
+bun install
+bun run dev      # 開発サーバ
+bun run build    # docs/mystery/ を作り直す
+```
+
+**ビルド結果をコミットしています。** GitHub Pages は `docs/` をブランチからそのまま配信する
+ので、出力がリポジトリに無いとページが出ません。ビルドは再現可能なので、CI が `bun run build`
+を実行して `docs/mystery/` に差分が出ないことを確認します（差分が出たら、ソースだけ変えて
+ビルドし忘れた、ということです）。
+
+`--no-sourcemap` を付けても `.map` が出るため、ビルドスクリプトの最後で消しています。
+
+#### `#name` のハッシュルーティング
+
+事件ごとに URL があります。`#clockwork` と `#curtain` で、`#` だけなら事件簿の一覧です。
+
+- ハッシュはサーバに送られないので、GitHub Pages に rewrite の設定が要りません。
+  リロードしてもディープリンクが生きます（`createHashSource`）。
+- 一覧のリンクは `<Link>` ではなく素の `<a href="#clockwork">` です。ルータの `navigate` は
+  パスを絶対化するので `#/clockwork` になってしまい、`#name` になりません。ハッシュソースは
+  `hashchange` を購読しているので、素のアンカーでもルータはついてきます。
+
+#### ルート直下はフラグメントにしない
+
+kanabun にコンパイラは無く、**関数が遅延のしるし**です。コンポーネントがフラグメントを返すと、
+`<Routes>` は `<Show>` などのサンクが入った配列を受け取り、それを自分のエフェクトの中で読みます。
+するとサンクが触ったシグナルがルート自体の依存になり、状態が変わるたびにルートが再生成されます。
+`resource` を持つコンポーネントなら、そのまま fetch の無限ループです（実際に踏みました）。
+
+コンポーネントのルートは要素ひとつにしてください。そうすれば各サンクが自分のエフェクトを持ちます。
+同じ理由で、`<Router>` の children も関数です（`<Router>{() => <Shell />}</Router>`）。
 
 ### CLI で測る
 
@@ -124,8 +173,9 @@ go run ./cmd/cli -script testdata/walkthrough.txt -accuse testdata/solution.txt
 
 ## 事件を書く
 
-`internal/scenario/data/*.json` に置くと、`SCENARIO` で選べるようになります。読み込み時に
-検証され、参照の壊れたシナリオはサービスが起動しません。
+`internal/scenario/data/*.json` に置くと、**ファイル名がそのまま事件の ID とページのハッシュ**
+になります（`clockwork.json` → `#clockwork`）。起動時に全部読み込んで検証するので、参照の
+壊れたシナリオはサービスが起動しません。
 
 ```json
 {
@@ -171,7 +221,7 @@ go run ./cmd/cli -script testdata/walkthrough.txt -accuse testdata/solution.txt
 
 - **レート制限がありません。** 1 ターン = 有料 API 1 リクエストです。公開して遊ばせるなら
   Cloud Run の同時実行数だけでは足りません。
-- **事件が 1 本だけで、それも動作確認用のプレースホルダです。** エンジンを端から端まで
-  動かすために書いたもので、謎解きとしての出来は測っていません。
+- **事件は 2 本とも動作確認用のプレースホルダです。** エンジンを端から端まで動かし、
+  ルーティングを測るために書いたもので、謎解きとしての出来は測っていません。
 - **日本語での当たり方が未測定です。** 質問文は英語、選択肢の説明とプレイヤーの入力は
   日本語という組み合わせで書いてあります。上の CLI を CI から回すのが、それを測る唯一の手です。

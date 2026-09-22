@@ -56,9 +56,9 @@ func serve(t *testing.T, s *stub) http.Handler {
 		t.Fatal(err)
 	}
 	return New(Options{
-		Scenario: sc,
-		Engine:   &game.Engine{Asker: s, Policy: game.DefaultPolicy()},
-		Session:  codec,
+		Cases:   scenario.NewLibrary(sc),
+		Engine:  &game.Engine{Asker: s, Policy: game.DefaultPolicy()},
+		Session: codec,
 	})
 }
 
@@ -81,7 +81,7 @@ func post(t *testing.T, h http.Handler, path string, body any) (*httptest.Respon
 func TestPlayThrough(t *testing.T) {
 	h := serve(t, &stub{choice: "examine_clock"})
 
-	rec, start := post(t, h, "/api/new", map[string]any{})
+	rec, start := post(t, h, "/api/new", map[string]any{"case": "clockwork"})
 	if rec.Code != http.StatusOK {
 		t.Fatalf("new: %d", rec.Code)
 	}
@@ -106,10 +106,30 @@ func TestPlayThrough(t *testing.T) {
 	}
 }
 
+// The case comes from the request, so that one deployment can serve every
+// case and the page can route on it.
+func TestCasesAreListedAndChosenByID(t *testing.T) {
+	h := serve(t, &stub{choice: "examine_clock"})
+
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/api/cases", nil))
+	var listed casesResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &listed); err != nil {
+		t.Fatal(err)
+	}
+	if len(listed.Cases) != 1 || listed.Cases[0].ID != "clockwork" || listed.Cases[0].Title == "" {
+		t.Fatalf("cases = %+v", listed.Cases)
+	}
+
+	if rec, _ := post(t, h, "/api/new", map[string]any{"case": "atlantis"}); rec.Code != http.StatusNotFound {
+		t.Fatalf("new with an unknown case: %d, want 404", rec.Code)
+	}
+}
+
 func TestAccusingTooEarlyIsRefused(t *testing.T) {
 	h := serve(t, &stub{choice: "kurata", noul: 0.9, score: 4})
 
-	_, start := post(t, h, "/api/new", map[string]any{})
+	_, start := post(t, h, "/api/new", map[string]any{"case": "clockwork"})
 	rec, _ := post(t, h, "/api/accuse", map[string]any{
 		"state": start["state"], "answer": "犯人は倉田静です",
 	})
@@ -153,9 +173,9 @@ func TestBadStateIsRefused(t *testing.T) {
 		state string
 		want  int
 	}{
-		"forged":        {forged, http.StatusBadRequest},
-		"another case":  {sign(t, game.State{Scenario: "elsewhere", Scene: "hall"}), http.StatusConflict},
-		"unknown scene": {sign(t, game.State{Scenario: "clockwork", Scene: "atlantis"}), http.StatusBadRequest},
+		"forged":                            {forged, http.StatusBadRequest},
+		"a case this service does not have": {sign(t, game.State{Scenario: "elsewhere", Scene: "hall"}), http.StatusConflict},
+		"unknown scene":                     {sign(t, game.State{Scenario: "clockwork", Scene: "atlantis"}), http.StatusBadRequest},
 	} {
 		t.Run(name, func(t *testing.T) {
 			rec, _ := post(t, h, "/api/act", map[string]any{"state": tc.state, "input": "調べる"})

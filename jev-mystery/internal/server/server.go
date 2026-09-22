@@ -38,10 +38,13 @@ const (
 
 // Options are what the service needs to run.
 type Options struct {
-	Scenario *scenario.Scenario
-	Engine   *game.Engine
-	Session  *session.Codec
-	Logger   *slog.Logger
+	// Cases is every case the service can serve. Which one is being played
+	// comes from the request — the page routes on it — so one deployment
+	// serves them all.
+	Cases   *scenario.Library
+	Engine  *game.Engine
+	Session *session.Codec
+	Logger  *slog.Logger
 
 	// Debug adds the model's own numbers to a turn's response. It is for
 	// tuning the thresholds against real inputs, and it has to stay off in
@@ -59,6 +62,7 @@ func New(o Options) http.Handler {
 	// and answers it itself, so the request never reaches the container.
 	mux.HandleFunc("GET /health", h.health)
 
+	mux.HandleFunc("GET /api/cases", h.cases)
 	mux.HandleFunc("POST /api/new", h.newGame)
 	mux.HandleFunc("POST /api/act", h.act)
 	mux.HandleFunc("POST /api/accuse", h.accuse)
@@ -122,8 +126,7 @@ type view struct {
 	Suspects    []string `json:"suspects,omitempty"`
 }
 
-func (h *handlers) view(st game.State) view {
-	s := h.opts.Scenario
+func (h *handlers) view(s *scenario.Scenario, st game.State) view {
 	v := view{Turn: st.Turn, Finished: st.Finished}
 
 	if sc := s.Scene(st.Scene); sc != nil {
@@ -149,6 +152,20 @@ func (h *handlers) view(st game.State) view {
 	return v
 }
 
+type casesResponse struct {
+	Cases []scenario.Summary `json:"cases"`
+}
+
+// cases lists what can be played. A title is not a spoiler, and the page needs
+// it to offer anything at all.
+func (h *handlers) cases(w http.ResponseWriter, r *http.Request) {
+	writeJSON(w, http.StatusOK, casesResponse{Cases: h.opts.Cases.List()})
+}
+
+type newRequest struct {
+	Case string `json:"case"`
+}
+
 type newResponse struct {
 	State string `json:"state"`
 
@@ -161,7 +178,15 @@ type newResponse struct {
 }
 
 func (h *handlers) newGame(w http.ResponseWriter, r *http.Request) {
-	s := h.opts.Scenario
+	var req newRequest
+	if !decode(w, r, &req) {
+		return
+	}
+	s := h.opts.Cases.Case(req.Case)
+	if s == nil {
+		writeError(w, http.StatusNotFound, "no such case: "+req.Case)
+		return
+	}
 	st := game.New(s)
 
 	token, err := h.opts.Session.Encode(st)
@@ -176,7 +201,7 @@ func (h *handlers) newGame(w http.ResponseWriter, r *http.Request) {
 		Byline:   s.Byline,
 		Opening:  s.Opening,
 		Incident: s.Incident,
-		View:     h.view(st),
+		View:     h.view(s, st),
 	})
 }
 
@@ -218,7 +243,7 @@ func (h *handlers) act(w http.ResponseWriter, r *http.Request) {
 	if !decode(w, r, &req) {
 		return
 	}
-	st, ok := h.state(w, req.State)
+	s, st, ok := h.state(w, req.State)
 	if !ok {
 		return
 	}
@@ -230,7 +255,7 @@ func (h *handlers) act(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), upstreamTimeout)
 	defer cancel()
 
-	st, turn, err := h.opts.Engine.Play(ctx, h.opts.Scenario, st, req.Input)
+	st, turn, err := h.opts.Engine.Play(ctx, s, st, req.Input)
 	if err != nil {
 		if errors.Is(err, game.ErrNoInput) {
 			writeError(w, http.StatusBadRequest, "nothing was typed")
@@ -252,16 +277,16 @@ func (h *handlers) act(w http.ResponseWriter, r *http.Request) {
 		Matched: turn.Matched,
 		Text:    turn.Text,
 		Finale:  turn.Finale,
-		View:    h.view(st),
+		View:    h.view(s, st),
 	}
 	if turn.Outcome != nil {
 		resp.Did = turn.Outcome.Did
 		resp.MovedTo = turn.Outcome.MovedTo
-		if c := h.opts.Scenario.Character(turn.Outcome.Speaker); c != nil {
+		if c := s.Character(turn.Outcome.Speaker); c != nil {
 			resp.Speaker = &charView{ID: c.ID, Name: c.Name, Role: c.Role, Avatar: c.Avatar}
 		}
 		for _, id := range turn.Outcome.Gained {
-			if e := h.opts.Scenario.Item(id); e != nil {
+			if e := s.Item(id); e != nil {
 				resp.Gained = append(resp.Gained, itemView{ID: e.ID, Name: e.Name, Description: e.Description})
 			}
 		}
@@ -309,7 +334,7 @@ func (h *handlers) accuse(w http.ResponseWriter, r *http.Request) {
 	if !decode(w, r, &req) {
 		return
 	}
-	st, ok := h.state(w, req.State)
+	s, st, ok := h.state(w, req.State)
 	if !ok {
 		return
 	}
@@ -318,7 +343,7 @@ func (h *handlers) accuse(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// The gathering is a state the player reaches, not a screen they can open.
-	if !game.FinaleOpen(h.opts.Scenario, st) {
+	if !game.FinaleOpen(s, st) {
 		writeError(w, http.StatusConflict, "there is not enough to accuse anyone yet")
 		return
 	}
@@ -326,7 +351,7 @@ func (h *handlers) accuse(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), upstreamTimeout)
 	defer cancel()
 
-	v, err := h.opts.Engine.Grade(ctx, h.opts.Scenario, req.Answer)
+	v, err := h.opts.Engine.Grade(ctx, s, req.Answer)
 	if err != nil {
 		if errors.Is(err, game.ErrNoInput) {
 			writeError(w, http.StatusBadRequest, "nothing was written")
@@ -361,27 +386,29 @@ func (h *handlers) accuse(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, resp)
 }
 
-// state verifies a token and checks it belongs to the case this service is
-// running. A token from another scenario would index into the wrong content.
-func (h *handlers) state(w http.ResponseWriter, token string) (game.State, bool) {
+// state verifies a token and returns the case it belongs to. The case comes
+// from the token rather than from the request, so a game cannot be moved to
+// another case halfway through.
+func (h *handlers) state(w http.ResponseWriter, token string) (*scenario.Scenario, game.State, bool) {
 	var st game.State
 	if token == "" {
 		writeError(w, http.StatusBadRequest, "no game state was sent")
-		return st, false
+		return nil, st, false
 	}
 	if err := h.opts.Session.Decode(token, &st); err != nil {
 		writeError(w, http.StatusBadRequest, "this game state is not valid; start a new game")
-		return st, false
+		return nil, st, false
 	}
-	if st.Scenario != h.opts.Scenario.ID {
-		writeError(w, http.StatusConflict, "this game belongs to another case")
-		return st, false
+	s := h.opts.Cases.Case(st.Scenario)
+	if s == nil {
+		writeError(w, http.StatusConflict, "this game belongs to a case this service does not have")
+		return nil, st, false
 	}
-	if h.opts.Scenario.Scene(st.Scene) == nil {
+	if s.Scene(st.Scene) == nil {
 		writeError(w, http.StatusBadRequest, "this game state is not valid; start a new game")
-		return st, false
+		return nil, st, false
 	}
-	return st, true
+	return s, st, true
 }
 
 func (h *handlers) logger() *slog.Logger {

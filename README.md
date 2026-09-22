@@ -97,10 +97,12 @@ GCP 側の作業は不要です。デプロイ用サービスアカウントは�
 - https://ocknamo.github.io/sandbox/ — `go-cloudrun-bird` のフロントエンド
   （[`docs/index.html`](docs/index.html)）。詳細は
   [`go-cloudrun-bird/README.md`](go-cloudrun-bird/README.md#フロントエンド)。
-- https://ocknamo.github.io/sandbox/mystery.html — 自由入力の推理ゲーム
-  （[`docs/mystery.html`](docs/mystery.html)）。選択肢は表示されず、やりたいことを文章で
-  書きます。最後は推理を文章で述べて採点されます。詳細は
-  [`jev-mystery/README.md`](jev-mystery/README.md)。
+- https://ocknamo.github.io/sandbox/mystery/ — 自由入力の推理ゲーム
+  （[`docs/mystery/`](docs/mystery)、ソースは [`jev-mystery/web`](jev-mystery/web)）。
+  選択肢は表示されず、やりたいことを文章で書きます。最後は推理を文章で述べて採点されます。
+  事件ごとにハッシュで分かれていて、`#clockwork` と `#curtain` が遊べます。
+  [kanabun](https://github.com/ocknamo/kanabun) で書いてあり、ビルド結果をコミットしています。
+  詳細は [`jev-mystery/README.md`](jev-mystery/README.md)。
 - https://ocknamo.github.io/sandbox/jev.html — Nostr の「おすすめタイムライン」
   （[`docs/jev.html`](docs/jev.html)）。リレーから流れてくる投稿を Jev に判定させ、
   しきい値・言語・トピックのフィルタをブラウザ側で適用します（日本語 / 英語表示）。詳細は

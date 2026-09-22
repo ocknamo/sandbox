@@ -1,0 +1,16 @@
+# The second case, in the words a player might actually type.
+# "input<TAB>the action it should land on"; `none` means the input is meant to
+# match nothing.
+照明室へ上がる	go_booth
+照明卓の記録を見たい	examine_cuelog
+郷田さんにキューのことを聞く	ask_goda
+舞台裏に戻る	go_stage
+遺体を調べる	examine_body
+白河さんに暗転のことを聞く	ask_shirakawa
+楽屋へ行く	go_dressing
+灰皿を調べる	examine_ashtray
+長机の書類を見る	examine_desk
+鶴見さんに話を聞く	ask_tsurumi
+灰皿の紙片を見せて問い詰める	ask_tsurumi_ashes
+客席で少し眠る	none
+全員を舞台に集めて推理を話す	finale
