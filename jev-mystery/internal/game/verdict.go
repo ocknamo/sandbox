@@ -147,7 +147,7 @@ type accusationView struct {
 func accusationFor(s *scenario.Scenario, answer string) accusationView {
 	v := accusationView{
 		Case:                 s.Title,
-		WhatActuallyHappened: s.Finale.Truth,
+		WhatActuallyHappened: scenario.Plain(s.Finale.Truth),
 		DetectiveSays:        answer,
 	}
 	for _, c := range s.SuspectNames() {
@@ -188,7 +188,7 @@ func gradeQuestions(s *scenario.Scenario) map[string]jev.Question {
 	// exactly what decides the ending, and a single verdict cannot carry it.
 	// Asking eight costs barely more than asking one: they run in parallel.
 	for _, p := range s.Finale.Points {
-		qs[pointPrefix+p.ID] = jev.Noul(p.Question)
+		qs[pointPrefix+p.ID] = jev.Noul(string(p.Question))
 	}
 	return qs
 }

@@ -46,6 +46,56 @@ jobs:
       - name: go test
         run: go test -race ./...
 
+  web:
+    name: Web build
+    runs-on: ubuntu-latest
+    # An install and a bundle; well under a minute.
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: jev-mystery/web
+    steps:
+      - uses: actions/checkout@v7
+
+      # Pinned, not latest: the bundle is committed, and Bun's output — down
+      # to the content hash in the chunk's filename — changes between Bun
+      # versions. The pin is what lets the rebuild below be a comparison
+      # rather than a coin toss.
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: jev-mystery/web/.bun-version
+
+      - name: bun install
+        run: bun install --frozen-lockfile
+
+      - name: typecheck
+        run: bunx tsc --noEmit
+
+      # GitHub Pages serves docs/ straight from the branch, so the bundle is
+      # committed rather than built on the way out. Rebuilding it here is what
+      # keeps the committed files honest: the build is reproducible, so a
+      # difference means somebody changed the source without rebuilding.
+      - name: build
+        run: bun run build
+
+      - name: The committed bundle matches the source
+        working-directory: .
+        run: |
+          changed=$(git status --porcelain -- docs/mystery)
+          if [ -n "$changed" ]; then
+            {
+              echo '`docs/mystery` is out of date. In `jev-mystery/web`, run'
+              echo '`bun run build` with the Bun version in `.bun-version`,'
+              echo 'and commit the result.'
+              echo
+              echo '```text'
+              echo "$changed"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "$changed"
+            exit 1
+          fi
+
   live:
     name: Live playthrough
     needs: test
@@ -87,28 +137,44 @@ jobs:
       # a player would type land on the actions they meant. The run is not
       # failed on it, because the number is the thing being measured and a
       # threshold would only hide it.
-      - name: Play the walkthrough
+      # The output goes to the log as well as the summary, and a failing run
+      # fails the step. Collecting it only into the summary hid both the tally
+      # this job exists for and the error when there was one, leaving a job
+      # that passed without having measured anything.
+      - name: Play the walkthroughs
         if: steps.key.outputs.present == 'true'
         env:
           TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
         run: |
-          {
-            echo '### Live playthrough'
-            echo
-            echo '```text'
-            go run ./cmd/cli -script testdata/walkthrough.txt -accuse testdata/solution.txt 2>&1
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
+          set -o pipefail
+          for case in clockwork curtain; do
+            script="testdata/walkthrough.txt"
+            answer="testdata/solution.txt"
+            if [ "$case" != "clockwork" ]; then
+              script="testdata/$case-walkthrough.txt"
+              answer="testdata/$case-solution.txt"
+            fi
+            {
+              echo "### Live playthrough — $case"
+              echo
+              echo '```text'
+            } >> "$GITHUB_STEP_SUMMARY"
+            go run ./cmd/cli -scenario "$case" -script "$script" -accuse "$answer" 2>&1 |
+              tee -a "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          done
 
       - name: Grade a solution that says nothing
         if: steps.key.outputs.present == 'true'
         env:
           TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
         run: |
+          set -o pipefail
           {
             echo '### A solution with the name but no reasoning'
             echo
             echo '```text'
-            go run ./cmd/cli -script testdata/walkthrough.txt -accuse testdata/weak-solution.txt 2>&1 | tail -20
-            echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+          go run ./cmd/cli -script testdata/walkthrough.txt -accuse testdata/weak-solution.txt 2>&1 |
+            tail -20 | tee -a "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,154 @@
+/**
+ * The pieces of the screen. Each takes accessors rather than values, so a
+ * panel re-reads what changed instead of being rebuilt.
+ */
+import { For, Show } from "@kanabun/core";
+import type { Item, Person, Verdict, View } from "./api";
+import * as s from "./styles";
+
+/** One entry in the log. The log is the game: nothing is ever removed from it. */
+export type Entry =
+  | { kind: "narration"; lines: string[] }
+  | {
+      kind: "turn";
+      input: string;
+      matched: boolean;
+      did?: string;
+      speaker?: Person;
+      lines: string[];
+      gained: Item[];
+      moved?: string;
+    }
+  | { kind: "answer"; text: string }
+  | { kind: "ending"; verdict: Verdict };
+
+export function Avatar(props: { glyph: string }) {
+  return <div class={s.avatar}>{props.glyph || "？"}</div>;
+}
+
+export function PlacePanel(props: { view: () => View }) {
+  return (
+    <div class={s.card}>
+      <h2>いま いる ところ</h2>
+      <div class={s.place}>
+        <p class="name">{() => props.view().scene.name}</p>
+        {() => props.view().scene.description.map((line) => <p class="desc">{line}</p>)}
+        <div class="people">
+          <For
+            each={() => props.view().people ?? []}
+            fallback={<p class={s.empty}>ここには誰もいない。</p>}
+          >
+            {(person) => (
+              <div class="person">
+                <Avatar glyph={person.avatar} />
+                <div>
+                  <div class="who">{person.name}</div>
+                  <div class="role">{person.role}</div>
+                </div>
+              </div>
+            )}
+          </For>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function ItemsPanel(props: { view: () => View }) {
+  return (
+    <div class={s.card}>
+      <h2>手 の 中 の もの</h2>
+      <div class={s.items}>
+        <For
+          each={() => props.view().evidence ?? []}
+          fallback={<p class={s.empty}>まだ何も持っていない。</p>}
+        >
+          {(item: Item) => (
+            <div class="item">
+              <div class="name">{item.name}</div>
+              <div class="desc">{item.description}</div>
+            </div>
+          )}
+        </For>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * One log entry. An entry never changes once it is written, so everything here
+ * is rendered once: only the list of entries is reactive.
+ */
+export function LogEntry(props: { entry: Entry }) {
+  const entry = props.entry;
+
+  if (entry.kind === "narration") {
+    return <div class="entry">{entry.lines.map((line) => <p>{line}</p>)}</div>;
+  }
+
+  if (entry.kind === "answer") {
+    return (
+      <div class="entry said">
+        <p class="typed">{entry.text}</p>
+      </div>
+    );
+  }
+
+  if (entry.kind === "ending") {
+    return <Ending verdict={entry.verdict} />;
+  }
+
+  return (
+    <div class={entry.matched ? "entry said" : "entry said miss"}>
+      <p class="typed">{"> " + entry.input}</p>
+      {entry.speaker ? (
+        <div class="speaker">
+          <Avatar glyph={entry.speaker.avatar} />
+          <div class="who">{entry.speaker.name}</div>
+        </div>
+      ) : null}
+      {entry.did ? <p class="did">{entry.did}</p> : null}
+      {entry.lines.map((line) => <p>{line}</p>)}
+      {entry.gained.map((item) => <div class="found">{"見つけた: " + item.name}</div>)}
+      {entry.moved ? <div class="moved">{"— " + entry.moved + " —"}</div> : null}
+    </div>
+  );
+}
+
+/**
+ * The ending, and the scorecard behind it. The scorecard is safe here and
+ * nowhere earlier: the case is over by the time it is read.
+ */
+function Ending(props: { verdict: Verdict }) {
+  const v = props.verdict;
+  const named = v.correct
+    ? `犯人を言い当てた（${v.named_name}）`
+    : v.named_name
+      ? `${v.named_name}を指した`
+      : "犯人を名指ししなかった";
+
+  const row = (hit: boolean, label: string) => [
+    <span class={hit ? "mark" : "mark no"}>{hit ? "○" : "×"}</span>,
+    <span>{label}</span>,
+  ];
+
+  const width = `${Math.round((100 * v.coherence) / (v.coherence_top || 1))}%`;
+
+  return (
+    <div class="entry said">
+      <h3>{v.title}</h3>
+      {v.text.map((line) => <p>{line}</p>)}
+      <div class="score">
+        {row(v.correct, named)}
+        {v.points.map((point) => row(point.hit, point.label))}
+      </div>
+      <div class="coherence">
+        {`筋の通り ${v.coherence.toFixed(1)} / ${v.coherence_top}`}
+        <div class="track">
+          <div style={{ width }} />
+        </div>
+        <Show when={() => v.coherence_legend !== undefined}>{v.coherence_legend}</Show>
+      </div>
+    </div>
+  );
+}

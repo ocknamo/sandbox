@@ -38,13 +38,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	caseID := os.Getenv("SCENARIO")
-	if caseID == "" {
-		caseID = "clockwork"
-	}
-	sc, err := scenario.Builtin(caseID)
+	// Every case is served at once; the page picks one by its URL hash. A
+	// broken scenario file fails startup rather than one player's game.
+	cases, err := scenario.Builtins()
 	if err != nil {
-		logger.Error("could not load the scenario", "scenario", caseID, "err", err, "available", scenario.BuiltinIDs())
+		logger.Error("could not load the cases", "err", err)
 		os.Exit(1)
 	}
 
@@ -81,6 +79,7 @@ func main() {
 		{"MATCH_THRESHOLD", &policy.Match},
 		{"CONFIDENCE_THRESHOLD", &policy.Confidence},
 		{"POINT_THRESHOLD", &policy.Point},
+		{"ANSWER_THRESHOLD", &policy.Answer},
 	} {
 		raw := os.Getenv(t.env)
 		if raw == "" {
@@ -103,11 +102,11 @@ func main() {
 	srv := &http.Server{
 		Addr: net.JoinHostPort("", port),
 		Handler: server.New(server.Options{
-			Scenario: sc,
-			Engine:   &game.Engine{Asker: client, Policy: policy},
-			Session:  codec,
-			Logger:   logger,
-			Debug:    os.Getenv("GAME_DEBUG") == "1",
+			Cases:   cases,
+			Engine:  &game.Engine{Asker: client, Policy: policy},
+			Session: codec,
+			Logger:  logger,
+			Debug:   os.Getenv("GAME_DEBUG") == "1",
 		}),
 		ReadHeaderTimeout: 10 * time.Second,
 	}
@@ -117,7 +116,7 @@ func main() {
 	defer stop()
 
 	go func() {
-		logger.Info("listening", "port", port, "model", client.Model, "scenario", sc.ID, "actions", len(sc.Actions))
+		logger.Info("listening", "port", port, "model", client.Model, "cases", scenario.BuiltinIDs())
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logger.Error("server failed", "err", err)
 			stop()

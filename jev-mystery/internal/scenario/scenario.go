@@ -10,13 +10,17 @@
 //
 // One rule governs the whole package: the option list is secret. A player is
 // never shown what they could have typed, so nothing here may be served to a
-// browser except the pieces the engine explicitly reveals.
+// browser except the pieces the engine explicitly reveals. The parts that
+// would spoil the case carry the Hidden type, which cannot be encoded to JSON
+// at all.
 package scenario
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sort"
+	"strings"
 )
 
 // Scenario is one complete case.
@@ -70,6 +74,61 @@ type Character struct {
 	// Avatar is a single glyph used as a portrait. The game ships no images,
 	// and a glyph survives being rendered anywhere.
 	Avatar string `json:"avatar"`
+
+	// Closed makes this person answerable with yes, no or "I don't know". A
+	// character without it takes only the questions written as actions.
+	Closed *Closed `json:"closed,omitempty"`
+}
+
+// Closed is what a character brings to a yes-or-no question: what they know,
+// what they will not admit, and the words they answer in.
+//
+// Knows and Hides are instructions to the model rather than state, because
+// they are about this person rather than about the case: two people looking at
+// the same events answer differently, and that difference is the whole point
+// of asking one of them rather than the other.
+type Closed struct {
+	// Knows is what this person has seen, done or been told. Anything outside
+	// it they cannot answer, whatever the case's plot says.
+	Knows []Hidden `json:"knows"`
+
+	// Hides is what they will not say even though they know it — the culprit's
+	// own guilt being the obvious case. Asked directly, they deny it.
+	Hides []Hidden `json:"hides,omitempty"`
+
+	// Answers are the words they say. They are the only part of this the
+	// player reads, so they are written rather than generated; left out, the
+	// bare Japanese for yes, no and "I don't know" is used.
+	Answers ClosedAnswers `json:"answers,omitempty"`
+}
+
+// ClosedAnswers are one character's three replies.
+type ClosedAnswers struct {
+	Yes     string `json:"yes,omitempty"`
+	No      string `json:"no,omitempty"`
+	Unknown string `json:"unknown,omitempty"`
+}
+
+// Say returns the character's wording for one of the three answers, falling
+// back to the plain word.
+func (c ClosedAnswers) Say(answer string) string {
+	switch answer {
+	case AnswerYes:
+		if c.Yes != "" {
+			return c.Yes
+		}
+		return "はい。"
+	case AnswerNo:
+		if c.No != "" {
+			return c.No
+		}
+		return "いいえ。"
+	default:
+		if c.Unknown != "" {
+			return c.Unknown
+		}
+		return "わかりません。"
+	}
 }
 
 // Evidence is something the player can come to hold. Evidence is public once
@@ -89,15 +148,42 @@ type Requires struct {
 	NotFlags []string `json:"not_flags,omitempty"`
 }
 
+// Hidden is text the player must never be served: the solution, and the
+// descriptions that tell the model what an action is for.
+//
+// It reads from JSON like any other string and refuses to be written back, so
+// a response that tried to carry one fails to encode instead of spoiling the
+// case. Handing it to the model means calling Plain, which is the one place
+// the laundering is visible and the only place it belongs.
+type Hidden string
+
+// MarshalJSON refuses. A player-facing response is built with encoding/json,
+// which makes this the whole of the guarantee: hidden text cannot reach a
+// browser by being embedded in a response type, however that type is shaped.
+func (Hidden) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("scenario: hidden text cannot be served to a player")
+}
+
+// Plain unwraps hidden text for a request to the model. Jev answers with typed
+// values and never with text, so the solution goes in and only numbers come
+// back; nothing else may call this.
+func Plain(lines []Hidden) []string {
+	out := make([]string, 0, len(lines))
+	for _, line := range lines {
+		out = append(out, string(line))
+	}
+	return out
+}
+
 // Match is how an action describes itself to Jev. It is the structured form of
 // a choice option: saying what an action is NOT for separates it from its
 // neighbours better than any amount of saying what it is, which matters here
 // because a choice distribution sums to 1 and two overlapping options split
 // the vote between them.
 type Match struct {
-	What     string   `json:"what"`
-	NotFor   string   `json:"not_for,omitempty"`
-	Examples []string `json:"examples,omitempty"`
+	What     Hidden   `json:"what"`
+	NotFor   Hidden   `json:"not_for,omitempty"`
+	Examples []Hidden `json:"examples,omitempty"`
 }
 
 // Action is one thing the player may do, and the only kind of thing that ever
@@ -139,8 +225,9 @@ type Point struct {
 	Label string `json:"label"`
 
 	// Question is the instruction put to Jev, phrased about the accusation and
-	// answerable from the truth the model is handed alongside it.
-	Question string `json:"question"`
+	// answerable from the truth the model is handed alongside it. It names the
+	// element it is looking for, so it is as much of a spoiler as the truth.
+	Question Hidden `json:"question"`
 }
 
 // Ending is one way the case can close. Endings are tested in file order and
@@ -173,10 +260,10 @@ type Finale struct {
 	Prompt []string `json:"prompt"`
 
 	// Truth is the solution, handed to Jev as part of the state it grades
-	// against. It is safe to send: Jev returns typed values and no text, so
-	// there is no channel through which it could leak back to the player.
-	// It must never be put in an HTTP response.
-	Truth []string `json:"truth"`
+	// against. It is safe to send there and nowhere else: Jev returns typed
+	// values and no text, so there is no channel through which it could leak
+	// back to the player.
+	Truth []Hidden `json:"truth"`
 
 	Suspects []string `json:"suspects"`
 	Culprit  string   `json:"culprit"`
@@ -271,10 +358,18 @@ func (s *Scenario) validate() error {
 		}
 	}
 
+	// A person who answers nothing would answer every question "I don't know",
+	// which reads as a bug rather than as a closed mouth.
+	for _, c := range s.Characters {
+		if c.Closed != nil && len(c.Closed.Knows) == 0 {
+			return fmt.Errorf("scenario: character %q takes closed questions but knows nothing", c.ID)
+		}
+	}
+
 	// "none" is the engine's own option for "this matches nothing", so an
 	// action may not take the name.
 	for _, a := range s.Actions {
-		if a.ID == NoMatch || a.ID == FinaleAction {
+		if a.ID == NoMatch || a.ID == FinaleAction || strings.HasPrefix(a.ID, ClosedPrefix) {
 			return fmt.Errorf("scenario: action id %q is reserved", a.ID)
 		}
 		if a.Match.What == "" {
@@ -383,6 +478,20 @@ func (s *Scenario) validateFinale() error {
 // weight of an unrelated input to go, it lands on whichever action is least
 // unlike it.
 const NoMatch = "none"
+
+// The three answers a closed question can get. They are the whole of what the
+// player is told: a yes is a yes, and nothing says whether it was the truth.
+const (
+	AnswerYes     = "yes"
+	AnswerNo      = "no"
+	AnswerUnknown = "unknown"
+)
+
+// ClosedPrefix marks the option, and the question, for putting a yes-or-no
+// question to one person: `closed:kurata`. An action may not take a name that
+// starts with it, since the engine mints these itself from whoever is in the
+// room.
+const ClosedPrefix = "closed:"
 
 // FinaleAction is the option name for calling everyone together, offered
 // alongside the scene's actions once the case is ready for it. It is reserved
