@@ -360,6 +360,10 @@ type accuseResponse struct {
 	Title    string   `json:"title"`
 	Text     []string `json:"text"`
 
+	// Celebrate is the case's own word for "this one is a win", so the page
+	// can mark the ending without knowing any case's ending IDs.
+	Celebrate bool `json:"celebrate,omitempty"`
+
 	// Correct and Points are the scorecard, shown after the ending. They are
 	// safe here and nowhere earlier: the case is over by the time they are
 	// read.
@@ -417,6 +421,7 @@ func (h *handlers) accuse(w http.ResponseWriter, r *http.Request) {
 		EndingID:        v.Ending.ID,
 		Title:           v.Ending.Title,
 		Text:            v.Ending.Text,
+		Celebrate:       v.Ending.Celebrate,
 		Correct:         v.Correct,
 		NamedName:       v.NamedName,
 		Coherence:       v.Coherence,

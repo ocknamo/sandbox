@@ -290,6 +290,11 @@ type Ending struct {
 
 	Title string   `json:"title"`
 	Text  []string `json:"text"`
+
+	// Celebrate marks an ending as a win, so the page can say so. The case
+	// decides which of its endings count as solving it: the engine grades,
+	// and only the scenario knows whether a given ending is worth cheering.
+	Celebrate bool `json:"celebrate,omitempty"`
 }
 
 // Finale is the endgame: the player gathers everyone and writes out what they
