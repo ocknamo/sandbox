@@ -573,7 +573,7 @@
       "speaker": "mochizuki",
       "match": {
         "what": "Ask the housekeeper Mochizuki about tonight: the shout, finding the body, and the figure she saw in the corridor.",
-        "not_for": "Asking her about the meals she carries, or showing her the dog tracks from the master's room, or asking anyone else anything. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
+        "not_for": "Asking her where anybody is, or where everyone has got to. Asking her about the meals she carries, or showing her the dog tracks from the master's room, or asking anyone else anything. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
         "examples": [
           "望月さんに話を聞く",
           "家政婦に今夜のことを尋ねる",
@@ -591,6 +591,32 @@
       ]
     },
     {
+      "id": "ask_mochizuki_where",
+      "scenes": [
+        "hall"
+      ],
+      "speaker": "mochizuki",
+      "match": {
+        "what": "Ask the housekeeper where everybody in the house is right now — who is in which room, where to find a particular person, or simply where everyone has got to.",
+        "not_for": "Asking her what she saw or heard tonight, about the meals she carries, or about the dog tracks. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
+        "examples": [
+          "みんなはどこにいるんですか",
+          "ほかの人たちの居場所を教えてください",
+          "千歳さんはどこに"
+        ]
+      },
+      "did": "望月節子に、みんながどこにいるのかを尋ねた。",
+      "result": [
+        "「お三方は、二階の客間でございます。旦那様のことがありましてから、ずっとあちらに」",
+        "「仁科と、孫の鈴は台所に。わたくしもたいていは台所か、この広間におります」",
+        "「海堂様のお荷物は渡り廊下の先の離れに置いたままですが、ご本人は客間のほうに」",
+        "「旦那様は……お部屋にそのままでございます。この霧では、お医者様も駐在さんも上がって来られませんので」"
+      ],
+      "sets_flags": [
+        "asked_where"
+      ]
+    },
+    {
       "id": "ask_mochizuki_meals",
       "scenes": [
         "hall"
@@ -603,7 +629,7 @@
       },
       "match": {
         "what": "Ask the housekeeper about what the meal book shows: the three guests always eating apart.",
-        "not_for": "Asking her about the shout, the body, the figure in the corridor, or showing her the dog tracks from the master's room. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
+        "not_for": "Asking her where anybody is, or where everyone has got to. Asking her about the shout, the body, the figure in the corridor, or showing her the dog tracks from the master's room. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
         "examples": [
           "献立帳のことを望月さんに聞く",
           "なぜ食事が別々なのか尋ねる",
@@ -632,7 +658,7 @@
       },
       "match": {
         "what": "Put the single set of dog tracks from the master's room to the housekeeper Mochizuki and ask her about them.",
-        "not_for": "Asking her about tonight in general or about the meal book. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
+        "not_for": "Asking her where anybody is, or where everyone has got to. Asking her about tonight in general or about the meal book. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
         "examples": [
           "足跡のことを望月さんに聞く",
           "犬の足跡について尋ねる",

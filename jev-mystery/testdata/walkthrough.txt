@@ -8,6 +8,7 @@
 # model. A walkthrough written out of the option list measures nothing.
 机の上に広げてある帳面をめくる	examine_ledger
 主人はどんな写真を残しているのか見てみたい	flavour:photographs
+ほかのみなさんはいまどちらに、と望月さんに尋ねる	ask_mochizuki_where
 家政婦さんから、遺体を見つけたときの話を聞きたい	ask_mochizuki
 膳を別々に運んでいた理由を望月さんに聞く	ask_mochizuki_meals
 鷲尾さんが倒れていた部屋に入る	go_chamber
