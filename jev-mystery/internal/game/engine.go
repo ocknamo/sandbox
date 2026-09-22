@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/ocknamo/sandbox/jev-mystery/internal/jev"
 	"github.com/ocknamo/sandbox/jev-mystery/internal/scenario"
@@ -59,13 +60,20 @@ type Policy struct {
 	// Point is the noul above which one element of the truth counts as having
 	// been found in the player's written solution.
 	Point float64
+
+	// Answer is the probability a yes or a no must reach before a character
+	// will commit to it. Below it they say they do not know, which is the
+	// honest reading of a spread distribution and the only safe one: a
+	// guessed "yes" is indistinguishable from a considered one, and a case
+	// can turn on it.
+	Answer float64
 }
 
 // DefaultPolicy is the starting point, not a measured optimum. Match sits
 // below half because a scene offering eight actions spreads its weight thin
 // even when the answer is obvious, and the option has to beat `none` anyway.
 func DefaultPolicy() Policy {
-	return Policy{Match: 0.4, Confidence: 0.35, Declare: 0.6, Point: 0.5}
+	return Policy{Match: 0.4, Confidence: 0.35, Declare: 0.6, Point: 0.5, Answer: 0.5}
 }
 
 // Turn is one exchange: what the player typed, what the model made of it, and
@@ -83,6 +91,10 @@ type Turn struct {
 
 	// Finale is set when the player asked to gather everyone and may.
 	Finale bool `json:"finale"`
+
+	// Answer is which of the three replies a closed question got, empty for
+	// every other turn.
+	Answer string `json:"answer,omitempty"`
 
 	Intent     string  `json:"intent"`
 	Choice     string  `json:"choice"`
@@ -114,8 +126,9 @@ func (e *Engine) Play(ctx context.Context, s *scenario.Scenario, st State, input
 
 	avail := Available(s, st)
 	open := FinaleOpen(s, st)
+	askable := Askable(s, st)
 
-	resp, err := e.Asker.Ask(ctx, stateFor(s, st, input), questions(s, avail, open))
+	resp, err := e.Asker.Ask(ctx, stateFor(s, st, input, len(askable) > 0), questions(s, avail, askable, open))
 	if err != nil {
 		return st, nil, err
 	}
@@ -151,6 +164,21 @@ func (e *Engine) Play(ctx context.Context, s *scenario.Scenario, st State, input
 		return st, turn, nil
 	}
 
+	if strings.HasPrefix(turn.Choice, scenario.ClosedPrefix) {
+		if c := s.Character(strings.TrimPrefix(turn.Choice, scenario.ClosedPrefix)); c != nil && c.Closed != nil {
+			if out, ok := e.answer(resp, c, turn); ok {
+				turn.Matched, turn.Outcome, turn.Text = true, &out, out.Text
+				return st, turn, nil
+			}
+		}
+		// Either the model named somebody who is not here, or its own answer
+		// says the input was not a yes-or-no question after all. Both are
+		// misses: an invented "はい" is worse than silence.
+		turn.Choice = scenario.NoMatch
+		turn.Text = e.miss(s, turn, open)
+		return st, turn, nil
+	}
+
 	a := s.Action(turn.Choice)
 	if a == nil {
 		// The model answered with an option that was never offered. Treat it
@@ -164,6 +192,34 @@ func (e *Engine) Play(ctx context.Context, s *scenario.Scenario, st State, input
 	st, out := Apply(s, st, a)
 	turn.Matched, turn.Outcome, turn.Text = true, &out, out.Text
 	return st, turn, nil
+}
+
+// answer reads what the character said. The reply was asked for in the same
+// request as the routing, so a closed question costs one round trip like any
+// other turn: questions are evaluated in parallel, and the expensive thing is
+// the number of requests rather than the number of questions.
+//
+// A spread distribution becomes "I don't know". A coin-flip between yes and no
+// is the one answer this game must never give: the player cannot tell it from
+// a considered one, and the whole case can turn on it.
+func (e *Engine) answer(resp *jev.Response, c *scenario.Character, t *Turn) (Outcome, bool) {
+	a, ok := resp.Answers[scenario.ClosedPrefix+c.ID]
+	if !ok || a.Choice == "" || a.Choice == notClosed {
+		return Outcome{}, false
+	}
+
+	said := a.Choice
+	if a.Probabilities[said] < e.Policy.Answer {
+		said = scenario.AnswerUnknown
+	}
+	t.Answer = said
+
+	return Outcome{
+		ActionID: scenario.ClosedPrefix + c.ID,
+		Did:      c.Name + "に、はいかいいえで訊いた。",
+		Speaker:  c.ID,
+		Text:     []string{c.Closed.Answers.Say(said)},
+	}, true
 }
 
 // accept applies the policy to one choice answer.
@@ -191,6 +247,27 @@ func (e *Engine) miss(s *scenario.Scenario, t *Turn, open bool) []string {
 	return s.Miss(t.Intent)
 }
 
+// notClosed is the fourth option of a closed question, and the only one the
+// player never hears. Without it an input that is not a yes-or-no question at
+// all would still be answered — and "I don't know" is indistinguishable, to
+// the player, from a real one.
+const notClosed = "not_a_yes_no_question"
+
+// Askable lists the people standing here who take yes-or-no questions.
+func Askable(s *scenario.Scenario, st State) []*scenario.Character {
+	sc := s.Scene(st.Scene)
+	if sc == nil {
+		return nil
+	}
+	var out []*scenario.Character
+	for _, id := range sc.Characters {
+		if c := s.Character(id); c != nil && c.Closed != nil {
+			out = append(out, c)
+		}
+	}
+	return out
+}
+
 // playerView is what the model is shown: the input, and the surroundings that
 // make a pronoun or a bare noun resolvable. "彼女に聞く" is only answerable if
 // the model can see who is standing here.
@@ -199,10 +276,21 @@ type playerView struct {
 	Place   string   `json:"place"`
 	People  []string `json:"people_present"`
 	Holding []string `json:"holding,omitempty"`
+
+	// Story is what actually happened, sent only when somebody here can be
+	// asked a yes-or-no question: no one can answer one without it. It is safe
+	// to send and could not be sent anywhere else — Jev answers with typed
+	// values and never with text, so the plot goes in and a `yes` comes back.
+	Incident []string `json:"the_case,omitempty"`
+	Story    []string `json:"what_actually_happened,omitempty"`
 }
 
-func stateFor(s *scenario.Scenario, st State, input string) playerView {
+func stateFor(s *scenario.Scenario, st State, input string, withStory bool) playerView {
 	v := playerView{Input: input}
+	if withStory {
+		v.Incident = s.Incident
+		v.Story = scenario.Plain(s.Finale.Truth)
+	}
 	if sc := s.Scene(st.Scene); sc != nil {
 		v.Place = sc.Name
 		for _, id := range sc.Characters {
@@ -222,13 +310,29 @@ func stateFor(s *scenario.Scenario, st State, input string) playerView {
 // questions builds the turn's request. All three are evaluated in parallel, so
 // asking what kind of thing the player attempted costs almost nothing on top
 // of asking which action they meant, and it is what makes a miss readable.
-func questions(s *scenario.Scenario, avail []*scenario.Action, finaleOpen bool) map[string]jev.Question {
+func questions(s *scenario.Scenario, avail []*scenario.Action, askable []*scenario.Character, finaleOpen bool) map[string]jev.Question {
 	options := make(map[string]jev.Option, len(avail)+2)
 	for _, a := range avail {
 		options[a.ID] = option(a.Match)
 	}
 	if finaleOpen {
 		options[scenario.FinaleAction] = option(s.Finale.Match)
+	}
+	// One option per person here who can be asked. Naming them separately is
+	// what lets "彼女は九時に会ったんですね？" pick the right mouth; a single
+	// "ask somebody" option would need a second question to say who.
+	for _, c := range askable {
+		options[scenario.ClosedPrefix+c.ID] = jev.Option{
+			What: "Put a question to " + c.Name + " (" + c.Role + ") that can be " +
+				"answered with yes or no — asking whether something is so, rather " +
+				"than asking to be told about it.",
+			NotFor: "A question to anyone else, or an open question to " + c.Name +
+				" that wants an account of something rather than a yes or a no.",
+			Examples: []string{
+				c.Name + "さんは九時に会ったんですか",
+				"あなたがやったのか、" + c.Name + "さんに訊く",
+			},
+		}
 	}
 	options[scenario.NoMatch] = jev.Option{
 		What: "The input asks for something none of the other options describe, " +
@@ -238,7 +342,7 @@ func questions(s *scenario.Scenario, avail []*scenario.Action, finaleOpen bool) 
 		Examples: []string{"空を飛ぶ", "ピザを注文する", "うーん"},
 	}
 
-	return map[string]jev.Question{
+	qs := map[string]jev.Question{
 		// The instructions are in English while the options and the input are
 		// in Japanese. That is deliberate: the engine's half of the prompt is
 		// fixed and belongs with the code, and the content half belongs to
@@ -269,6 +373,55 @@ func questions(s *scenario.Scenario, avail []*scenario.Action, finaleOpen bool) 
 				"suspect, or for accusing someone in conversation without claiming " +
 				"to have solved the case."),
 	}
+
+	// Every person here is asked what they would say, in the same request.
+	// Only the one the player addressed is read; the rest cost a few tokens
+	// each and save a second round trip.
+	for _, c := range askable {
+		qs[scenario.ClosedPrefix+c.ID] = closedQuestion(c)
+	}
+	return qs
+}
+
+// closedQuestion is the yes-or-no one.
+//
+// What the person knows and what they will not say go in the instructions,
+// because they belong to this person; the plot goes in the state, because it
+// belongs to the case and is shared by everyone who might be asked. The
+// question asks what they would SAY, not what is true — which is what lets a
+// culprit look straight at the plot in the state and answer "no".
+func closedQuestion(c *scenario.Character) jev.Question {
+	var b strings.Builder
+	b.WriteString("A detective has put a question to ")
+	b.WriteString(c.Name)
+	b.WriteString(" (")
+	b.WriteString(c.Role)
+	b.WriteString("). What would this person SAY in reply — not what is true. ")
+	b.WriteString("They know these things, and nothing else about the case:\n")
+	for _, line := range c.Closed.Knows {
+		b.WriteString("- ")
+		b.WriteString(string(line))
+		b.WriteString("\n")
+	}
+	if len(c.Closed.Hides) > 0 {
+		b.WriteString("They will not admit any of this, and deny it if asked directly:\n")
+		for _, line := range c.Closed.Hides {
+			b.WriteString("- ")
+			b.WriteString(string(line))
+			b.WriteString("\n")
+		}
+	}
+	b.WriteString("Answer 'unknown' when the question is outside what they know, ")
+	b.WriteString("or when they would refuse to answer at all.")
+
+	return jev.Choice(b.String(), map[string]string{
+		scenario.AnswerYes:     "They would say yes.",
+		scenario.AnswerNo:      "They would say no — whether that is the truth or a denial.",
+		scenario.AnswerUnknown: "They would say they do not know, or would not say.",
+		notClosed: "The detective did not ask this person anything that yes or no " +
+			"could answer: an open question, an order, a remark, or something " +
+			"addressed to somebody else.",
+	})
 }
 
 // option is the one place an action's description leaves the server, and it

@@ -13,7 +13,6 @@
     "劇場の出入口は、開演から今まで受付が押さえていた。中にいた者の誰かがやったことになる。"
   ],
   "start_scene": "stage",
-
   "scenes": [
     {
       "id": "stage",
@@ -22,7 +21,9 @@
         "平台と書き割りが立てかけられ、足元にケーブルが走っている。",
         "白河澪が、衣装のまま壁にもたれている。"
       ],
-      "characters": ["shirakawa"]
+      "characters": [
+        "shirakawa"
+      ]
     },
     {
       "id": "booth",
@@ -31,7 +32,9 @@
         "客席後方の小部屋。窓から舞台がまっすぐ見える。",
         "照明卓の前に郷田が座ったままでいる。"
       ],
-      "characters": ["goda"]
+      "characters": [
+        "goda"
+      ]
     },
     {
       "id": "dressing",
@@ -40,142 +43,307 @@
         "鏡と長机。隅の灰皿から、まだ焦げたにおいがしている。",
         "鶴見宏が、台本の束を抱えて立っている。"
       ],
-      "characters": ["tsurumi"]
+      "characters": [
+        "tsurumi"
+      ]
     }
   ],
-
   "characters": [
-    { "id": "shirakawa", "name": "白河 澪", "role": "主演女優", "avatar": "🎭" },
-    { "id": "goda", "name": "郷田 忠", "role": "照明係", "avatar": "💡" },
-    { "id": "tsurumi", "name": "鶴見 宏", "role": "座付きの脚本家", "avatar": "✒" },
-    { "id": "shinozuka", "name": "篠塚 欣一", "role": "座長", "avatar": "🕯" }
+    {
+      "id": "shirakawa",
+      "name": "白河 澪",
+      "role": "主演女優",
+      "avatar": "🎭",
+      "closed": {
+        "knows": [
+          "二幕の暗転が四十秒あった。舞台の上で数えていた。",
+          "暗転のあいだは下手の袖で次の衣装を直していた。",
+          "前日、座長と鶴見が言い争っているのを聞いた。中身までは聞き取れていない。",
+          "照明のキューが誰の指示で変わるのかは知らない。",
+          "暗い中で誰が動いたかは見ていない。"
+        ],
+        "hides": [
+          "座長と別れ話をしていたこと。"
+        ],
+        "answers": {
+          "yes": "「ええ」",
+          "no": "「いいえ」",
+          "unknown": "「わかりません」"
+        }
+      }
+    },
+    {
+      "id": "goda",
+      "name": "郷田 忠",
+      "role": "照明係",
+      "avatar": "💡",
+      "closed": {
+        "knows": [
+          "二幕の頭に、書き直した進行表を鶴見から受け取った。",
+          "「座長の指示だ」と聞かされて、そのとおりに暗転を伸ばした。",
+          "照明卓に触るのは自分だけである。",
+          "照明室からは、舞台裏の平台の陰は見えない。",
+          "卓は各キューの実測を勝手に記録している。"
+        ],
+        "hides": [
+          "一幕のあいだ、居眠りをしていたこと。"
+        ],
+        "answers": {
+          "yes": "「はい」",
+          "no": "「いいえ」",
+          "unknown": "「わかりません」"
+        }
+      }
+    },
+    {
+      "id": "tsurumi",
+      "name": "鶴見 宏",
+      "role": "座付きの脚本家",
+      "avatar": "✒",
+      "closed": {
+        "knows": [
+          "二幕の暗転を八秒から四十秒に伸ばした進行表を書いたのは自分である。",
+          "それを「座長の指示」と偽って郷田に渡した。",
+          "暗転のあいだに舞台裏で篠塚欣一を刺した。",
+          "自分の代表作は、十年前の雑誌に載った戯曲の盗作である。",
+          "座長が翌日の会見でそれを明らかにするつもりでいた。",
+          "楽屋の灰皿で焼いたのは、その雑誌に載った初稿である。"
+        ],
+        "hides": [
+          "自分が篠塚欣一を殺したこと。",
+          "進行表を書き換えて郷田に渡したこと。",
+          "自作が盗作であること。",
+          "灰皿で紙を焼いたこと。"
+        ],
+        "answers": {
+          "yes": "「ええ」",
+          "no": "「いいえ」",
+          "unknown": "「存じません」"
+        }
+      }
+    },
+    {
+      "id": "shinozuka",
+      "name": "篠塚 欣一",
+      "role": "座長",
+      "avatar": "🕯"
+    }
   ],
-
   "evidence": [
-    { "id": "cue_log", "name": "照明卓の記録", "description": "二幕目の暗転は、台本の指定では八秒。記録に残っている実測は四十秒だった。" },
-    { "id": "ashes", "name": "焼け残った紙片", "description": "楽屋の灰皿。十年前の雑誌に載った戯曲の、初稿らしい数行が読める。" },
-    { "id": "letter", "name": "会見の原稿", "description": "座長の机。「座の名で発表した作品のうち一篇について、出典を明らかにする」とある。" }
+    {
+      "id": "cue_log",
+      "name": "照明卓の記録",
+      "description": "二幕目の暗転は、台本の指定では八秒。記録に残っている実測は四十秒だった。"
+    },
+    {
+      "id": "ashes",
+      "name": "焼け残った紙片",
+      "description": "楽屋の灰皿。十年前の雑誌に載った戯曲の、初稿らしい数行が読める。"
+    },
+    {
+      "id": "letter",
+      "name": "会見の原稿",
+      "description": "座長の机。「座の名で発表した作品のうち一篇について、出典を明らかにする」とある。"
+    }
   ],
-
   "actions": [
     {
       "id": "look",
       "match": {
         "what": "Look around the room the player is standing in; take in the surroundings again.",
         "not_for": "Examining one particular object or person.",
-        "examples": ["あたりを見回す", "部屋を見る", "周囲を確認する"]
+        "examples": [
+          "あたりを見回す",
+          "部屋を見る",
+          "周囲を確認する"
+        ]
       },
       "did": "あたりを見回した。",
-      "result": ["もう一度、ゆっくりと目を走らせる。"]
+      "result": [
+        "もう一度、ゆっくりと目を走らせる。"
+      ]
     },
     {
       "id": "go_stage",
-      "scenes": ["booth", "dressing"],
+      "scenes": [
+        "booth",
+        "dressing"
+      ],
       "match": {
         "what": "Go backstage, where the body was found.",
         "not_for": "Going to the lighting booth or to the dressing room.",
-        "examples": ["舞台裏に戻る", "現場へ行く", "舞台のほうへ向かう"]
+        "examples": [
+          "舞台裏に戻る",
+          "現場へ行く",
+          "舞台のほうへ向かう"
+        ]
       },
       "did": "舞台裏へ戻った。",
-      "result": ["幕はもう下りきっている。客席のざわめきが遠い。"],
+      "result": [
+        "幕はもう下りきっている。客席のざわめきが遠い。"
+      ],
       "moves_to": "stage"
     },
     {
       "id": "go_booth",
-      "scenes": ["stage", "dressing"],
+      "scenes": [
+        "stage",
+        "dressing"
+      ],
       "match": {
         "what": "Go up to the lighting booth at the back of the house.",
         "not_for": "Going backstage or to the dressing room.",
-        "examples": ["照明室へ行く", "客席後方の小部屋に向かう", "照明係のところへ"]
+        "examples": [
+          "照明室へ行く",
+          "客席後方の小部屋に向かう",
+          "照明係のところへ"
+        ]
       },
       "did": "照明室へ上がった。",
-      "result": ["狭い階段を上がる。中は機械の熱でぬるい。"],
+      "result": [
+        "狭い階段を上がる。中は機械の熱でぬるい。"
+      ],
       "moves_to": "booth"
     },
     {
       "id": "go_dressing",
-      "scenes": ["stage", "booth"],
+      "scenes": [
+        "stage",
+        "booth"
+      ],
       "match": {
         "what": "Go to the dressing room.",
         "not_for": "Going backstage or to the lighting booth.",
-        "examples": ["楽屋へ行く", "控室に向かう", "鏡のある部屋へ"]
+        "examples": [
+          "楽屋へ行く",
+          "控室に向かう",
+          "鏡のある部屋へ"
+        ]
       },
       "did": "楽屋へ向かった。",
-      "result": ["廊下の端の引き戸を開ける。焦げたにおいが強くなった。"],
+      "result": [
+        "廊下の端の引き戸を開ける。焦げたにおいが強くなった。"
+      ],
       "moves_to": "dressing"
     },
     {
       "id": "examine_body",
-      "scenes": ["stage"],
+      "scenes": [
+        "stage"
+      ],
       "match": {
         "what": "Examine the dead man himself: the body, the wound, what he is wearing or holding.",
         "not_for": "Examining the set, the cables or anything else backstage.",
-        "examples": ["遺体を調べる", "傷を見る", "座長の様子を確かめる"]
+        "examples": [
+          "遺体を調べる",
+          "傷を見る",
+          "座長の様子を確かめる"
+        ]
       },
       "did": "遺体を調べた。",
       "result": [
         "左胸に一突き。血は平台の裏側にだけ落ちていて、舞台の床にはない。",
         "刺されたのはこの陰で、明かりのないあいだのことだ。"
       ],
-      "repeat": ["血の落ち方は、何度見ても平台の裏だけだ。"],
-      "sets_flags": ["saw_body"]
+      "repeat": [
+        "血の落ち方は、何度見ても平台の裏だけだ。"
+      ],
+      "sets_flags": [
+        "saw_body"
+      ]
     },
     {
       "id": "examine_cuelog",
-      "scenes": ["booth"],
+      "scenes": [
+        "booth"
+      ],
       "match": {
         "what": "Examine the lighting desk and the cue log on it.",
         "not_for": "Asking the lighting operator about the blackout.",
-        "examples": ["照明卓を調べる", "キューの記録を見る", "卓の履歴を確かめる"]
+        "examples": [
+          "照明卓を調べる",
+          "キューの記録を見る",
+          "卓の履歴を確かめる"
+        ]
       },
       "did": "照明卓の記録を調べた。",
       "result": [
         "卓は各キューの実測を勝手に書き出している。二幕目の暗転の行に、四十秒。",
         "台本の指定は八秒だ。三十秒あまり、舞台は真っ暗だったことになる。"
       ],
-      "repeat": ["記録の四十秒は変わらない。"],
-      "gives_evidence": ["cue_log"]
+      "repeat": [
+        "記録の四十秒は変わらない。"
+      ],
+      "gives_evidence": [
+        "cue_log"
+      ]
     },
     {
       "id": "examine_ashtray",
-      "scenes": ["dressing"],
+      "scenes": [
+        "dressing"
+      ],
       "match": {
         "what": "Examine the ashtray in the corner of the dressing room, and what was burnt in it.",
         "not_for": "Examining the long desk or the scripts on it.",
-        "examples": ["灰皿を調べる", "燃えた紙を見る", "焦げたにおいの元を確かめる"]
+        "examples": [
+          "灰皿を調べる",
+          "燃えた紙を見る",
+          "焦げたにおいの元を確かめる"
+        ]
       },
       "did": "灰皿を調べた。",
       "result": [
         "焼け残った紙片が二枚。印刷ではなく、雑誌の紙だ。",
         "十年前の号に載った戯曲の初稿らしい数行が、まだ読める。"
       ],
-      "repeat": ["紙片はもう崩れてしまいそうだ。"],
-      "gives_evidence": ["ashes"]
+      "repeat": [
+        "紙片はもう崩れてしまいそうだ。"
+      ],
+      "gives_evidence": [
+        "ashes"
+      ]
     },
     {
       "id": "examine_desk",
-      "scenes": ["dressing"],
+      "scenes": [
+        "dressing"
+      ],
       "match": {
         "what": "Examine the long desk in the dressing room and the papers on it.",
         "not_for": "Examining the ashtray.",
-        "examples": ["長机を調べる", "机の書類を見る", "台本の束を確かめる"]
+        "examples": [
+          "長机を調べる",
+          "机の書類を見る",
+          "台本の束を確かめる"
+        ]
       },
       "did": "長机を調べた。",
       "result": [
         "座長の場所に、明日の会見の原稿が伏せてあった。",
         "「座の名で発表した作品のうち一篇について、出典を明らかにする」"
       ],
-      "repeat": ["原稿の文面は変わらない。"],
-      "gives_evidence": ["letter"]
+      "repeat": [
+        "原稿の文面は変わらない。"
+      ],
+      "gives_evidence": [
+        "letter"
+      ]
     },
     {
       "id": "ask_shirakawa",
-      "scenes": ["stage"],
+      "scenes": [
+        "stage"
+      ],
       "speaker": "shirakawa",
       "match": {
         "what": "Ask the leading actress Shirakawa about the blackout or about her evening.",
         "not_for": "Asking the lighting operator or the writer anything.",
-        "examples": ["白河さんに話を聞く", "暗転のことを女優に尋ねる", "彼女に今夜のことを聞く"]
+        "examples": [
+          "白河さんに話を聞く",
+          "暗転のことを女優に尋ねる",
+          "彼女に今夜のことを聞く"
+        ]
       },
       "did": "白河澪に、暗転のことを尋ねた。",
       "result": [
@@ -185,28 +353,42 @@
     },
     {
       "id": "ask_goda",
-      "scenes": ["booth"],
+      "scenes": [
+        "booth"
+      ],
       "speaker": "goda",
       "match": {
         "what": "Ask the lighting operator Goda about the cues he ran.",
         "not_for": "Asking the actress or the writer anything.",
-        "examples": ["郷田さんに話を聞く", "照明係にキューのことを尋ねる", "誰の指示か聞く"]
+        "examples": [
+          "郷田さんに話を聞く",
+          "照明係にキューのことを尋ねる",
+          "誰の指示か聞く"
+        ]
       },
       "did": "郷田忠に、キューのことを尋ねた。",
       "result": [
         "「暗転を伸ばせと言われたんです。二幕の頭に、書き直した進行表を渡されて」",
         "「渡したのは……鶴見さんです。座長の指示だと聞きました」"
       ],
-      "sets_flags": ["heard_order"]
+      "sets_flags": [
+        "heard_order"
+      ]
     },
     {
       "id": "ask_tsurumi",
-      "scenes": ["dressing"],
+      "scenes": [
+        "dressing"
+      ],
       "speaker": "tsurumi",
       "match": {
         "what": "Ask the writer Tsurumi about the evening, the script or the announcement.",
         "not_for": "Confronting him with the burnt paper, or asking the actress or the operator anything.",
-        "examples": ["鶴見さんに話を聞く", "脚本家に今夜のことを尋ねる", "会見のことを聞く"]
+        "examples": [
+          "鶴見さんに話を聞く",
+          "脚本家に今夜のことを尋ねる",
+          "会見のことを聞く"
+        ]
       },
       "did": "鶴見宏に、今夜のことを尋ねた。",
       "result": [
@@ -216,41 +398,75 @@
     },
     {
       "id": "ask_tsurumi_ashes",
-      "scenes": ["dressing"],
+      "scenes": [
+        "dressing"
+      ],
       "speaker": "tsurumi",
-      "requires": { "evidence": ["ashes"] },
+      "requires": {
+        "evidence": [
+          "ashes"
+        ]
+      },
       "match": {
         "what": "Confront the writer Tsurumi with the burnt paper from the ashtray.",
         "not_for": "Asking him about the evening in general.",
-        "examples": ["灰皿の紙片について鶴見さんに聞く", "焼いたものを問い詰める", "初稿を見せて問う"]
+        "examples": [
+          "灰皿の紙片について鶴見さんに聞く",
+          "焼いたものを問い詰める",
+          "初稿を見せて問う"
+        ]
       },
       "did": "鶴見宏に、焼け残った紙片を見せた。",
       "result": [
         "台本の束を抱える腕が、わずかに締まった。",
         "「……十年前の雑誌です。私の書いたものではありません、とだけ申し上げます」"
       ],
-      "sets_flags": ["tsurumi_pressed"]
+      "sets_flags": [
+        "tsurumi_pressed"
+      ]
     }
   ],
-
   "misses": {
-    "default": ["何も起こらない。"],
-    "move": ["そちらへ通じる道は、いまは見当たらない。"],
-    "search": ["目を走らせたが、取り立てて見るべきものはない。"],
-    "ask": ["問いは宙に浮いたまま、答えは返ってこない。"],
-    "talk": ["相手は目を伏せただけだった。"],
-    "meta": ["誰も教えてはくれない。見て、聞いて、自分で決めるしかない。"],
-    "nonsense": ["……いまは、そんな場合ではない。"],
-    "declare": ["まだ早い。名指しするには、手の中のものが足りない。"]
+    "default": [
+      "何も起こらない。"
+    ],
+    "move": [
+      "そちらへ通じる道は、いまは見当たらない。"
+    ],
+    "search": [
+      "目を走らせたが、取り立てて見るべきものはない。"
+    ],
+    "ask": [
+      "問いは宙に浮いたまま、答えは返ってこない。"
+    ],
+    "talk": [
+      "相手は目を伏せただけだった。"
+    ],
+    "meta": [
+      "誰も教えてはくれない。見て、聞いて、自分で決めるしかない。"
+    ],
+    "nonsense": [
+      "……いまは、そんな場合ではない。"
+    ],
+    "declare": [
+      "まだ早い。名指しするには、手の中のものが足りない。"
+    ]
   },
-
   "finale": {
-    "requires_evidence": ["cue_log", "ashes", "letter"],
+    "requires_evidence": [
+      "cue_log",
+      "ashes",
+      "letter"
+    ],
     "label": "全員を舞台に集める",
     "match": {
       "what": "Gather everyone together to announce the solution and name the killer.",
       "not_for": "Asking one person a question, or accusing someone in passing during a conversation.",
-      "examples": ["全員を舞台に集める", "みんなを集めて真相を話す", "推理を披露する"]
+      "examples": [
+        "全員を舞台に集める",
+        "みんなを集めて真相を話す",
+        "推理を披露する"
+      ]
     },
     "prompt": [
       "三人が舞台に並んだ。客席の明かりはもう落ちている。",
@@ -262,7 +478,11 @@
       "真っ暗な舞台裏の平台の陰で座長を刺した。血が平台の裏側にだけ落ちているのは、そこが明かりの外だったからである。",
       "動機は盗作の発覚。座長は翌日の会見で、座の名で発表した作品の出典を明らかにするつもりだった。机にあった会見の原稿がそれで、鶴見が楽屋の灰皿で焼いたのは、その出典にあたる十年前の雑誌の初稿である。"
     ],
-    "suspects": ["shirakawa", "goda", "tsurumi"],
+    "suspects": [
+      "shirakawa",
+      "goda",
+      "tsurumi"
+    ],
     "culprit": "tsurumi",
     "points": [
       {

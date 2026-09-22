@@ -21,6 +21,11 @@ type fake struct {
 	noul    float64
 	score   float64
 
+	// said is what a character answers a closed question with, and saidProb
+	// how sure they are of it.
+	said     string
+	saidProb float64
+
 	asked map[string]jev.Question
 	state any
 }
@@ -46,6 +51,13 @@ func (f *fake) Ask(_ context.Context, state any, qs map[string]jev.Question) (*j
 		case key == KeyCulprit:
 			answers[key] = jev.Answer{Type: jev.TypeChoice, Choice: f.choice,
 				Probabilities: map[string]float64{f.choice: f.prob}}
+		case strings.HasPrefix(key, scenario.ClosedPrefix):
+			prob := f.saidProb
+			if prob == 0 {
+				prob = 0.9
+			}
+			answers[key] = jev.Answer{Type: jev.TypeChoice, Choice: f.said,
+				Probabilities: map[string]float64{f.said: prob}}
 		case key == KeyCoherence:
 			s := f.score
 			answers[key] = jev.Answer{Type: jev.TypeScore, Score: &s,
@@ -235,5 +247,101 @@ func TestApplyIsIdempotent(t *testing.T) {
 	}
 	if !second.Repeat || second.Text[0] == first.Text[0] {
 		t.Error("a repeat should read differently from a discovery")
+	}
+}
+
+// A closed question is answered in the same request that routed it, so it
+// costs one round trip like any other turn.
+func TestAClosedQuestionIsAnswered(t *testing.T) {
+	s := load(t)
+	f := &fake{
+		choice: scenario.ClosedPrefix + "kurata", prob: 0.8, conf: 0.9,
+		intent: IntentAsk, said: scenario.AnswerNo,
+	}
+	e := &Engine{Asker: f, Policy: DefaultPolicy()}
+
+	_, turn, err := e.Play(context.Background(), s, New(s), "倉田さん、あなたが犯人ですか")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !turn.Matched || turn.Outcome == nil {
+		t.Fatal("the question went unanswered")
+	}
+	if turn.Answer != scenario.AnswerNo {
+		t.Errorf("answer = %q, want %q", turn.Answer, scenario.AnswerNo)
+	}
+	// The culprit denies it, in her own words, and the state does not move.
+	if got, want := turn.Text[0], s.Character("kurata").Closed.Answers.Say(scenario.AnswerNo); got != want {
+		t.Errorf("said %q, want %q", got, want)
+	}
+	if turn.Outcome.Speaker != "kurata" || len(turn.Outcome.Gained) != 0 {
+		t.Errorf("outcome = %+v", turn.Outcome)
+	}
+}
+
+// A coin-flip between yes and no is the one answer this game must never give:
+// the player cannot tell it from a considered one.
+func TestAnUnsureAnswerBecomesIDoNotKnow(t *testing.T) {
+	s := load(t)
+	f := &fake{
+		choice: scenario.ClosedPrefix + "kurata", prob: 0.8, conf: 0.9,
+		intent: IntentAsk, said: scenario.AnswerYes, saidProb: 0.3,
+	}
+	e := &Engine{Asker: f, Policy: DefaultPolicy()}
+
+	_, turn, err := e.Play(context.Background(), s, New(s), "九時に会ったんですか")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if turn.Answer != scenario.AnswerUnknown {
+		t.Fatalf("answer = %q, want %q", turn.Answer, scenario.AnswerUnknown)
+	}
+}
+
+// The model's own fourth option says the input was not a yes-or-no question
+// after all, which is a miss rather than an answer.
+func TestAnInputThatIsNotAQuestionMisses(t *testing.T) {
+	s := load(t)
+	f := &fake{
+		choice: scenario.ClosedPrefix + "kurata", prob: 0.8, conf: 0.9,
+		intent: IntentTalk, said: notClosed,
+	}
+	e := &Engine{Asker: f, Policy: DefaultPolicy()}
+
+	_, turn, err := e.Play(context.Background(), s, New(s), "倉田さんをじっと見る")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if turn.Matched {
+		t.Fatal("this should not have counted as an answer")
+	}
+	if got := strings.Join(turn.Text, ""); got != strings.Join(s.Miss(IntentTalk), "") {
+		t.Errorf("text = %q, want the talk miss", got)
+	}
+}
+
+// The plot is sent only where it is needed. Nobody can answer a closed
+// question without it, and no other turn has any use for it.
+func TestTheStoryTravelsOnlyWhereItIsAnswerable(t *testing.T) {
+	s := load(t)
+	f := &fake{choice: scenario.NoMatch, prob: 0.9, conf: 0.9}
+	e := &Engine{Asker: f, Policy: DefaultPolicy()}
+
+	// The hall: two people who can be asked.
+	if _, _, err := e.Play(context.Background(), s, New(s), "何かする"); err != nil {
+		t.Fatal(err)
+	}
+	if view := f.state.(playerView); len(view.Story) == 0 {
+		t.Error("the people here can be asked, but the plot was withheld")
+	}
+
+	// The study: a body and no one to ask.
+	st := New(s)
+	st.Scene = "study"
+	if _, _, err := e.Play(context.Background(), s, st, "何かする"); err != nil {
+		t.Fatal(err)
+	}
+	if view := f.state.(playerView); len(view.Story) != 0 {
+		t.Error("the plot was sent to a room where nobody can answer for it")
 	}
 }

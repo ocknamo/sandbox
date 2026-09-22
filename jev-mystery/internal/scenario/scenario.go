@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 )
 
 // Scenario is one complete case.
@@ -73,6 +74,61 @@ type Character struct {
 	// Avatar is a single glyph used as a portrait. The game ships no images,
 	// and a glyph survives being rendered anywhere.
 	Avatar string `json:"avatar"`
+
+	// Closed makes this person answerable with yes, no or "I don't know". A
+	// character without it takes only the questions written as actions.
+	Closed *Closed `json:"closed,omitempty"`
+}
+
+// Closed is what a character brings to a yes-or-no question: what they know,
+// what they will not admit, and the words they answer in.
+//
+// Knows and Hides are instructions to the model rather than state, because
+// they are about this person rather than about the case: two people looking at
+// the same events answer differently, and that difference is the whole point
+// of asking one of them rather than the other.
+type Closed struct {
+	// Knows is what this person has seen, done or been told. Anything outside
+	// it they cannot answer, whatever the case's plot says.
+	Knows []Hidden `json:"knows"`
+
+	// Hides is what they will not say even though they know it — the culprit's
+	// own guilt being the obvious case. Asked directly, they deny it.
+	Hides []Hidden `json:"hides,omitempty"`
+
+	// Answers are the words they say. They are the only part of this the
+	// player reads, so they are written rather than generated; left out, the
+	// bare Japanese for yes, no and "I don't know" is used.
+	Answers ClosedAnswers `json:"answers,omitempty"`
+}
+
+// ClosedAnswers are one character's three replies.
+type ClosedAnswers struct {
+	Yes     string `json:"yes,omitempty"`
+	No      string `json:"no,omitempty"`
+	Unknown string `json:"unknown,omitempty"`
+}
+
+// Say returns the character's wording for one of the three answers, falling
+// back to the plain word.
+func (c ClosedAnswers) Say(answer string) string {
+	switch answer {
+	case AnswerYes:
+		if c.Yes != "" {
+			return c.Yes
+		}
+		return "はい。"
+	case AnswerNo:
+		if c.No != "" {
+			return c.No
+		}
+		return "いいえ。"
+	default:
+		if c.Unknown != "" {
+			return c.Unknown
+		}
+		return "わかりません。"
+	}
 }
 
 // Evidence is something the player can come to hold. Evidence is public once
@@ -302,10 +358,18 @@ func (s *Scenario) validate() error {
 		}
 	}
 
+	// A person who answers nothing would answer every question "I don't know",
+	// which reads as a bug rather than as a closed mouth.
+	for _, c := range s.Characters {
+		if c.Closed != nil && len(c.Closed.Knows) == 0 {
+			return fmt.Errorf("scenario: character %q takes closed questions but knows nothing", c.ID)
+		}
+	}
+
 	// "none" is the engine's own option for "this matches nothing", so an
 	// action may not take the name.
 	for _, a := range s.Actions {
-		if a.ID == NoMatch || a.ID == FinaleAction {
+		if a.ID == NoMatch || a.ID == FinaleAction || strings.HasPrefix(a.ID, ClosedPrefix) {
 			return fmt.Errorf("scenario: action id %q is reserved", a.ID)
 		}
 		if a.Match.What == "" {
@@ -414,6 +478,20 @@ func (s *Scenario) validateFinale() error {
 // weight of an unrelated input to go, it lands on whichever action is least
 // unlike it.
 const NoMatch = "none"
+
+// The three answers a closed question can get. They are the whole of what the
+// player is told: a yes is a yes, and nothing says whether it was the truth.
+const (
+	AnswerYes     = "yes"
+	AnswerNo      = "no"
+	AnswerUnknown = "unknown"
+)
+
+// ClosedPrefix marks the option, and the question, for putting a yes-or-no
+// question to one person: `closed:kurata`. An action may not take a name that
+// starts with it, since the engine mints these itself from whoever is in the
+// room.
+const ClosedPrefix = "closed:"
 
 // FinaleAction is the option name for calling everyone together, offered
 // alongside the scene's actions once the case is ready for it. It is reserved

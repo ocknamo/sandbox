@@ -12,5 +12,6 @@
 長机の書類を見る	examine_desk
 鶴見さんに話を聞く	ask_tsurumi
 灰皿の紙片を見せて問い詰める	ask_tsurumi_ashes
+鶴見さん、進行表を書き換えたのはあなたですか	closed:tsurumi
 客席で少し眠る	none
 全員を舞台に集めて推理を話す	finale
