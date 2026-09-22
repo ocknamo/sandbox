@@ -24,8 +24,27 @@ export type Entry =
   | { kind: "answer"; text: string }
   | { kind: "ending"; verdict: Verdict };
 
-export function Avatar(props: { glyph: string }) {
-  return <div class={s.avatar}>{props.glyph || "？"}</div>;
+/**
+ * One portrait. A case may ship a picture; most do not, and the glyph is the
+ * whole of it. The picture is drawn over the glyph rather than instead of it,
+ * so a URL that never loads leaves the face behind it rather than a hole:
+ * `onError` takes the image back out and the glyph is already there.
+ */
+export function Avatar(props: { person: Person }) {
+  const person = props.person;
+  return (
+    <div class={s.avatar}>
+      <span>{person.avatar || "？"}</span>
+      {person.image ? (
+        <img
+          src={person.image}
+          alt={person.name}
+          loading="lazy"
+          onError={(event: Event) => (event.currentTarget as HTMLImageElement).remove()}
+        />
+      ) : null}
+    </div>
+  );
 }
 
 export function PlacePanel(props: { view: () => View }) {
@@ -42,7 +61,7 @@ export function PlacePanel(props: { view: () => View }) {
           >
             {(person) => (
               <div class="person">
-                <Avatar glyph={person.avatar} />
+                <Avatar person={person} />
                 <div>
                   <div class="who">{person.name}</div>
                   <div class="role">{person.role}</div>
@@ -105,7 +124,7 @@ export function LogEntry(props: { entry: Entry }) {
       <p class="typed">{"> " + entry.input}</p>
       {entry.speaker ? (
         <div class="speaker">
-          <Avatar glyph={entry.speaker.avatar} />
+          <Avatar person={entry.speaker} />
           <div class="who">{entry.speaker.name}</div>
         </div>
       ) : null}

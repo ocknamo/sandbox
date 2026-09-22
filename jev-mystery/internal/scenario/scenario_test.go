@@ -2,6 +2,7 @@ package scenario
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 )
 
@@ -92,6 +93,19 @@ func TestLoadRejects(t *testing.T) {
 				"match": map[string]any{"what": "listen"}, "text": []any{"rain"},
 			}}
 		},
+		// The glyph is the fallback behind every portrait, so a character
+		// without one has nothing to draw while the picture loads.
+		"character with no avatar": func(m map[string]any) {
+			character(m, "holmes")["avatar"] = ""
+		},
+		// A portrait is a URL the browser fetches, so only the schemes that
+		// name a picture are allowed through.
+		"portrait is a data url": func(m map[string]any) {
+			character(m, "holmes")["image"] = "data:image/svg+xml,<svg onload=\"alert(1)\"/>"
+		},
+		"portrait is a script url": func(m map[string]any) {
+			character(m, "holmes")["image"] = "javascript:alert(1)"
+		},
 	}
 
 	for name, break_ := range cases {
@@ -107,6 +121,61 @@ func TestLoadRejects(t *testing.T) {
 	if _, err := Load(encode(t, clone(t, base))); err != nil {
 		t.Fatalf("the unbroken scenario should load: %v", err)
 	}
+}
+
+// A portrait is optional, and what a case is allowed to put there is an
+// absolute http(s) URL or a path the page resolves for itself.
+func TestLoadTakesPortraits(t *testing.T) {
+	for _, image := range []string{
+		"https://example.test/holmes.png",
+		"http://example.test/holmes.png",
+		"/portraits/holmes.png",
+		"portraits/holmes.png",
+		"./portraits/holmes.png",
+		"portraits/holmes:1.png",
+	} {
+		t.Run(image, func(t *testing.T) {
+			m := clone(t, minimal(t))
+			character(m, "holmes")["image"] = image
+			s, err := Load(encode(t, m))
+			if err != nil {
+				t.Fatalf("Load: %v", err)
+			}
+			if got := s.Character("holmes").Image; got != image {
+				t.Errorf("image = %q, want %q", got, image)
+			}
+		})
+	}
+}
+
+// The portrait reaches the page; the glyph behind it does too, because it is
+// what the page draws until the picture arrives.
+func TestPortraitIsServed(t *testing.T) {
+	m := clone(t, minimal(t))
+	character(m, "holmes")["image"] = "https://example.test/holmes.png"
+	s, err := Load(encode(t, m))
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := json.Marshal(s.Character("holmes"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{`"image":"https://example.test/holmes.png"`, `"avatar":"a"`} {
+		if !strings.Contains(string(data), want) {
+			t.Errorf("character encoded to %s, want it to hold %s", data, want)
+		}
+	}
+}
+
+func character(m map[string]any, id string) map[string]any {
+	for _, c := range m["characters"].([]any) {
+		c := c.(map[string]any)
+		if c["id"] == id {
+			return c
+		}
+	}
+	panic("no character " + id)
 }
 
 func finale(m map[string]any) map[string]any { return m["finale"].(map[string]any) }

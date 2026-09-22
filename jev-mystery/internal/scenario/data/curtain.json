@@ -53,7 +53,7 @@
       "id": "shirakawa",
       "name": "白河 澪",
       "role": "主演女優",
-      "avatar": "🎭",
+      "avatar": "👩‍🎤",
       "closed": {
         "knows": [
           "二幕の暗転が四十秒あった。舞台の上で数えていた。",
@@ -76,7 +76,7 @@
       "id": "goda",
       "name": "郷田 忠",
       "role": "照明係",
-      "avatar": "💡",
+      "avatar": "🧑‍🔧",
       "closed": {
         "knows": [
           "二幕の頭に、書き直した進行表を鶴見から受け取った。",
@@ -99,7 +99,7 @@
       "id": "tsurumi",
       "name": "鶴見 宏",
       "role": "座付きの脚本家",
-      "avatar": "✒",
+      "avatar": "🧑‍🎨",
       "closed": {
         "knows": [
           "二幕の暗転を八秒から四十秒に伸ばした進行表を書いたのは自分である。",
@@ -127,7 +127,7 @@
       "id": "shinozuka",
       "name": "篠塚 欣一",
       "role": "座長",
-      "avatar": "🕯"
+      "avatar": "🧓"
     }
   ],
   "evidence": [

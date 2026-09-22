@@ -101,6 +101,15 @@ type charView struct {
 	Name   string `json:"name"`
 	Role   string `json:"role"`
 	Avatar string `json:"avatar"`
+
+	// Image is the portrait, when the case gives one. It is left out rather
+	// than sent empty, so the page tells "no picture" from "a picture".
+	Image string `json:"image,omitempty"`
+}
+
+// person is one character as the page draws them.
+func person(c *scenario.Character) charView {
+	return charView{ID: c.ID, Name: c.Name, Role: c.Role, Avatar: c.Avatar, Image: c.Image}
 }
 
 type itemView struct {
@@ -133,7 +142,7 @@ func (h *handlers) view(s *scenario.Scenario, st game.State) view {
 		v.Scene = sceneView{ID: sc.ID, Name: sc.Name, Description: sc.Description}
 		for _, id := range sc.Characters {
 			if c := s.Character(id); c != nil {
-				v.People = append(v.People, charView{ID: c.ID, Name: c.Name, Role: c.Role, Avatar: c.Avatar})
+				v.People = append(v.People, person(c))
 			}
 		}
 	}
@@ -297,7 +306,8 @@ func (h *handlers) act(w http.ResponseWriter, r *http.Request) {
 		resp.Did = turn.Outcome.Did
 		resp.MovedTo = turn.Outcome.MovedTo
 		if c := s.Character(turn.Outcome.Speaker); c != nil {
-			resp.Speaker = &charView{ID: c.ID, Name: c.Name, Role: c.Role, Avatar: c.Avatar}
+			p := person(c)
+			resp.Speaker = &p
 		}
 		for _, id := range turn.Outcome.Gained {
 			if e := s.Item(id); e != nil {

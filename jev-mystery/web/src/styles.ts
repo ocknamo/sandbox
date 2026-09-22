@@ -111,15 +111,27 @@ export const place = css`
 `;
 
 export const avatar = css`
+  position: relative;
   flex: 0 0 auto;
   width: 38px;
   height: 38px;
   border-radius: 50%;
   border: 1px solid var(--line);
   background: var(--bg);
+  overflow: hidden;
   display: grid;
   place-items: center;
   font-size: 19px;
+
+  /* The picture covers the glyph rather than replacing it, so the glyph is
+     what shows while the picture loads and what is left if it never does. */
+  img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 `;
 
 export const items = css`
