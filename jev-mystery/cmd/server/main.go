@@ -78,6 +78,7 @@ func main() {
 	}{
 		{"MATCH_THRESHOLD", &policy.Match},
 		{"CONFIDENCE_THRESHOLD", &policy.Confidence},
+		{"FLAVOUR_THRESHOLD", &policy.Flavour},
 		{"POINT_THRESHOLD", &policy.Point},
 		{"CLOSED_THRESHOLD", &policy.Closed},
 		{"ANSWER_THRESHOLD", &policy.Answer},

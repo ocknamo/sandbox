@@ -31,9 +31,12 @@ type fake struct {
 	saidProb  float64
 
 	// flavour is the entry the second pass lands on, once the actions have
-	// all missed.
+	// all missed. flavourNone is what is left sitting on `none`: a scene with
+	// several flavour entries spreads its weight across them, so the winner
+	// can be well under half and still be the answer.
 	flavour     string
 	flavourProb float64
+	flavourNone float64
 
 	asked map[string]jev.Question
 	state any
@@ -68,7 +71,11 @@ func (f *fake) Ask(_ context.Context, state any, qs map[string]jev.Question) (*j
 		case key == KeyAskee:
 			answers[key] = choiceAnswer(f.askee, orElse(f.askeeProb, 0.9), 0.9)
 		case key == KeyFlavour:
-			answers[key] = choiceAnswer(f.flavour, orElse(f.flavourProb, 0.9), 0.9)
+			a := choiceAnswer(f.flavour, orElse(f.flavourProb, 0.9), 0.9)
+			if f.flavourNone > 0 {
+				a.Probabilities[scenario.NoMatch] = f.flavourNone
+			}
+			answers[key] = a
 		case key == KeyCulprit:
 			answers[key] = jev.Answer{Type: jev.TypeChoice, Choice: f.choice,
 				Probabilities: map[string]float64{f.choice: f.prob}}
@@ -447,6 +454,42 @@ func TestFlavourAnswersWhatTheActionsMissed(t *testing.T) {
 	// Flavour changes nothing. That is what makes it safe to write a lot of.
 	if len(st.Evidence) != 0 || len(st.Flags) != 0 || len(st.Taken) != 0 {
 		t.Errorf("flavour moved the state: %+v", st)
+	}
+}
+
+// Flavour answers on less than an action needs. It is read only after every
+// action has missed and it moves nothing, so the cost of being loose is two
+// lines of scenery that were not quite asked for — against a miss, which
+// says "何も起こらない" and teaches the player nothing at all.
+func TestFlavourAnswersOnLessThanAnAction(t *testing.T) {
+	s := load(t)
+	policy := DefaultPolicy()
+
+	for name, tc := range map[string]struct {
+		prob float64
+		want bool
+	}{
+		"under an action's floor, over its own": {prob: policy.Match - 0.05, want: true},
+		"under its own floor":                   {prob: policy.Flavour - 0.05, want: false},
+	} {
+		t.Run(name, func(t *testing.T) {
+			// The hall carries three flavour entries, so the weight this one
+			// does not hold is spread over its neighbours rather than piled
+			// onto `none`.
+			f := &fake{
+				choice: scenario.NoMatch, prob: 0.9, conf: 0.9,
+				flavour: "photographs", flavourProb: tc.prob, flavourNone: 0.2,
+			}
+			e := &Engine{Asker: f, Policy: policy}
+
+			_, turn, err := e.Play(context.Background(), s, New(s), "何かする")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got := turn.Choice == scenario.FlavourPrefix+"photographs"; got != tc.want {
+				t.Errorf("choice = %q at %.2f, want flavour = %v", turn.Choice, tc.prob, tc.want)
+			}
+		})
 	}
 }
 

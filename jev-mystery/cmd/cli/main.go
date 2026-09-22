@@ -32,6 +32,7 @@ func main() {
 		match   = flag.Float64("match", game.DefaultPolicy().Match, "an option must reach this probability to count")
 		conf    = flag.Float64("confidence", game.DefaultPolicy().Confidence, "and the choice must be this confident")
 		point   = flag.Float64("point", game.DefaultPolicy().Point, "a point of the truth counts as found above this")
+		flavour = flag.Float64("flavour", game.DefaultPolicy().Flavour, "a flavour entry counts above this, once the actions have all missed")
 		closed  = flag.Float64("closed", game.DefaultPolicy().Closed, "an input counts as a yes-or-no question above this")
 		answer  = flag.Float64("answer", game.DefaultPolicy().Answer, "a closed question is answered yes or no above this, and 'I don't know' below")
 		verbose = flag.Bool("v", false, "print the options that were on offer each turn")
@@ -39,7 +40,8 @@ func main() {
 	flag.Parse()
 
 	if err := run(*caseID, *model, *script, *accuse, game.Policy{
-		Match: *match, Confidence: *conf, Declare: game.DefaultPolicy().Declare, Point: *point,
+		Match: *match, Confidence: *conf, Flavour: *flavour,
+		Declare: game.DefaultPolicy().Declare, Point: *point,
 		Closed: *closed, Answer: *answer,
 	}, *verbose); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)

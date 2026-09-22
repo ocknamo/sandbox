@@ -66,6 +66,15 @@ type Policy struct {
 	// guessing between them is worse than missing.
 	Confidence float64
 
+	// Flavour is the floor for the flavour pass, and sits below Match on
+	// purpose. Flavour is read only once every action has missed, and it moves
+	// nothing: the worst a loose match can do is print the wrong two lines of
+	// scenery, against a miss that prints "何も起こらない" and teaches the
+	// player nothing. It still has to beat `none` in its own distribution,
+	// which is the judgement that matters — this only stops a quiet yes from
+	// being thrown away for want of the certainty an action needs.
+	Flavour float64
+
 	// Declare is the noul above which an input counts as the player trying to
 	// name the culprit and close the case.
 	Declare float64
@@ -92,7 +101,10 @@ type Policy struct {
 // below half because a scene offering eight actions spreads its weight thin
 // even when the answer is obvious, and the option has to beat `none` anyway.
 func DefaultPolicy() Policy {
-	return Policy{Match: 0.4, Confidence: 0.35, Declare: 0.6, Point: 0.5, Closed: 0.5, Answer: 0.5}
+	return Policy{
+		Match: 0.4, Confidence: 0.35, Flavour: 0.25,
+		Declare: 0.6, Point: 0.5, Closed: 0.5, Answer: 0.5,
+	}
 }
 
 // Turn is one exchange: what the player typed, what the model made of it, and
@@ -276,7 +288,7 @@ func (e *Engine) flavour(resp *jev.Response, s *scenario.Scenario, t *Turn) (Out
 	if !ok {
 		return Outcome{}, false
 	}
-	id, score, confidence, accepted := e.pick(a)
+	id, score, confidence, accepted := e.pickAbove(a, e.Policy.Flavour)
 	if !accepted {
 		return Outcome{}, false
 	}
@@ -325,6 +337,12 @@ func (e *Engine) answer(resp *jev.Response, c *scenario.Character, t *Turn) (Out
 // every choice the engine makes, so a flavour entry and an action have to
 // clear the same bar.
 func (e *Engine) pick(a jev.Answer) (choice string, score, confidence float64, ok bool) {
+	return e.pickAbove(a, e.Policy.Match)
+}
+
+// pickAbove is pick with the floor named, for the one pass that does not use
+// Match: flavour, which is allowed to answer on less.
+func (e *Engine) pickAbove(a jev.Answer, floor float64) (choice string, score, confidence float64, ok bool) {
 	choice = a.Choice
 	score = a.Probabilities[choice]
 	if a.Confidence != nil {
@@ -338,7 +356,7 @@ func (e *Engine) pick(a jev.Answer) (choice string, score, confidence float64, o
 	if score <= a.Probabilities[scenario.NoMatch] {
 		return choice, score, confidence, false
 	}
-	return choice, score, confidence, score >= e.Policy.Match && confidence >= e.Policy.Confidence
+	return choice, score, confidence, score >= floor && confidence >= e.Policy.Confidence
 }
 
 // miss picks the text for an input that matched nothing. A player who is
