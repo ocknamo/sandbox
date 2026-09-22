@@ -174,6 +174,10 @@ type newResponse struct {
 	Opening  []string `json:"opening"`
 	Incident []string `json:"incident"`
 
+	// Arrival describes the room the case opens in, so the log starts where
+	// the player is standing rather than leaving them to infer it.
+	Arrival []string `json:"arrival"`
+
 	View view `json:"view"`
 }
 
@@ -201,6 +205,7 @@ func (h *handlers) newGame(w http.ResponseWriter, r *http.Request) {
 		Byline:   s.Byline,
 		Opening:  s.Opening,
 		Incident: s.Incident,
+		Arrival:  game.Describe(s, st),
 		View:     h.view(s, st),
 	})
 }
@@ -217,6 +222,8 @@ type signals struct {
 	Confidence float64 `json:"confidence"`
 	Intent     string  `json:"intent"`
 	Declare    float64 `json:"declare"`
+	Closed     float64 `json:"closed"`
+	Askee      string  `json:"askee,omitempty"`
 }
 
 type actResponse struct {
@@ -233,6 +240,12 @@ type actResponse struct {
 	Gained  []itemView `json:"gained,omitempty"`
 	MovedTo string     `json:"moved_to,omitempty"`
 	Finale  bool       `json:"finale,omitempty"`
+
+	// Arrival is the room the player just walked into, described. It repeats
+	// what the place panel shows, on purpose: the panel is the present tense
+	// and the log is what happened, and a player reading the log should not
+	// have to look away from it to find out where they now are.
+	Arrival []string `json:"arrival,omitempty"`
 
 	View    view     `json:"view"`
 	Signals *signals `json:"signals,omitempty"`
@@ -277,6 +290,7 @@ func (h *handlers) act(w http.ResponseWriter, r *http.Request) {
 		Matched: turn.Matched,
 		Text:    turn.Text,
 		Finale:  turn.Finale,
+		Arrival: turn.Arrival,
 		View:    h.view(s, st),
 	}
 	if turn.Outcome != nil {
@@ -295,6 +309,7 @@ func (h *handlers) act(w http.ResponseWriter, r *http.Request) {
 		resp.Signals = &signals{
 			Choice: turn.Choice, Score: turn.Score,
 			Confidence: turn.Confidence, Intent: turn.Intent, Declare: turn.Declare,
+			Closed: turn.Closed, Askee: turn.Askee,
 		}
 	}
 	writeJSON(w, http.StatusOK, resp)

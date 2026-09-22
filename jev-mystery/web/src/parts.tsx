@@ -18,6 +18,8 @@ export type Entry =
       lines: string[];
       gained: Item[];
       moved?: string;
+      /** The room walked into, described. Empty unless the turn moved. */
+      arrival: string[];
     }
   | { kind: "answer"; text: string }
   | { kind: "ending"; verdict: Verdict };
@@ -111,6 +113,9 @@ export function LogEntry(props: { entry: Entry }) {
       {entry.lines.map((line) => <p>{line}</p>)}
       {entry.gained.map((item) => <div class="found">{"見つけた: " + item.name}</div>)}
       {entry.moved ? <div class="moved">{"— " + entry.moved + " —"}</div> : null}
+      {entry.arrival.length > 0 ? (
+        <div class="arrival">{entry.arrival.map((line) => <p>{line}</p>)}</div>
+      ) : null}
     </div>
   );
 }
@@ -118,6 +123,13 @@ export function LogEntry(props: { entry: Entry }) {
 /**
  * The ending, and the scorecard behind it. The scorecard is safe here and
  * nowhere earlier: the case is over by the time it is read.
+ *
+ * Only the elements the player reached are named. The rest are counted and
+ * left unsaid, because the label of an element is a one-line statement of it:
+ * a player who wrote half a solution and was shown "柱時計のずれ" against a ×
+ * has just been told the other half, which is the one thing this screen must
+ * not do. The count still says how much was left, which is what the player
+ * actually wants to know.
  */
 function Ending(props: { verdict: Verdict }) {
   const v = props.verdict;
@@ -132,6 +144,9 @@ function Ending(props: { verdict: Verdict }) {
     <span>{label}</span>,
   ];
 
+  const found = v.points.filter((point) => point.hit);
+  const missed = v.points.length - found.length;
+
   const width = `${Math.round((100 * v.coherence) / (v.coherence_top || 1))}%`;
 
   return (
@@ -140,7 +155,13 @@ function Ending(props: { verdict: Verdict }) {
       {v.text.map((line) => <p>{line}</p>)}
       <div class="score">
         {row(v.correct, named)}
-        {v.points.map((point) => row(point.hit, point.label))}
+        {found.map((point) => row(true, point.label))}
+        {missed > 0
+          ? [
+              <span class="mark no">×</span>,
+              <span class="veiled">{`辿り着かなかったことが、あと ${missed} つ`}</span>,
+            ]
+          : null}
       </div>
       <div class="coherence">
         {`筋の通り ${v.coherence.toFixed(1)} / ${v.coherence_top}`}

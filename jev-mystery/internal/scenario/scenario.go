@@ -37,6 +37,12 @@ type Scenario struct {
 	Evidence   []Evidence  `json:"evidence"`
 	Actions    []Action    `json:"actions"`
 
+	// Flavour is prose the case does not turn on: the rain, a photograph, a
+	// look at somebody's hands. It is matched separately from the actions and
+	// after them, so it never competes with a real action for the vote, and
+	// it changes nothing — which is what makes it safe to write a lot of.
+	Flavours []Flavour `json:"flavours,omitempty"`
+
 	// Misses is what the player reads when an input matches nothing, keyed by
 	// the intent behind it. A miss is most of what a player will see early on,
 	// so it is authored per intent rather than being one flat "何も起きない".
@@ -49,6 +55,7 @@ type Scenario struct {
 	characters map[string]*Character
 	evidence   map[string]*Evidence
 	actions    map[string]*Action
+	flavour    map[string]*Flavour
 }
 
 // Scene is a place the player can be. Its description is read on arrival and
@@ -218,6 +225,38 @@ type Action struct {
 	MovesTo string   `json:"moves_to,omitempty"`
 }
 
+// Flavour is something to notice that the case does not turn on: the rain on
+// the roof, a photograph on a shelf, the way somebody is holding their hands.
+//
+// It exists because the thin part of this game is the space between an action
+// and a miss. A player who types something reasonable and reads "何も起こらない"
+// learns nothing, and learns it repeatedly. Flavour is the middle: the world
+// answers, and the state does not move.
+//
+// It is deliberately not an Action with no effects. An action competes for the
+// vote in the routing question, and a scene carrying twenty of these would
+// split the distribution until nothing could clear the threshold. Flavour is
+// asked in a question of its own, and only once the actions have all missed.
+type Flavour struct {
+	ID string `json:"id"`
+
+	// Scenes and Requires gate it exactly as they gate an action, so a case
+	// can hold prose that only appears once the player knows enough to see it.
+	Scenes   []string `json:"scenes,omitempty"`
+	Requires Requires `json:"requires,omitempty"`
+
+	Match Match `json:"match"`
+
+	// Speaker is whose portrait the lines are shown under, when the flavour is
+	// somebody saying something offhand.
+	Speaker string `json:"speaker,omitempty"`
+
+	// Did is optional here, unlike on an action: noticing something is not
+	// always an act worth naming.
+	Did  string   `json:"did,omitempty"`
+	Text []string `json:"text"`
+}
+
 // Point is one element of the truth the player's accusation is graded on. Each
 // becomes a noul: a narrow yes/no about the text the player wrote.
 type Point struct {
@@ -297,6 +336,7 @@ func (s *Scenario) index() error {
 	s.characters = make(map[string]*Character, len(s.Characters))
 	s.evidence = make(map[string]*Evidence, len(s.Evidence))
 	s.actions = make(map[string]*Action, len(s.Actions))
+	s.flavour = make(map[string]*Flavour, len(s.Flavours))
 
 	for i := range s.Scenes {
 		sc := &s.Scenes[i]
@@ -319,6 +359,12 @@ func (s *Scenario) index() error {
 	for i := range s.Actions {
 		a := &s.Actions[i]
 		if err := unique(s.actions, a.ID, a, "action"); err != nil {
+			return err
+		}
+	}
+	for i := range s.Flavours {
+		f := &s.Flavours[i]
+		if err := unique(s.flavour, f.ID, f, "flavour"); err != nil {
 			return err
 		}
 	}
@@ -369,7 +415,8 @@ func (s *Scenario) validate() error {
 	// "none" is the engine's own option for "this matches nothing", so an
 	// action may not take the name.
 	for _, a := range s.Actions {
-		if a.ID == NoMatch || a.ID == FinaleAction || strings.HasPrefix(a.ID, ClosedPrefix) {
+		if a.ID == NoMatch || a.ID == FinaleAction ||
+			strings.HasPrefix(a.ID, ClosedPrefix) || strings.HasPrefix(a.ID, FlavourPrefix) {
 			return fmt.Errorf("scenario: action id %q is reserved", a.ID)
 		}
 		if a.Match.What == "" {
@@ -382,6 +429,31 @@ func (s *Scenario) validate() error {
 			return fmt.Errorf("scenario: action %q has no result", a.ID)
 		}
 		if err := s.refs(a.ID, a); err != nil {
+			return err
+		}
+	}
+
+	// Flavour shares the id space with the actions. Nothing in the engine
+	// needs it to — the two are matched by separate questions — but a case is
+	// written by hand and read by a person, and two entries with one name is a
+	// mistake whichever list they are in.
+	for _, f := range s.Flavours {
+		if f.ID == NoMatch || f.ID == FinaleAction ||
+			strings.HasPrefix(f.ID, ClosedPrefix) || strings.HasPrefix(f.ID, FlavourPrefix) {
+			return fmt.Errorf("scenario: flavour id %q is reserved", f.ID)
+		}
+		if _, clash := s.actions[f.ID]; clash {
+			return fmt.Errorf("scenario: flavour %q has the same id as an action", f.ID)
+		}
+		if f.Match.What == "" {
+			return fmt.Errorf("scenario: flavour %q has no match.what", f.ID)
+		}
+		if len(f.Text) == 0 {
+			return fmt.Errorf("scenario: flavour %q has no text", f.ID)
+		}
+		if err := s.refs(f.ID, Action{
+			Scenes: f.Scenes, Requires: f.Requires, Speaker: f.Speaker,
+		}); err != nil {
 			return err
 		}
 	}
@@ -493,6 +565,13 @@ const (
 // room.
 const ClosedPrefix = "closed:"
 
+// FlavourPrefix marks a turn that landed on flavour rather than on an action:
+// `flavour:rain`. It never appears in a scenario file — the engine puts it on
+// the id when it reports what a turn matched — but an action or a flavour
+// entry may not take a name that starts with it, so that the tuning CLI's
+// tally can name either kind without ambiguity.
+const FlavourPrefix = "flavour:"
+
 // FinaleAction is the option name for calling everyone together, offered
 // alongside the scene's actions once the case is ready for it. It is reserved
 // because the engine, not the scenario, decides when it appears.
@@ -509,6 +588,9 @@ func (s *Scenario) Item(id string) *Evidence { return s.evidence[id] }
 
 // Action returns an action by id, or nil.
 func (s *Scenario) Action(id string) *Action { return s.actions[id] }
+
+// Flavour returns a flavour entry by id, or nil.
+func (s *Scenario) Flavour(id string) *Flavour { return s.flavour[id] }
 
 // Miss returns the text for an input that matched nothing, falling back to the
 // default entry for an intent the scenario does not name.

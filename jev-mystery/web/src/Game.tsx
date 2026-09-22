@@ -39,9 +39,14 @@ export function Game() {
     if (start === undefined) return;
     token.set(start.state);
     view.set(start.view);
+    // Where the case opens is described in the log as well as in the panel
+    // beside it: the first thing a player reads should include the room they
+    // are standing in.
+    const arrival = start.arrival ?? [];
     entries.set([
       { kind: "narration", lines: start.opening },
       { kind: "narration", lines: start.incident },
+      ...(arrival.length > 0 ? [{ kind: "narration" as const, lines: arrival }] : []),
     ]);
     phase.set("playing");
     draft.set("");
@@ -74,6 +79,7 @@ export function Game() {
         lines: turn.text,
         gained: turn.gained ?? [],
         moved: turn.moved_to === undefined ? undefined : turn.view.scene.name,
+        arrival: turn.arrival ?? [],
       });
       // The finale is not a screen the player opens: they ask to gather
       // everyone, in whatever words, and the service decides whether they may.
@@ -172,7 +178,10 @@ export function Game() {
             する
           </button>
         </form>
-        <p class="hint">思いついたことを書いてください。できることの一覧はありません。</p>
+        <p class="hint">
+          思いついたことを書いてください。できることの一覧はありません。
+          ここにいる人には、はい か いいえ で答えられる質問を、そのまま投げられます。
+        </p>
         </div>
       </Show>
       <Show when={() => error() !== ""}>

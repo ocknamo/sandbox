@@ -106,6 +106,30 @@ func TestPlayThrough(t *testing.T) {
 	}
 }
 
+// A room the player walks into describes itself, in the log rather than only
+// in the place panel. Without it a move reads as one line of prose and a
+// changed heading, and the player has no reason to search the new room.
+func TestMovingDescribesTheRoom(t *testing.T) {
+	h := serve(t, &stub{choice: "go_study"})
+
+	_, start := post(t, h, "/api/new", map[string]any{"case": "clockwork"})
+	if arrival, _ := start["arrival"].([]any); len(arrival) == 0 {
+		t.Error("a new game did not describe the room it opens in")
+	}
+
+	rec, turn := post(t, h, "/api/act", map[string]any{"state": start["state"], "input": "書斎へ行く"})
+	if rec.Code != http.StatusOK {
+		t.Fatalf("act: %d %s", rec.Code, rec.Body)
+	}
+	if turn["moved_to"] != "study" {
+		t.Fatalf("the turn did not move: %v", turn)
+	}
+	arrival, _ := turn["arrival"].([]any)
+	if len(arrival) == 0 {
+		t.Fatal("moving said nothing about the room arrived in")
+	}
+}
+
 // The case comes from the request, so that one deployment can serve every
 // case and the page can route on it.
 func TestCasesAreListedAndChosenByID(t *testing.T) {
