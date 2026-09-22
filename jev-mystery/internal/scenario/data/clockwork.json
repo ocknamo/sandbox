@@ -19,7 +19,7 @@
       "name": "玄関ホール",
       "description": [
         "雨音がよく響く。吹き抜けの壁際に、背の高い柱時計が立っている。",
-        "倉田静と曽根玲子が、離れた椅子に座っている。"
+        "階段の下に傘立てがひとつ。壁には、曽根家の古い写真が並んでいる。"
       ],
       "characters": [
         "kurata",
@@ -30,7 +30,8 @@
       "id": "study",
       "name": "書斎",
       "description": [
-        "破られた扉の向こう。机の上には書きかけの原稿と、空のグラスがひとつ。",
+        "破られた扉の向こう。曽根康三は机に突っ伏したままだ。",
+        "机の上には書きかけの原稿と、空のグラスがひとつ。引き出しは閉まっている。",
         "窓は庭に面していて、留め金は下りたままだ。"
       ],
       "characters": []
@@ -40,7 +41,7 @@
       "name": "テラス",
       "description": [
         "書斎の窓の外。庇があるので、雨に濡れずに立っていられる。",
-        "南条悟が煙草をふかしている。"
+        "足元の敷石に、吸い殻がいくつか落ちている。手すりの向こうは暗い庭だ。"
       ],
       "characters": [
         "nanjo"
@@ -258,8 +259,8 @@
         "study"
       ],
       "match": {
-        "what": "Examine the desk: its drawers, the papers on it, the glass.",
-        "not_for": "Examining the body or the window.",
+        "what": "Examine the desk: its drawers and the papers lying on it.",
+        "not_for": "Examining the body or the window, and picking up the glass standing on the desk.",
         "examples": [
           "机を調べる",
           "引き出しを開ける",
@@ -338,7 +339,7 @@
       "speaker": "kurata",
       "match": {
         "what": "Ask the secretary Kurata about her evening: where she was, what she did, when she last saw her employer.",
-        "not_for": "Asking her about the ledger or about the clock.",
+        "not_for": "Asking her about the ledger or about the clock. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
         "examples": [
           "倉田さんに今夜のことを聞く",
           "彼女のアリバイを尋ねる",
@@ -364,7 +365,7 @@
       },
       "match": {
         "what": "Confront the secretary Kurata with the ledger found in the desk.",
-        "not_for": "Asking her about her evening in general, or about the clock.",
+        "not_for": "Asking her about her evening in general, or about the clock. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
         "examples": [
           "帳簿について倉田さんに聞く",
           "帳簿を見せて問い詰める",
@@ -388,7 +389,7 @@
       "speaker": "reiko",
       "match": {
         "what": "Ask the widow Reiko what she heard or noticed during the evening.",
-        "not_for": "Asking the secretary or the writer anything.",
+        "not_for": "Asking the secretary or the writer anything. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
         "examples": [
           "玲子さんに物音を聞かなかったか尋ねる",
           "奥さんに話を聞く",
@@ -409,7 +410,7 @@
       "speaker": "nanjo",
       "match": {
         "what": "Ask the writer Nanjo what he saw or did out here on the terrace.",
-        "not_for": "Asking the secretary or the widow anything.",
+        "not_for": "Asking the secretary or the widow anything. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
         "examples": [
           "南条さんに話を聞く",
           "テラスで何を見たか尋ねる",
@@ -423,6 +424,122 @@
       ],
       "sets_flags": [
         "heard_latch"
+      ]
+    }
+  ],
+  "flavours": [
+    {
+      "id": "rain",
+      "match": {
+        "what": "Take in the weather: listening to the rain, looking at the storm, remarking on how long it has been coming down.",
+        "not_for": "Going outside to the terrace, or examining a particular object.",
+        "examples": [
+          "雨の音を聞く",
+          "今日の天気の話をする",
+          "外の天気を気にする"
+        ]
+      },
+      "did": "雨の音に耳をすませた。",
+      "text": [
+        "雨は昼から一度も止んでいない。",
+        "この降りでは、誰も屋敷を出入りできなかっただろう。今夜ここにいた者だけで、話は閉じている。"
+      ]
+    },
+    {
+      "id": "photographs",
+      "scenes": [
+        "hall"
+      ],
+      "match": {
+        "what": "Look at the old family photographs hanging on the wall of the hall.",
+        "not_for": "Examining the tall clock itself, or the umbrella stand.",
+        "examples": [
+          "壁の写真を見る",
+          "古い写真を眺める",
+          "額に入った写真に近づく"
+        ]
+      },
+      "did": "壁の古い写真を眺めた。",
+      "text": [
+        "曽根家の、二十年ぶんの写真が並んでいる。",
+        "正月の集合写真にも、誰かの誕生日にも、背景には必ずあの柱時計が写っている。この家の時刻は、ずっとあれだった。"
+      ]
+    },
+    {
+      "id": "notebook",
+      "match": {
+        "what": "Stop and put the case in order: going back over what has been heard, thinking, writing in a notebook.",
+        "not_for": "Asking the game what to do next or for a hint, and examining any object in the room.",
+        "examples": [
+          "手帳を開いて整理する",
+          "ここまでを考えてみる",
+          "聞いたことを書き出す"
+        ]
+      },
+      "did": "手帳を開き、ここまでを書き出した。",
+      "text": [
+        "九時。八時すぎ。十時。",
+        "書き出してみると、証言の時刻はどれも、誰かが何かを見て言ったものだと気づく。誰も、自分の腕で時を数えてはいない。"
+      ]
+    },
+    {
+      "id": "glass",
+      "scenes": [
+        "study"
+      ],
+      "match": {
+        "what": "Pick up or look closely at the empty glass standing on the desk.",
+        "not_for": "Searching the desk and its drawers, or examining the body or the window.",
+        "examples": [
+          "グラスを手に取る",
+          "空のグラスを覗き込む",
+          "コップの底を見る"
+        ]
+      },
+      "did": "空のグラスを手に取った。",
+      "text": [
+        "底に、茶の乾いた輪がうっすらと残っている。運ばれたのはたしかに茶だったらしい。",
+        "それがいつ運ばれたものかは、グラスは何も言わない。"
+      ]
+    },
+    {
+      "id": "cigarettes",
+      "scenes": [
+        "terrace"
+      ],
+      "match": {
+        "what": "Look at the cigarette ends lying on the terrace paving.",
+        "not_for": "Asking the writer Nanjo anything, or looking at the study window from outside.",
+        "examples": [
+          "吸い殻を数える",
+          "足元の煙草を見る",
+          "灰を確かめる"
+        ]
+      },
+      "did": "足元の吸い殻を数えた。",
+      "text": [
+        "四本。どれも根元まで灰になっていて、雨には濡れていない。",
+        "ここに、ずいぶん長く立っていた人間がいる。"
+      ]
+    },
+    {
+      "id": "curtains",
+      "scenes": [
+        "study"
+      ],
+      "match": {
+        "what": "Look out of the study window into the garden, or at the garden itself from inside.",
+        "not_for": "Examining the window latch or the frame, and going outside.",
+        "examples": [
+          "窓から庭を見る",
+          "外の暗がりを覗く",
+          "庭の様子を窓越しに見る"
+        ]
+      },
+      "did": "窓から庭を見た。",
+      "text": [
+        "ガラス越しの庭は、雨で何も見えない。",
+        "ただ、庇の下だけが乾いていて、そこに人の立てる幅がある。"
       ]
     }
   ],
@@ -443,7 +560,8 @@
       "相手は曖昧にうなずいただけだった。"
     ],
     "meta": [
-      "誰も指示はくれない。見て、聞いて、自分で決めるしかない。"
+      "誰も指示はくれない。歩いて、見て、訊いて、自分で決めるしかない。",
+      "――はい か いいえ で答えられることなら、その場にいる人に、そのまま訊いてしまってもいい。"
     ],
     "nonsense": [
       "……いまは、そんな場合ではない。"

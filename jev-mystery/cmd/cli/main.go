@@ -32,6 +32,7 @@ func main() {
 		match   = flag.Float64("match", game.DefaultPolicy().Match, "an option must reach this probability to count")
 		conf    = flag.Float64("confidence", game.DefaultPolicy().Confidence, "and the choice must be this confident")
 		point   = flag.Float64("point", game.DefaultPolicy().Point, "a point of the truth counts as found above this")
+		closed  = flag.Float64("closed", game.DefaultPolicy().Closed, "an input counts as a yes-or-no question above this")
 		answer  = flag.Float64("answer", game.DefaultPolicy().Answer, "a closed question is answered yes or no above this, and 'I don't know' below")
 		verbose = flag.Bool("v", false, "print the options that were on offer each turn")
 	)
@@ -39,7 +40,7 @@ func main() {
 
 	if err := run(*caseID, *model, *script, *accuse, game.Policy{
 		Match: *match, Confidence: *conf, Declare: game.DefaultPolicy().Declare, Point: *point,
-		Answer: *answer,
+		Closed: *closed, Answer: *answer,
 	}, *verbose); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
 		os.Exit(1)
@@ -72,10 +73,13 @@ func run(caseID, model, script, accuse string, policy game.Policy, verbose bool)
 	for _, p := range sc.Incident {
 		fmt.Println(" ", p)
 	}
-	fmt.Println()
 
 	ctx := context.Background()
 	st := game.New(sc)
+	for _, p := range game.Describe(sc, st) {
+		fmt.Println(" ", p)
+	}
+	fmt.Println()
 
 	var asked, right int
 	for line := range lines {
@@ -88,6 +92,9 @@ func run(caseID, model, script, accuse string, policy game.Policy, verbose bool)
 
 		if verbose {
 			fmt.Printf("  [on offer: %s]\n", strings.Join(ids(game.Available(sc, st)), ", "))
+			if flavours := flavourIDs(game.AvailableFlavour(sc, st)); len(flavours) > 0 {
+				fmt.Printf("  [flavour:  %s]\n", strings.Join(flavours, ", "))
+			}
 		}
 
 		start := time.Now()
@@ -106,8 +113,9 @@ func run(caseID, model, script, accuse string, policy game.Policy, verbose bool)
 			said = "  answered " + turn.Answer
 		}
 		fmt.Printf("> %s\n", input)
-		fmt.Printf("    %-16s %.2f  conf %.2f  intent %-8s declare %.2f%s  (%.1fs)\n",
-			got, turn.Score, turn.Confidence, turn.Intent, turn.Declare, said, time.Since(start).Seconds())
+		fmt.Printf("    %-16s %.2f  conf %.2f  intent %-8s declare %.2f  closed %.2f%s  (%.1fs)\n",
+			got, turn.Score, turn.Confidence, turn.Intent, turn.Declare, turn.Closed, said,
+			time.Since(start).Seconds())
 		if hasWant {
 			asked++
 			if got == want {
@@ -123,6 +131,9 @@ func run(caseID, model, script, accuse string, policy game.Policy, verbose bool)
 			for _, id := range turn.Outcome.Gained {
 				fmt.Printf("    + %s\n", sc.Item(id).Name)
 			}
+		}
+		for _, p := range turn.Arrival {
+			fmt.Println("   ", p)
 		}
 		fmt.Println()
 
@@ -225,6 +236,14 @@ func ids(actions []*scenario.Action) []string {
 	out := make([]string, 0, len(actions))
 	for _, a := range actions {
 		out = append(out, a.ID)
+	}
+	return out
+}
+
+func flavourIDs(flavours []*scenario.Flavour) []string {
+	out := make([]string, 0, len(flavours))
+	for _, f := range flavours {
+		out = append(out, f.ID)
 	}
 	return out
 }

@@ -2,20 +2,26 @@
 # Each line is "input<TAB>the action it should land on"; `none` means the
 # input is meant to match nothing. The tally at the end of a run is the
 # number that decides whether this game works at all.
+#
+# The words here are deliberately not the examples the scenario shows the
+# model. A walkthrough written out of the option list measures nothing.
 柱時計をよく見てみる	examine_clock
+壁に並んでいる額を眺める	flavour:photographs
 倉田さんに今夜どこにいたのか聞きたい	ask_kurata_evening
 奥さんは何か物音を聞いていないだろうか	ask_reiko_sound
 書斎に入る	go_study
 遺体の様子を確かめる	examine_body
 机の引き出しを開けてみる	examine_desk
+空のグラスを持ち上げてみる	flavour:glass
 窓の留め金を確かめたい	examine_window
 外のテラスに出る	go_terrace
 南条に話を聞く	ask_nanjo_terrace
+煙草の吸い殻がいくつ落ちているか見る	flavour:cigarettes
 ホールへ戻る	go_hall
 帳簿のことで倉田さんを問い詰める	ask_kurata_ledger
 倉田さん、九時に本当に会ったんですか	closed:kurata
 奥さんは夫と仲が良かったのですか	closed:reiko
+雨はいつから降り続いているのだろう	flavour:rain
 屋根によじ登る	none
-今日の天気の話をする	none
 どうすればいいか教えてほしい	none
 全員を広間に集めて推理を話す	finale

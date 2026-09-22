@@ -16,6 +16,19 @@ const (
 	KeyAction  = "action"
 	KeyIntent  = "intent"
 	KeyDeclare = "declare"
+
+	// KeyClosed asks the one thing a player cannot be expected to guess the
+	// phrasing for: whether what they typed is a question a person could
+	// answer with yes or no. It is a question of its own rather than an
+	// option in KeyAction, because a yes-or-no question competing against
+	// eight actions for one distribution has to beat all of them to be heard.
+	KeyClosed = "closed"
+
+	// KeyAskee is who that question is addressed to.
+	KeyAskee = "askee"
+
+	// KeyFlavour is the second pass over an input the actions all missed.
+	KeyFlavour = "flavour"
 )
 
 // Intents are the kinds of thing a player can be attempting, used only when
@@ -61,6 +74,12 @@ type Policy struct {
 	// been found in the player's written solution.
 	Point float64
 
+	// Closed is the noul above which an input counts as a yes-or-no question
+	// put to somebody standing here. It gates the closed-question path on its
+	// own judgement rather than on the routing distribution, which is what
+	// lets a question be asked in whatever words occur to the player.
+	Closed float64
+
 	// Answer is the probability a yes or a no must reach before a character
 	// will commit to it. Below it they say they do not know, which is the
 	// honest reading of a spread distribution and the only safe one: a
@@ -73,7 +92,7 @@ type Policy struct {
 // below half because a scene offering eight actions spreads its weight thin
 // even when the answer is obvious, and the option has to beat `none` anyway.
 func DefaultPolicy() Policy {
-	return Policy{Match: 0.4, Confidence: 0.35, Declare: 0.6, Point: 0.5, Answer: 0.5}
+	return Policy{Match: 0.4, Confidence: 0.35, Declare: 0.6, Point: 0.5, Closed: 0.5, Answer: 0.5}
 }
 
 // Turn is one exchange: what the player typed, what the model made of it, and
@@ -96,11 +115,21 @@ type Turn struct {
 	// every other turn.
 	Answer string `json:"answer,omitempty"`
 
+	// Arrival is the new room, described, on a turn that moved the player. It
+	// is not the action's result text: the action says how they got there and
+	// this says what they walked into.
+	Arrival []string `json:"arrival,omitempty"`
+
 	Intent     string  `json:"intent"`
 	Choice     string  `json:"choice"`
 	Score      float64 `json:"score"`
 	Confidence float64 `json:"confidence"`
 	Declare    float64 `json:"declare"`
+
+	// Closed is how much of a yes-or-no question the input was, and Askee who
+	// the model read it as being addressed to. Both are kept for tuning.
+	Closed float64 `json:"closed"`
+	Askee  string  `json:"askee,omitempty"`
 }
 
 // Engine turns free text into one of the authored actions.
@@ -118,6 +147,16 @@ var ErrNoInput = errors.New("game: empty input")
 const maxInputRunes = 400
 
 // Play puts one input to the model and applies whatever it matched.
+//
+// An input is offered three things to be, in this order: one of the actions
+// the case authored for here, a yes-or-no question to somebody standing here,
+// or a piece of flavour. The order is the point. An authored action wins
+// because its answer was written for exactly this question; the closed
+// question comes next because it can answer what nobody wrote; flavour comes
+// last because it changes nothing and so costs nothing to be wrong about.
+//
+// All of it is decided from one request. The questions are evaluated in
+// parallel, so the second and third passes are free of another round trip.
 func (e *Engine) Play(ctx context.Context, s *scenario.Scenario, st State, input string) (State, *Turn, error) {
 	input = trim(input, maxInputRunes)
 	if input == "" {
@@ -125,10 +164,13 @@ func (e *Engine) Play(ctx context.Context, s *scenario.Scenario, st State, input
 	}
 
 	avail := Available(s, st)
+	flavours := AvailableFlavour(s, st)
 	open := FinaleOpen(s, st)
 	askable := Askable(s, st)
 
-	resp, err := e.Asker.Ask(ctx, stateFor(s, st, input, len(askable) > 0), questions(s, avail, askable, open))
+	resp, err := e.Asker.Ask(ctx,
+		stateFor(s, st, input, len(askable) > 0),
+		questions(s, avail, flavours, askable, open))
 	if err != nil {
 		return st, nil, err
 	}
@@ -140,58 +182,115 @@ func (e *Engine) Play(ctx context.Context, s *scenario.Scenario, st State, input
 	if a, ok := resp.Answers[KeyDeclare]; ok && a.Noul != nil {
 		turn.Declare = *a.Noul
 	}
+	if a, ok := resp.Answers[KeyClosed]; ok && a.Noul != nil {
+		turn.Closed = *a.Noul
+	}
 
 	answer, ok := resp.Answers[KeyAction]
 	if !ok {
 		return st, nil, fmt.Errorf("game: no %q answer in response", KeyAction)
 	}
-	turn.Choice = answer.Choice
-	turn.Score = answer.Probabilities[answer.Choice]
-	if answer.Confidence != nil {
-		turn.Confidence = *answer.Confidence
-	}
+	choice, score, confidence, accepted := e.pick(answer)
+	turn.Choice, turn.Score, turn.Confidence = choice, score, confidence
 
 	st.Turn++
 
-	if !e.accept(answer, turn) {
-		turn.Text = e.miss(s, turn, open)
-		return st, turn, nil
-	}
-
-	if turn.Choice == scenario.FinaleAction {
-		turn.Finale, turn.Matched = true, true
-		turn.Text = s.Finale.Prompt
-		return st, turn, nil
-	}
-
-	if strings.HasPrefix(turn.Choice, scenario.ClosedPrefix) {
-		if c := s.Character(strings.TrimPrefix(turn.Choice, scenario.ClosedPrefix)); c != nil && c.Closed != nil {
-			if out, ok := e.answer(resp, c, turn); ok {
-				turn.Matched, turn.Outcome, turn.Text = true, &out, out.Text
-				return st, turn, nil
-			}
+	if accepted {
+		if choice == scenario.FinaleAction {
+			turn.Finale, turn.Matched = true, true
+			turn.Text = s.Finale.Prompt
+			return st, turn, nil
 		}
-		// Either the model named somebody who is not here, or its own answer
-		// says the input was not a yes-or-no question after all. Both are
-		// misses: an invented "はい" is worse than silence.
-		turn.Choice = scenario.NoMatch
-		turn.Text = e.miss(s, turn, open)
-		return st, turn, nil
-	}
-
-	a := s.Action(turn.Choice)
-	if a == nil {
+		if a := s.Action(choice); a != nil {
+			st, out := Apply(s, st, a)
+			turn.Matched, turn.Outcome, turn.Text = true, &out, out.Text
+			if out.MovedTo != "" {
+				turn.Arrival = Describe(s, st)
+			}
+			return st, turn, nil
+		}
 		// The model answered with an option that was never offered. Treat it
 		// as a miss rather than trusting it: an invented id would otherwise
 		// reach the scenario lookup as a nil dereference.
-		turn.Choice = scenario.NoMatch
-		turn.Text = e.miss(s, turn, open)
+	}
+
+	// No action. The input may still be a question somebody here can answer.
+	if out, ok := e.closed(resp, s, askable, turn); ok {
+		turn.Matched, turn.Outcome, turn.Text = true, &out, out.Text
 		return st, turn, nil
 	}
 
-	st, out := Apply(s, st, a)
-	turn.Matched, turn.Outcome, turn.Text = true, &out, out.Text
+	// Or something the case has prose for but no consequence.
+	if out, ok := e.flavour(resp, s, turn); ok {
+		turn.Matched, turn.Outcome, turn.Text = true, &out, out.Text
+		return st, turn, nil
+	}
+
+	turn.Choice = scenario.NoMatch
+	turn.Text = e.miss(s, turn, open)
 	return st, turn, nil
+}
+
+// closed answers a yes-or-no question, if that is what the input was.
+//
+// Three separate judgements have to agree before a character says anything:
+// that the input is a yes-or-no question at all, which of the people here it
+// was put to, and — from that person's own question — that yes or no could
+// answer it. Each is narrow, and none of them has to out-vote the actions.
+// That last part is the whole reason this is not an option in the routing:
+// a player who cannot guess the phrasing of a question the case has an answer
+// for will simply never find it.
+func (e *Engine) closed(resp *jev.Response, s *scenario.Scenario, askable []*scenario.Character, t *Turn) (Outcome, bool) {
+	if len(askable) == 0 || t.Closed < e.Policy.Closed {
+		return Outcome{}, false
+	}
+	who, ok := resp.Answers[KeyAskee]
+	if !ok {
+		return Outcome{}, false
+	}
+	id, score, confidence, accepted := e.pick(who)
+	t.Askee = id
+	if !accepted {
+		return Outcome{}, false
+	}
+	c := s.Character(id)
+	if c == nil || c.Closed == nil {
+		return Outcome{}, false
+	}
+
+	out, ok := e.answer(resp, c, t)
+	if !ok {
+		// The person's own question says yes or no could not answer this
+		// after all. That is a miss: an invented "はい" is worse than silence.
+		return Outcome{}, false
+	}
+	t.Choice, t.Score, t.Confidence = scenario.ClosedPrefix+c.ID, score, confidence
+	return out, true
+}
+
+// flavour is the last pass: prose for an input the case recognises but does
+// not act on. It runs only after everything else has missed, so a flavour
+// entry can be written loosely without putting an action out of reach.
+func (e *Engine) flavour(resp *jev.Response, s *scenario.Scenario, t *Turn) (Outcome, bool) {
+	a, ok := resp.Answers[KeyFlavour]
+	if !ok {
+		return Outcome{}, false
+	}
+	id, score, confidence, accepted := e.pick(a)
+	if !accepted {
+		return Outcome{}, false
+	}
+	f := s.Flavour(id)
+	if f == nil {
+		return Outcome{}, false
+	}
+	t.Choice, t.Score, t.Confidence = scenario.FlavourPrefix+f.ID, score, confidence
+	return Outcome{
+		ActionID: scenario.FlavourPrefix + f.ID,
+		Did:      f.Did,
+		Speaker:  f.Speaker,
+		Text:     f.Text,
+	}, true
 }
 
 // answer reads what the character said. The reply was asked for in the same
@@ -222,17 +321,24 @@ func (e *Engine) answer(resp *jev.Response, c *scenario.Character, t *Turn) (Out
 	}, true
 }
 
-// accept applies the policy to one choice answer.
-func (e *Engine) accept(a jev.Answer, t *Turn) bool {
-	if a.Choice == "" || a.Choice == scenario.NoMatch {
-		return false
+// pick reads one choice answer and applies the policy to it. It is used for
+// every choice the engine makes, so a flavour entry and an action have to
+// clear the same bar.
+func (e *Engine) pick(a jev.Answer) (choice string, score, confidence float64, ok bool) {
+	choice = a.Choice
+	score = a.Probabilities[choice]
+	if a.Confidence != nil {
+		confidence = *a.Confidence
+	}
+	if choice == "" || choice == scenario.NoMatch {
+		return choice, score, confidence, false
 	}
 	// Beating `none` matters more than any fixed floor: it is the option that
 	// exists precisely to absorb an input the case has no answer for.
-	if t.Score <= a.Probabilities[scenario.NoMatch] {
-		return false
+	if score <= a.Probabilities[scenario.NoMatch] {
+		return choice, score, confidence, false
 	}
-	return t.Score >= e.Policy.Match && t.Confidence >= e.Policy.Confidence
+	return choice, score, confidence, score >= e.Policy.Match && confidence >= e.Policy.Confidence
 }
 
 // miss picks the text for an input that matched nothing. A player who is
@@ -307,32 +413,18 @@ func stateFor(s *scenario.Scenario, st State, input string, withStory bool) play
 	return v
 }
 
-// questions builds the turn's request. All three are evaluated in parallel, so
-// asking what kind of thing the player attempted costs almost nothing on top
-// of asking which action they meant, and it is what makes a miss readable.
-func questions(s *scenario.Scenario, avail []*scenario.Action, askable []*scenario.Character, finaleOpen bool) map[string]jev.Question {
+// questions builds the turn's request. Every question in it is evaluated in
+// parallel, so asking what kind of thing the player attempted, whether it was
+// a yes-or-no question, and what flavour it might be instead costs almost
+// nothing on top of asking which action they meant. The expensive thing is the
+// number of requests, and this is one.
+func questions(s *scenario.Scenario, avail []*scenario.Action, flavours []*scenario.Flavour, askable []*scenario.Character, finaleOpen bool) map[string]jev.Question {
 	options := make(map[string]jev.Option, len(avail)+2)
 	for _, a := range avail {
 		options[a.ID] = option(a.Match)
 	}
 	if finaleOpen {
 		options[scenario.FinaleAction] = option(s.Finale.Match)
-	}
-	// One option per person here who can be asked. Naming them separately is
-	// what lets "彼女は九時に会ったんですね？" pick the right mouth; a single
-	// "ask somebody" option would need a second question to say who.
-	for _, c := range askable {
-		options[scenario.ClosedPrefix+c.ID] = jev.Option{
-			What: "Put a question to " + c.Name + " (" + c.Role + ") that can be " +
-				"answered with yes or no — asking whether something is so, rather " +
-				"than asking to be told about it.",
-			NotFor: "A question to anyone else, or an open question to " + c.Name +
-				" that wants an account of something rather than a yes or a no.",
-			Examples: []string{
-				c.Name + "さんは九時に会ったんですか",
-				"あなたがやったのか、" + c.Name + "さんに訊く",
-			},
-		}
 	}
 	options[scenario.NoMatch] = jev.Option{
 		What: "The input asks for something none of the other options describe, " +
@@ -374,13 +466,99 @@ func questions(s *scenario.Scenario, avail []*scenario.Action, askable []*scenar
 				"to have solved the case."),
 	}
 
-	// Every person here is asked what they would say, in the same request.
-	// Only the one the player addressed is read; the rest cost a few tokens
-	// each and save a second round trip.
-	for _, c := range askable {
-		qs[scenario.ClosedPrefix+c.ID] = closedQuestion(c)
+	if len(flavours) > 0 {
+		qs[KeyFlavour] = flavourQuestion(flavours)
+	}
+	if len(askable) > 0 {
+		qs[KeyClosed], qs[KeyAskee] = closedNoul(askable), askeeQuestion(askable)
+		// Every person here is asked what they would say, in the same request.
+		// Only the one the player addressed is read; the rest cost a few
+		// tokens each and save a second round trip.
+		for _, c := range askable {
+			qs[scenario.ClosedPrefix+c.ID] = closedQuestion(c)
+		}
 	}
 	return qs
+}
+
+// flavourQuestion is the second pass over an input, over the prose the case
+// has that changes nothing. It is a separate distribution from the actions on
+// purpose: a scene can carry as much flavour as its author likes without any
+// of it taking probability away from something the player needs to be able
+// to reach.
+func flavourQuestion(flavours []*scenario.Flavour) jev.Question {
+	options := make(map[string]jev.Option, len(flavours)+1)
+	for _, f := range flavours {
+		options[f.ID] = option(f.Match)
+	}
+	options[scenario.NoMatch] = jev.Option{
+		What: "The input is not close to any of these; nothing here answers it.",
+		NotFor: "An input that plainly asks for one of the other options, even " +
+			"if it is worded loosely.",
+	}
+	return jev.ChoiceOptions(
+		"A player in a detective game typed what they want to do next, and no "+
+			"action of the case covers it. Is what they typed close to any of "+
+			"these things there is something to say about? Choose 'none' unless "+
+			"one of them is plainly what the player is reaching for.",
+		options)
+}
+
+// closedNoul is the judgement the player should not have to guess the wording
+// for: whether what they typed is a question a person could answer yes or no.
+//
+// This exists because a player cannot see the option list, and so cannot see
+// that asking a question outright is a thing the game does. The answer to
+// "how do I ask a yes-or-no question?" has to be "you write one", which means
+// recognising one has to be its own judgement rather than a race against the
+// scene's actions.
+func closedNoul(askable []*scenario.Character) jev.Question {
+	var b strings.Builder
+	b.WriteString("Is the player putting a question to one of the people standing here — ")
+	for i, c := range askable {
+		if i > 0 {
+			b.WriteString(", ")
+		}
+		b.WriteString(c.Name)
+		b.WriteString(" (")
+		b.WriteString(c.Role)
+		b.WriteString(")")
+	}
+	b.WriteString(" — that could be answered with yes or no? True for asking whether ")
+	b.WriteString("something is so, whether someone did something, whether something ")
+	b.WriteString("is true, however politely or indirectly it is phrased, and whether ")
+	b.WriteString("or not the person is named. False for a question that wants an ")
+	b.WriteString("account of something rather than a yes or a no, for an order, for a ")
+	b.WriteString("remark, and for anything not addressed to a person.")
+	return jev.Noul(b.String())
+}
+
+// askeeQuestion is who the question was put to. Naming the people separately
+// is what lets "彼女は九時に会ったんですね？" pick the right mouth.
+func askeeQuestion(askable []*scenario.Character) jev.Question {
+	options := make(map[string]jev.Option, len(askable)+1)
+	for _, c := range askable {
+		options[c.ID] = jev.Option{
+			What: "The question is put to " + c.Name + " (" + c.Role + ").",
+			NotFor: "A question put to anybody else, or one that names nobody " +
+				"and could not be meant for " + c.Name + ".",
+			Examples: []string{
+				c.Name + "さんは九時に会ったんですか",
+				"あなたがやったのか、" + c.Name + "さんに訊く",
+			},
+		}
+	}
+	options[scenario.NoMatch] = jev.Option{
+		What: "The input is addressed to nobody here, or there is no telling " +
+			"which of them it is meant for.",
+		NotFor: "An input addressed to one of them by name, by role, or by a " +
+			"pronoun that can only mean one of them.",
+	}
+	return jev.ChoiceOptions(
+		"A player in a detective game has asked a question. Which of the people "+
+			"standing here is it addressed to? A question addressed to the room, "+
+			"or to somebody who is not here, is 'none'.",
+		options)
 }
 
 // closedQuestion is the yes-or-no one.

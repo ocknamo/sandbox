@@ -21,13 +21,33 @@ type fake struct {
 	noul    float64
 	score   float64
 
-	// said is what a character answers a closed question with, and saidProb
-	// how sure they are of it.
-	said     string
-	saidProb float64
+	// closed is how much of a yes-or-no question the input was, askee who it
+	// was put to, and said what that person answers with. The three are
+	// separate judgements in the request, so they are separate here too.
+	closed    float64
+	askee     string
+	askeeProb float64
+	said      string
+	saidProb  float64
+
+	// flavour is the entry the second pass lands on, once the actions have
+	// all missed.
+	flavour     string
+	flavourProb float64
 
 	asked map[string]jev.Question
 	state any
+}
+
+// choiceAnswer is a choice as the API returns one: the pick, its share of the
+// distribution, and whatever is left over sitting on `none`.
+func choiceAnswer(choice string, prob, conf float64) jev.Answer {
+	return jev.Answer{
+		Type:          jev.TypeChoice,
+		Choice:        choice,
+		Probabilities: map[string]float64{choice: prob, scenario.NoMatch: 1 - prob},
+		Confidence:    &conf,
+	}
 }
 
 func (f *fake) Ask(_ context.Context, state any, qs map[string]jev.Question) (*jev.Response, error) {
@@ -36,28 +56,25 @@ func (f *fake) Ask(_ context.Context, state any, qs map[string]jev.Question) (*j
 	for key, q := range qs {
 		switch {
 		case key == KeyAction:
-			conf := f.conf
-			answers[key] = jev.Answer{
-				Type:          jev.TypeChoice,
-				Choice:        f.choice,
-				Probabilities: map[string]float64{f.choice: f.prob, scenario.NoMatch: 1 - f.prob},
-				Confidence:    &conf,
-			}
+			answers[key] = choiceAnswer(f.choice, f.prob, f.conf)
 		case key == KeyIntent:
 			answers[key] = jev.Answer{Type: jev.TypeChoice, Choice: f.intent}
 		case key == KeyDeclare:
 			d := f.declare
 			answers[key] = jev.Answer{Type: jev.TypeNoul, Noul: &d}
+		case key == KeyClosed:
+			c := f.closed
+			answers[key] = jev.Answer{Type: jev.TypeNoul, Noul: &c}
+		case key == KeyAskee:
+			answers[key] = choiceAnswer(f.askee, orElse(f.askeeProb, 0.9), 0.9)
+		case key == KeyFlavour:
+			answers[key] = choiceAnswer(f.flavour, orElse(f.flavourProb, 0.9), 0.9)
 		case key == KeyCulprit:
 			answers[key] = jev.Answer{Type: jev.TypeChoice, Choice: f.choice,
 				Probabilities: map[string]float64{f.choice: f.prob}}
 		case strings.HasPrefix(key, scenario.ClosedPrefix):
-			prob := f.saidProb
-			if prob == 0 {
-				prob = 0.9
-			}
 			answers[key] = jev.Answer{Type: jev.TypeChoice, Choice: f.said,
-				Probabilities: map[string]float64{f.said: prob}}
+				Probabilities: map[string]float64{f.said: orElse(f.saidProb, 0.9)}}
 		case key == KeyCoherence:
 			s := f.score
 			answers[key] = jev.Answer{Type: jev.TypeScore, Score: &s,
@@ -68,6 +85,13 @@ func (f *fake) Ask(_ context.Context, state any, qs map[string]jev.Question) (*j
 		}
 	}
 	return &jev.Response{Answers: answers}, nil
+}
+
+func orElse(v, fallback float64) float64 {
+	if v == 0 {
+		return fallback
+	}
+	return v
 }
 
 func load(t *testing.T) *scenario.Scenario {
@@ -172,6 +196,19 @@ func TestOnlyReachableActionsAreOffered(t *testing.T) {
 	if _, offered := options[scenario.FinaleAction]; offered {
 		t.Error("the finale was offered before the case was ready for it")
 	}
+	// A yes-or-no question is judged on its own rather than competing with
+	// the actions for one distribution. That is the whole reason a player can
+	// ask one in whatever words occur to them.
+	for _, id := range []string{scenario.ClosedPrefix + "kurata", scenario.ClosedPrefix + "reiko"} {
+		if _, offered := options[id]; offered {
+			t.Errorf("%s is competing with the actions for the vote", id)
+		}
+	}
+	for _, key := range []string{KeyClosed, KeyAskee, KeyFlavour, scenario.ClosedPrefix + "kurata"} {
+		if _, asked := f.asked[key]; !asked {
+			t.Errorf("the turn did not ask %q", key)
+		}
+	}
 }
 
 func TestFinaleIsOfferedOnceTheCaseIsReady(t *testing.T) {
@@ -252,11 +289,14 @@ func TestApplyIsIdempotent(t *testing.T) {
 
 // A closed question is answered in the same request that routed it, so it
 // costs one round trip like any other turn.
+//
+// Nothing about it goes through the action routing any more: the action
+// question missed here, and the question was still answered.
 func TestAClosedQuestionIsAnswered(t *testing.T) {
 	s := load(t)
 	f := &fake{
-		choice: scenario.ClosedPrefix + "kurata", prob: 0.8, conf: 0.9,
-		intent: IntentAsk, said: scenario.AnswerNo,
+		choice: scenario.NoMatch, prob: 0.9, conf: 0.9, intent: IntentAsk,
+		closed: 0.9, askee: "kurata", said: scenario.AnswerNo,
 	}
 	e := &Engine{Asker: f, Policy: DefaultPolicy()}
 
@@ -266,6 +306,9 @@ func TestAClosedQuestionIsAnswered(t *testing.T) {
 	}
 	if !turn.Matched || turn.Outcome == nil {
 		t.Fatal("the question went unanswered")
+	}
+	if turn.Choice != scenario.ClosedPrefix+"kurata" {
+		t.Errorf("choice = %q, want the closed question to kurata", turn.Choice)
 	}
 	if turn.Answer != scenario.AnswerNo {
 		t.Errorf("answer = %q, want %q", turn.Answer, scenario.AnswerNo)
@@ -279,13 +322,55 @@ func TestAClosedQuestionIsAnswered(t *testing.T) {
 	}
 }
 
+// Whether the input is a yes-or-no question is its own judgement, put to the
+// model directly. Below the threshold nobody answers, however plainly the
+// input names one of them: a player who meant to say something else to
+// somebody should not be handed a "はい".
+func TestAnInputThatIsNotAQuestionGetsNoAnswer(t *testing.T) {
+	s := load(t)
+	f := &fake{
+		choice: scenario.NoMatch, prob: 0.9, conf: 0.9, intent: IntentTalk,
+		closed: 0.2, askee: "kurata", said: scenario.AnswerYes,
+	}
+	e := &Engine{Asker: f, Policy: DefaultPolicy()}
+
+	_, turn, err := e.Play(context.Background(), s, New(s), "倉田さんをじっと見る")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if turn.Matched || turn.Answer != "" {
+		t.Fatalf("this should not have been answered: %+v", turn)
+	}
+	if got := strings.Join(turn.Text, ""); got != strings.Join(s.Miss(IntentTalk), "") {
+		t.Errorf("text = %q, want the talk miss", got)
+	}
+}
+
+// A question addressed to nobody in particular is not put in anybody's mouth.
+func TestAQuestionAddressedToNobodyIsNotAnswered(t *testing.T) {
+	s := load(t)
+	f := &fake{
+		choice: scenario.NoMatch, prob: 0.9, conf: 0.9, intent: IntentAsk,
+		closed: 0.9, askee: scenario.NoMatch, said: scenario.AnswerYes,
+	}
+	e := &Engine{Asker: f, Policy: DefaultPolicy()}
+
+	_, turn, err := e.Play(context.Background(), s, New(s), "誰か、九時に会いましたか")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if turn.Matched || turn.Answer != "" {
+		t.Fatalf("nobody was addressed and somebody answered: %+v", turn)
+	}
+}
+
 // A coin-flip between yes and no is the one answer this game must never give:
 // the player cannot tell it from a considered one.
 func TestAnUnsureAnswerBecomesIDoNotKnow(t *testing.T) {
 	s := load(t)
 	f := &fake{
-		choice: scenario.ClosedPrefix + "kurata", prob: 0.8, conf: 0.9,
-		intent: IntentAsk, said: scenario.AnswerYes, saidProb: 0.3,
+		choice: scenario.NoMatch, prob: 0.9, conf: 0.9, intent: IntentAsk,
+		closed: 0.9, askee: "kurata", said: scenario.AnswerYes, saidProb: 0.3,
 	}
 	e := &Engine{Asker: f, Policy: DefaultPolicy()}
 
@@ -298,25 +383,172 @@ func TestAnUnsureAnswerBecomesIDoNotKnow(t *testing.T) {
 	}
 }
 
-// The model's own fourth option says the input was not a yes-or-no question
-// after all, which is a miss rather than an answer.
-func TestAnInputThatIsNotAQuestionMisses(t *testing.T) {
+// The person asked keeps the last word. Their own question has a fourth
+// option saying yes or no could not answer what was put to them, and it
+// overrides the two judgements that got the question to them.
+func TestThePersonAskedCanRefuseTheQuestion(t *testing.T) {
 	s := load(t)
 	f := &fake{
-		choice: scenario.ClosedPrefix + "kurata", prob: 0.8, conf: 0.9,
-		intent: IntentTalk, said: notClosed,
+		choice: scenario.NoMatch, prob: 0.9, conf: 0.9, intent: IntentAsk,
+		closed: 0.9, askee: "kurata", said: notClosed,
 	}
 	e := &Engine{Asker: f, Policy: DefaultPolicy()}
 
-	_, turn, err := e.Play(context.Background(), s, New(s), "倉田さんをじっと見る")
+	_, turn, err := e.Play(context.Background(), s, New(s), "倉田さん、今夜のことを話してください")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if turn.Matched {
 		t.Fatal("this should not have counted as an answer")
 	}
-	if got := strings.Join(turn.Text, ""); got != strings.Join(s.Miss(IntentTalk), "") {
-		t.Errorf("text = %q, want the talk miss", got)
+}
+
+// An authored action wins over the closed question, even when the input is
+// plainly a yes-or-no one. The author wrote an answer to this; the model's
+// own reply is for everything they did not.
+func TestAnAuthoredActionBeatsAClosedQuestion(t *testing.T) {
+	s := load(t)
+	f := &fake{
+		choice: "ask_kurata_evening", prob: 0.8, conf: 0.9, intent: IntentAsk,
+		closed: 0.95, askee: "kurata", said: scenario.AnswerNo,
+	}
+	e := &Engine{Asker: f, Policy: DefaultPolicy()}
+
+	_, turn, err := e.Play(context.Background(), s, New(s), "倉田さん、九時に会ったんですか")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if turn.Choice != "ask_kurata_evening" || turn.Answer != "" {
+		t.Errorf("turn = %+v, want the authored answer", turn)
+	}
+}
+
+// Flavour is the last pass. It answers only what everything else missed, so
+// writing more of it can never put an action out of reach.
+func TestFlavourAnswersWhatTheActionsMissed(t *testing.T) {
+	s := load(t)
+	f := &fake{
+		choice: scenario.NoMatch, prob: 0.9, conf: 0.9, intent: IntentSearch,
+		flavour: "photographs",
+	}
+	e := &Engine{Asker: f, Policy: DefaultPolicy()}
+
+	st, turn, err := e.Play(context.Background(), s, New(s), "壁の写真を眺める")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !turn.Matched || turn.Outcome == nil {
+		t.Fatal("the flavour went unread")
+	}
+	if turn.Choice != scenario.FlavourPrefix+"photographs" {
+		t.Errorf("choice = %q", turn.Choice)
+	}
+	if got, want := strings.Join(turn.Text, ""), strings.Join(s.Flavour("photographs").Text, ""); got != want {
+		t.Errorf("text = %q, want the flavour text", got)
+	}
+	// Flavour changes nothing. That is what makes it safe to write a lot of.
+	if len(st.Evidence) != 0 || len(st.Flags) != 0 || len(st.Taken) != 0 {
+		t.Errorf("flavour moved the state: %+v", st)
+	}
+}
+
+func TestAnActionBeatsFlavour(t *testing.T) {
+	s := load(t)
+	f := &fake{
+		choice: "examine_clock", prob: 0.8, conf: 0.9, intent: IntentSearch,
+		flavour: "photographs",
+	}
+	e := &Engine{Asker: f, Policy: DefaultPolicy()}
+
+	_, turn, err := e.Play(context.Background(), s, New(s), "柱時計を調べる")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if turn.Choice != "examine_clock" {
+		t.Errorf("choice = %q, want the action", turn.Choice)
+	}
+}
+
+// Flavour is gated like an action: one written for the study is not offered
+// in the hall.
+func TestFlavourIsGatedByScene(t *testing.T) {
+	s := load(t)
+	f := &fake{choice: scenario.NoMatch, prob: 0.9, conf: 0.9, flavour: scenario.NoMatch}
+	e := &Engine{Asker: f, Policy: DefaultPolicy()}
+
+	if _, _, err := e.Play(context.Background(), s, New(s), "何かする"); err != nil {
+		t.Fatal(err)
+	}
+	options, ok := f.asked[KeyFlavour].Criteria.(map[string]jev.Option)
+	if !ok {
+		t.Fatalf("the flavour question carries %T, not options", f.asked[KeyFlavour].Criteria)
+	}
+	if _, offered := options["glass"]; offered {
+		t.Error("flavour from the study was offered in the hall")
+	}
+	if _, offered := options["photographs"]; !offered {
+		t.Error("the hall's own flavour was not offered")
+	}
+	if _, offered := options[scenario.NoMatch]; !offered {
+		t.Error("none has to absorb an input no flavour covers")
+	}
+}
+
+// Walking into a room says what is in it. A player who moved and was told
+// nothing has no reason to search the place they just arrived in.
+func TestMovingDescribesTheRoomArrivedIn(t *testing.T) {
+	s := load(t)
+	f := &fake{choice: "go_study", prob: 0.8, conf: 0.9, intent: IntentMove}
+	e := &Engine{Asker: f, Policy: DefaultPolicy()}
+
+	_, turn, err := e.Play(context.Background(), s, New(s), "書斎へ行く")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(turn.Arrival) == 0 {
+		t.Fatal("moving said nothing about where the player now is")
+	}
+	if got, want := turn.Arrival[0], s.Scene("study").Description[0]; got != want {
+		t.Errorf("arrival = %q, want the study's description", got)
+	}
+	// Nobody is in the study, and saying so is part of the description.
+	if last := turn.Arrival[len(turn.Arrival)-1]; last != "ここには誰もいない。" {
+		t.Errorf("arrival ends %q", last)
+	}
+}
+
+// A turn that did not move the player says nothing about the room: the log
+// would otherwise repeat the place panel on every line.
+func TestAnActionThatStaysPutDescribesNothing(t *testing.T) {
+	s := load(t)
+	f := &fake{choice: "examine_clock", prob: 0.8, conf: 0.9, intent: IntentSearch}
+	e := &Engine{Asker: f, Policy: DefaultPolicy()}
+
+	_, turn, err := e.Play(context.Background(), s, New(s), "柱時計を調べる")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(turn.Arrival) != 0 {
+		t.Errorf("arrival = %v, want nothing", turn.Arrival)
+	}
+}
+
+// Describe names whoever is standing in the room, which is why that line
+// cannot be written into the scenario file: it changes as the case moves.
+func TestDescribeNamesThePeopleInTheRoom(t *testing.T) {
+	s := load(t)
+	lines := Describe(s, New(s))
+	last := lines[len(lines)-1]
+	for _, want := range []string{"倉田 静", "曽根 玲子"} {
+		if !strings.Contains(last, want) {
+			t.Errorf("%q does not name %s", last, want)
+		}
+	}
+
+	st := New(s)
+	st.Scene = "terrace"
+	if lines := Describe(s, st); !strings.Contains(lines[len(lines)-1], "南条 悟") {
+		t.Errorf("the terrace does not name its one person: %q", lines)
 	}
 }
 

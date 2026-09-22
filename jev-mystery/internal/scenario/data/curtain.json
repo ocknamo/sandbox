@@ -19,7 +19,7 @@
       "name": "舞台裏",
       "description": [
         "平台と書き割りが立てかけられ、足元にケーブルが走っている。",
-        "白河澪が、衣装のまま壁にもたれている。"
+        "平台の陰に、篠塚欣一が倒れたままだ。すぐ脇に、幕を引くための綱が垂れている。"
       ],
       "characters": [
         "shirakawa"
@@ -30,7 +30,7 @@
       "name": "照明室",
       "description": [
         "客席後方の小部屋。窓から舞台がまっすぐ見える。",
-        "照明卓の前に郷田が座ったままでいる。"
+        "照明卓と、その脇に留められた進行表。壁の時計は秒まで刻んでいる。"
       ],
       "characters": [
         "goda"
@@ -40,8 +40,8 @@
       "id": "dressing",
       "name": "楽屋",
       "description": [
-        "鏡と長机。隅の灰皿から、まだ焦げたにおいがしている。",
-        "鶴見宏が、台本の束を抱えて立っている。"
+        "鏡と長机。長机には台本の束と、書きかけの紙が散っている。",
+        "隅の灰皿から、まだ焦げたにおいがしている。"
       ],
       "characters": [
         "tsurumi"
@@ -339,7 +339,7 @@
       "speaker": "shirakawa",
       "match": {
         "what": "Ask the leading actress Shirakawa about the blackout or about her evening.",
-        "not_for": "Asking the lighting operator or the writer anything.",
+        "not_for": "Asking the lighting operator or the writer anything. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
         "examples": [
           "白河さんに話を聞く",
           "暗転のことを女優に尋ねる",
@@ -360,7 +360,7 @@
       "speaker": "goda",
       "match": {
         "what": "Ask the lighting operator Goda about the cues he ran.",
-        "not_for": "Asking the actress or the writer anything.",
+        "not_for": "Asking the actress or the writer anything. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
         "examples": [
           "郷田さんに話を聞く",
           "照明係にキューのことを尋ねる",
@@ -384,7 +384,7 @@
       "speaker": "tsurumi",
       "match": {
         "what": "Ask the writer Tsurumi about the evening, the script or the announcement.",
-        "not_for": "Confronting him with the burnt paper, or asking the actress or the operator anything.",
+        "not_for": "Confronting him with the burnt paper, or asking the actress or the operator anything. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
         "examples": [
           "鶴見さんに話を聞く",
           "脚本家に今夜のことを尋ねる",
@@ -410,7 +410,7 @@
       },
       "match": {
         "what": "Confront the writer Tsurumi with the burnt paper from the ashtray.",
-        "not_for": "Asking him about the evening in general.",
+        "not_for": "Asking him about the evening in general. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
         "examples": [
           "灰皿の紙片について鶴見さんに聞く",
           "焼いたものを問い詰める",
@@ -424,6 +424,119 @@
       ],
       "sets_flags": [
         "tsurumi_pressed"
+      ]
+    }
+  ],
+  "flavours": [
+    {
+      "id": "house",
+      "match": {
+        "what": "Take in the theatre itself: the empty seats, the smell of the house, the quiet after a performance.",
+        "not_for": "Going to another room, or examining a particular object.",
+        "examples": [
+          "客席を眺める",
+          "劇場の空気を吸う",
+          "静まった場内を見渡す"
+        ]
+      },
+      "did": "静まった場内を眺めた。",
+      "text": [
+        "客はとうに帰り、非常灯だけが点いている。",
+        "受付は開演から出入口を押さえていた。今夜ここにいた者だけで、話は閉じている。"
+      ]
+    },
+    {
+      "id": "script",
+      "match": {
+        "what": "Look at the playbook or the printed script of tonight's play, as a text: what the scene was supposed to be.",
+        "not_for": "Examining the long desk in the dressing room, or the cue log in the booth.",
+        "examples": [
+          "台本を読み返す",
+          "上演台本をめくる",
+          "二幕の段取りを台本で確かめる"
+        ]
+      },
+      "did": "台本の二幕を読み返した。",
+      "text": [
+        "二幕の暗転には「八秒」と刷ってある。役者が下手にはけて、平台が回るまでの間だ。",
+        "八秒。そのあいだに人ひとりを殺して戻れる者は、この座にいない。"
+      ]
+    },
+    {
+      "id": "notebook",
+      "match": {
+        "what": "Stop and put the case in order: going back over what has been heard, thinking, writing in a notebook.",
+        "not_for": "Asking the game what to do next or for a hint, and examining any object in the room.",
+        "examples": [
+          "手帳を開いて整理する",
+          "ここまでを考えてみる",
+          "聞いたことを書き出す"
+        ]
+      },
+      "did": "手帳を開き、ここまでを書き出した。",
+      "text": [
+        "暗転。八秒。四十秒。",
+        "書き出してみると、この事件で動いているのは人ではなく時間のほうだと気づく。誰がどこにいたかではなく、暗闇が何秒つづいたか。"
+      ]
+    },
+    {
+      "id": "ropes",
+      "scenes": [
+        "stage"
+      ],
+      "match": {
+        "what": "Look at the ropes, the flats and the cables backstage — the machinery of the stage rather than the body.",
+        "not_for": "Examining the body itself.",
+        "examples": [
+          "綱を見る",
+          "書き割りの裏を覗く",
+          "足元のケーブルをたどる"
+        ]
+      },
+      "did": "舞台の裏側を見て回った。",
+      "text": [
+        "平台の裏に、黒く乾いた滴が落ちている。表側には一滴もない。",
+        "刺されたのは、この陰に入ってからだ。"
+      ]
+    },
+    {
+      "id": "window",
+      "scenes": [
+        "booth"
+      ],
+      "match": {
+        "what": "Look down at the stage through the booth window, seeing what the operator could see from here.",
+        "not_for": "Examining the lighting desk or the cue log, or asking the operator anything.",
+        "examples": [
+          "窓から舞台を見下ろす",
+          "照明室から見える範囲を確かめる",
+          "ここから何が見えるか確かめる"
+        ]
+      },
+      "did": "照明室の窓から舞台を見下ろした。",
+      "text": [
+        "舞台はまっすぐ見える。だが見えるのは明かりの当たっているところだけで、平台の陰は、ここからは死角だ。",
+        "暗転のあいだ、この窓は何も映さない。"
+      ]
+    },
+    {
+      "id": "mirror",
+      "scenes": [
+        "dressing"
+      ],
+      "match": {
+        "what": "Look at the dressing mirror and the things laid out in front of it: greasepaint, a towel, somebody's belongings.",
+        "not_for": "Examining the ashtray or the long desk.",
+        "examples": [
+          "鏡台を見る",
+          "化粧前を眺める",
+          "鏡の前のものを確かめる"
+        ]
+      },
+      "did": "鏡の前を眺めた。",
+      "text": [
+        "白粉と、使い込んだ刷毛。畳まれた手拭いは、まだ湿っている。",
+        "鏡の隅に、十年前の公演の写真が一枚挟んである。座長と、若い鶴見が並んで写っている。"
       ]
     }
   ],
@@ -444,7 +557,8 @@
       "相手は目を伏せただけだった。"
     ],
     "meta": [
-      "誰も教えてはくれない。見て、聞いて、自分で決めるしかない。"
+      "誰も教えてはくれない。見て、聞いて、自分で決めるしかない。",
+      "――はい か いいえ で答えられることなら、その場にいる人に、そのまま訊いてしまってもいい。"
     ],
     "nonsense": [
       "……いまは、そんな場合ではない。"

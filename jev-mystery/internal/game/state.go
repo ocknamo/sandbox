@@ -10,6 +10,7 @@ package game
 
 import (
 	"sort"
+	"strings"
 
 	"github.com/ocknamo/sandbox/jev-mystery/internal/scenario"
 )
@@ -62,7 +63,7 @@ func Available(s *scenario.Scenario, st State) []*scenario.Action {
 	var out []*scenario.Action
 	for i := range s.Actions {
 		a := &s.Actions[i]
-		if !inScene(a, st.Scene) || !met(a.Requires, st) {
+		if !inScene(a.Scenes, st.Scene) || !met(a.Requires, st) {
 			continue
 		}
 		out = append(out, a)
@@ -70,11 +71,29 @@ func Available(s *scenario.Scenario, st State) []*scenario.Action {
 	return out
 }
 
-func inScene(a *scenario.Action, scene string) bool {
-	if len(a.Scenes) == 0 {
+// AvailableFlavour lists the flavour entries that could answer an input from
+// here, gated the same way the actions are.
+//
+// They are kept apart from the actions all the way through. A flavour entry is
+// only ever reached once every action has missed, so writing more of them can
+// make a case richer without making its actions harder to hit.
+func AvailableFlavour(s *scenario.Scenario, st State) []*scenario.Flavour {
+	var out []*scenario.Flavour
+	for i := range s.Flavours {
+		f := &s.Flavours[i]
+		if !inScene(f.Scenes, st.Scene) || !met(f.Requires, st) {
+			continue
+		}
+		out = append(out, f)
+	}
+	return out
+}
+
+func inScene(scenes []string, scene string) bool {
+	if len(scenes) == 0 {
 		return true
 	}
-	return contains(a.Scenes, scene)
+	return contains(scenes, scene)
 }
 
 func met(r scenario.Requires, st State) bool {
@@ -142,6 +161,41 @@ func Apply(s *scenario.Scenario, st State, a *scenario.Action) (State, Outcome) 
 		out.MovedTo = a.MovesTo
 	}
 	return st, out
+}
+
+// Describe is the room as it reads on walking into it: the authored
+// description of the place, and a line naming who is standing in it.
+//
+// It is the one piece of prose here the engine assembles rather than reads.
+// Who is in a room changes as the case moves, so the sentence naming them
+// cannot be written in the file; everything around it is authored.
+//
+// This is a hint in the same sense the people panel is one — it says what is
+// in front of the player, not what to type about it — and it exists because a
+// room the player walked into without being told anything about is a room they
+// have no reason to search.
+func Describe(s *scenario.Scenario, st State) []string {
+	sc := s.Scene(st.Scene)
+	if sc == nil {
+		return nil
+	}
+	lines := append([]string{}, sc.Description...)
+
+	var here []string
+	for _, id := range sc.Characters {
+		if c := s.Character(id); c != nil {
+			here = append(here, c.Name+"（"+c.Role+"）")
+		}
+	}
+	switch len(here) {
+	case 0:
+		lines = append(lines, "ここには誰もいない。")
+	case 1:
+		lines = append(lines, here[0]+"がここにいる。")
+	default:
+		lines = append(lines, strings.Join(here[:len(here)-1], "、")+"と"+here[len(here)-1]+"が、ここにいる。")
+	}
+	return lines
 }
 
 // FinaleOpen reports whether the player has enough to call everyone together.

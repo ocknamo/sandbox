@@ -56,6 +56,8 @@ export interface Start {
   byline?: string;
   opening: string[];
   incident: string[];
+  /** The room the case opens in, described. */
+  arrival?: string[];
   view: View;
 }
 
@@ -67,10 +69,20 @@ export interface Turn {
   text: string[];
   gained?: Item[];
   moved_to?: string;
+  /** The room just walked into, described. Only on a turn that moved. */
+  arrival?: string[];
   finale?: boolean;
   view: View;
 }
 
+/**
+ * One element of the truth, as the scorecard grades it.
+ *
+ * The label of an element the player did not reach is a spoiler — it names
+ * the part of the case they were still working on — so the page counts those
+ * and does not print them. The service sends the labels either way; the case
+ * is over, and the line that matters is the one drawn at the screen.
+ */
 export interface Point {
   label: string;
   hit: boolean;

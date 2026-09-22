@@ -219,6 +219,26 @@ export const log = css`
     letter-spacing: 0.06em;
   }
 
+  /* The room the player just walked into, set apart from what they did to
+     get there: the log reads as narration, and this is the stage direction. */
+  .arrival {
+    border-left: 2px solid var(--line);
+    padding-left: 12px;
+    margin-top: 8px;
+  }
+
+  .arrival p {
+    color: var(--muted);
+  }
+
+  /* An element of the truth the player did not reach. It is counted and left
+     unnamed: naming it here would hand over the part of the case they were
+     still working on. */
+  .score .veiled {
+    color: var(--muted);
+    font-style: italic;
+  }
+
   h3 {
     font-size: 19px;
     margin: 0 0 10px;

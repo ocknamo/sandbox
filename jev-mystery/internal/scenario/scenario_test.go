@@ -17,6 +17,21 @@ func TestBuiltinLoads(t *testing.T) {
 	}
 }
 
+// Flavour describes itself to the model the same way an action does, so it is
+// a spoiler in the same way and carries the same type.
+func TestFlavourDescriptionsCannotBeServed(t *testing.T) {
+	s, err := Builtin("clockwork")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(s.Flavours) == 0 {
+		t.Fatal("the case has no flavour to check")
+	}
+	if _, err := json.Marshal(s.Flavours[0]); err == nil {
+		t.Error("a flavour entry encoded to JSON")
+	}
+}
+
 // The whole of the secrecy guarantee: a response is built with encoding/json,
 // and hidden text has no JSON encoding. A handler that embedded any of this
 // would fail to encode rather than spoil the case, whatever shape its type had.
@@ -57,6 +72,25 @@ func TestLoadRejects(t *testing.T) {
 		// unreachable last ending would leave a finished case with no text.
 		"last ending has conditions": func(m map[string]any) {
 			finale(m)["endings"].([]any)[0].(map[string]any)["require_culprit"] = true
+		},
+		// Flavour is matched by a question of its own, so nothing would break
+		// if it shared a name with an action — but a case is read by a person,
+		// and two entries with one name is a mistake wherever it happens.
+		"flavour shares an action's id": func(m map[string]any) {
+			m["flavours"] = []any{map[string]any{
+				"id": "look", "match": map[string]any{"what": "listen"}, "text": []any{"rain"},
+			}}
+		},
+		"flavour with nothing to say": func(m map[string]any) {
+			m["flavours"] = []any{map[string]any{
+				"id": "rain", "match": map[string]any{"what": "listen"},
+			}}
+		},
+		"flavour in a scene that does not exist": func(m map[string]any) {
+			m["flavours"] = []any{map[string]any{
+				"id": "rain", "scenes": []any{"nowhere"},
+				"match": map[string]any{"what": "listen"}, "text": []any{"rain"},
+			}}
 		},
 	}
 

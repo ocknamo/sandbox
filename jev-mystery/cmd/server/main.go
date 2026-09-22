@@ -79,6 +79,7 @@ func main() {
 		{"MATCH_THRESHOLD", &policy.Match},
 		{"CONFIDENCE_THRESHOLD", &policy.Confidence},
 		{"POINT_THRESHOLD", &policy.Point},
+		{"CLOSED_THRESHOLD", &policy.Closed},
 		{"ANSWER_THRESHOLD", &policy.Answer},
 	} {
 		raw := os.Getenv(t.env)
