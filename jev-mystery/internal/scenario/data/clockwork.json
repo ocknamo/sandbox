@@ -53,7 +53,7 @@
       "id": "kurata",
       "name": "倉田 静",
       "role": "被害者の秘書",
-      "avatar": "🗂",
+      "avatar": "👩‍💼",
       "closed": {
         "knows": [
           "玄関ホールの柱時計を一時間進めたのは自分である。",
@@ -81,7 +81,7 @@
       "id": "reiko",
       "name": "曽根 玲子",
       "role": "被害者の妻",
-      "avatar": "🕯",
+      "avatar": "👩",
       "closed": {
         "knows": [
           "八時を少し回ったころ、何か落ちるような物音を聞いた。",
@@ -104,7 +104,7 @@
       "id": "nanjo",
       "name": "南条 悟",
       "role": "作家",
-      "avatar": "🚬",
+      "avatar": "🧑‍🎨",
       "closed": {
         "knows": [
           "八時前からテラスにいた。",
@@ -127,7 +127,7 @@
       "id": "sone",
       "name": "曽根 康三",
       "role": "この家の主人",
-      "avatar": "🗝"
+      "avatar": "🧓"
     }
   ],
   "evidence": [

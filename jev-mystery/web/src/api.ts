@@ -30,7 +30,10 @@ export interface Person {
   id: string;
   name: string;
   role: string;
+  /** A glyph, drawn when there is no picture or the picture fails to load. */
   avatar: string;
+  /** A portrait, when the case ships one. Absent means the glyph is it. */
+  image?: string;
 }
 
 export interface Item {

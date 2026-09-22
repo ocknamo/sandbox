@@ -78,9 +78,17 @@ type Character struct {
 	Name string `json:"name"`
 	Role string `json:"role"`
 
-	// Avatar is a single glyph used as a portrait. The game ships no images,
-	// and a glyph survives being rendered anywhere.
+	// Avatar is a single glyph used as a portrait, and the fallback whenever
+	// Image is empty or fails to load. It is a person: the panel it sits in is
+	// a row of faces, and an object among them reads as a missing face rather
+	// than as a character.
 	Avatar string `json:"avatar"`
+
+	// Image is a portrait to draw instead of the glyph — an absolute URL, or a
+	// path the page can resolve. It is optional, and deliberately so: a case
+	// is playable written with nothing but glyphs, and a picture that fails to
+	// load falls back to one.
+	Image string `json:"image,omitempty"`
 
 	// Closed makes this person answerable with yes, no or "I don't know". A
 	// character without it takes only the questions written as actions.
@@ -410,6 +418,16 @@ func (s *Scenario) validate() error {
 		if c.Closed != nil && len(c.Closed.Knows) == 0 {
 			return fmt.Errorf("scenario: character %q takes closed questions but knows nothing", c.ID)
 		}
+
+		// The glyph is required even when there is a picture, because it is
+		// what the page draws while the picture loads and what it falls back
+		// to when the picture never arrives.
+		if c.Avatar == "" {
+			return fmt.Errorf("scenario: character %q has no avatar", c.ID)
+		}
+		if err := checkImage(c.ID, c.Image); err != nil {
+			return err
+		}
 	}
 
 	// "none" is the engine's own option for "this matches nothing", so an
@@ -459,6 +477,32 @@ func (s *Scenario) validate() error {
 	}
 
 	return s.validateFinale()
+}
+
+// checkImage rejects a portrait the page could not draw. A picture is fetched
+// by the browser from whatever this says, so the schemes are the two that name
+// a picture — http and https — and anything without a scheme is taken as a
+// path relative to the page. Everything else, `data:` and `javascript:` among
+// them, is a way of putting something other than a picture on the screen.
+func checkImage(id, image string) error {
+	if image == "" {
+		return nil
+	}
+	if strings.HasPrefix(image, "http://") || strings.HasPrefix(image, "https://") {
+		return nil
+	}
+	// A scheme is a run of letters, digits, `+`, `-` or `.` before the first
+	// colon. A path holding a colon later on (`a/b:c`) is still a path.
+	if i := strings.IndexByte(image, ':'); i >= 0 {
+		scheme := image[:i]
+		if scheme != "" && strings.IndexFunc(scheme, func(r rune) bool {
+			return !(r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' ||
+				r >= '0' && r <= '9' || r == '+' || r == '-' || r == '.')
+		}) < 0 {
+			return fmt.Errorf("scenario: character %q has image %q: only http, https and relative paths are allowed", id, image)
+		}
+	}
+	return nil
 }
 
 func (s *Scenario) refs(id string, a Action) error {
