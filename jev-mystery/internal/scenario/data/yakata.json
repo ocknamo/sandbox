@@ -4,8 +4,8 @@
   "byline": "山奥の館。三人の目撃証言が、どれも食い違う",
   "opening": [
     "霧の深い山道を三時間登ったところに、鷲尾玄三郎の館はある。降りる道はその一本きりだ。",
-    "蒐集家の鷲尾に招かれたあなたは、日暮れに門をくぐった。迎えたのは家政婦の望月節子と、運転手の仁科徹、それに節子の孫の鈴だった。",
-    "館には先客が三人いるという。顧問弁護士、主人の甥、それに出入りの営業。三人とも、この二週間ほど泊まり込んでいるそうだ。"
+    "蒐集家の鷲尾に招かれたあなたは、日暮れに門をくぐった。出迎えたのは家政婦の望月節子と、運転手の仁科徹、それに節子の孫の鈴で、三人は挨拶をすませると台所へ戻っていった。",
+    "館には先客が三人いるという。顧問弁護士の久瀬瑠依、主人の甥の鷲尾千歳、それに出入りの営業の海堂実。千歳は二階の客間に、海堂は渡り廊下の先の離れに、それぞれ部屋を与えられ、この二週間ほど泊まり込んでいるそうだ。"
   ],
   "incident": [
     "夜八時すぎ、館じゅうに主人の叫び声が響いた。「やめろー！」――それきり、静かになった。",
@@ -20,7 +20,8 @@
       "name": "玄関広間",
       "description": [
         "吹き抜けの広間。外は霧で、窓は白く塗り潰されたようだ。",
-        "壁に主人の写真が並んでいる。帳場机の上には、望月の献立帳が開いたままになっている。"
+        "壁に主人の写真が並んでいる。帳場机の上には、望月の献立帳が開いたままになっている。",
+        "奥に、二階へ上がる階段、台所へ続く廊下、そして離れへ渡る渡り廊下への戸口がある。"
       ],
       "characters": [
         "mochizuki",
@@ -32,7 +33,7 @@
       "name": "主人の居室",
       "description": [
         "鷲尾玄三郎が倒れたままだ。頭のそばに、古い桐の簞笥が立っている。",
-        "床は埃が薄く積もっていて、そこに足跡が残っている。窓は庭に面していて、掛け金は内側から下りたままだ。"
+        "床にうっすらと泥の汚れが付いている。窓は庭に面していて、掛け金は内側から下りたままだ。"
       ],
       "characters": []
     },
@@ -87,7 +88,7 @@
           "三人分の食事を運ぶが、いつも別々の部屋に運んでいる。三人が同じ卓についたことは一度もない。",
           "この二週間、三人が同じ部屋にいるところを一度も見ていない。廊下ですれ違うときも必ず一人ずつである。",
           "館に犬はいない。主人は獣のたぐいを一切飼わなかった。",
-          "居室の床の埃は、自分が三日前に掃いたきりである。"
+          "夕方、居室を整えたときには床はきれいだった。あの泥は、そのあとに付いたものである。"
         ],
         "hides": [
           "主人の遺言書を盗み読みしたこと。"
@@ -239,7 +240,7 @@
     {
       "id": "pawprint",
       "name": "一匹分の足跡",
-      "description": "居室の埃に残る足跡は、大きな犬のものが一匹分だけ。人の足跡はどこにもない。"
+      "description": "居室の床に付いた泥をよく見ると、大きな犬の足跡が一匹分だけ残っている。人の足跡はどこにもない。"
     },
     {
       "id": "bite",
@@ -445,17 +446,17 @@
         "chamber"
       ],
       "match": {
-        "what": "Examine the marks in the dust on the floor of the master's room.",
+        "what": "Look closely at the patch of mud on the floor of the master's room, to see what made it.",
         "not_for": "Examining the body, the chest of drawers or the window.",
         "examples": [
-          "床の足跡を調べる",
-          "埃の跡を見る",
+          "床の泥をよく見る",
+          "汚れているところを調べる",
           "足跡をたどる"
         ]
       },
-      "did": "床の足跡を調べた。",
+      "did": "床の泥をよく見た。",
       "result": [
-        "埃の上に残っているのは、大きな犬の足跡が一匹分だけだった。戸口から簞笥の前まで、まっすぐに。",
+        "うっすらとした泥の汚れに、よく見ると跡がある。大きな犬の足跡が一匹分、戸口から簞笥の前までまっすぐに。",
         "人の足跡はどこにもない。主人のものも、他の誰のものも。"
       ],
       "repeat": [
@@ -499,7 +500,7 @@
       "speaker": "mochizuki",
       "match": {
         "what": "Ask the housekeeper Mochizuki about tonight: the shout, finding the body, and the figure she saw in the corridor.",
-        "not_for": "Asking her about the meals she carries, or asking anyone else anything. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
+        "not_for": "Asking her about the meals she carries, or showing her the dog tracks from the master's room, or asking anyone else anything. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
         "examples": [
           "望月さんに話を聞く",
           "家政婦に今夜のことを尋ねる",
@@ -529,7 +530,7 @@
       },
       "match": {
         "what": "Ask the housekeeper about what the meal book shows: the three guests always eating apart.",
-        "not_for": "Asking her about the shout, the body or the figure in the corridor. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
+        "not_for": "Asking her about the shout, the body, the figure in the corridor, or showing her the dog tracks from the master's room. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
         "examples": [
           "献立帳のことを望月さんに聞く",
           "なぜ食事が別々なのか尋ねる",
@@ -543,6 +544,36 @@
       ],
       "sets_flags": [
         "never_together"
+      ]
+    },
+    {
+      "id": "ask_mochizuki_prints",
+      "scenes": [
+        "hall"
+      ],
+      "speaker": "mochizuki",
+      "requires": {
+        "evidence": [
+          "pawprint"
+        ]
+      },
+      "match": {
+        "what": "Put the single set of dog tracks from the master's room to the housekeeper Mochizuki and ask her about them.",
+        "not_for": "Asking her about tonight in general or about the meal book. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
+        "examples": [
+          "足跡のことを望月さんに聞く",
+          "犬の足跡について尋ねる",
+          "あの足跡は犬のものかと望月さんに聞く"
+        ]
+      },
+      "did": "望月節子に、一匹分の足跡のことを尋ねた。",
+      "result": [
+        "「犬の足跡、でございますか。……そんな、まさか」",
+        "望月は言葉を切り、居室のほうへ目をやった。「この館で犬を飼ったことなど、一度もございません」",
+        "「旦那様は獣のたぐいがお嫌いでした。だから、なおのこと分かりません」"
+      ],
+      "sets_flags": [
+        "mochizuki_pressed"
       ]
     },
     {

@@ -2,7 +2,7 @@
  * The pieces of the screen. Each takes accessors rather than values, so a
  * panel re-reads what changed instead of being rebuilt.
  */
-import { For, Show } from "@kanabun/core";
+import { For, Show, signal } from "@kanabun/core";
 import { portrait } from "./api";
 import type { Item, Person, Verdict, View } from "./api";
 import * as s from "./styles";
@@ -29,24 +29,36 @@ export type Entry =
  * One portrait. A case may ship a picture; a case without one is played with
  * the glyph, and the glyph is what the picture is drawn over rather than
  * instead of, so a URL that never loads leaves the face behind it rather than
- * a hole: `onError` takes the image back out and the glyph is already there.
+ * a hole.
+ *
+ * A single failed load is not trusted: a cold Cloud Run instance or one
+ * dropped connection is enough to trip `onError` on an otherwise good
+ * picture, and giving up on the first attempt would leave a face missing for
+ * the rest of the game over nothing. So `onError` is a retry, once, with a
+ * cache-busting query so the browser does not just replay the same failed
+ * response — and only the second failure lets the glyph win for good.
  *
  * The picture's own address comes from `portrait`, because a case keeps its
  * pictures where it keeps itself: with the service.
  */
 export function Avatar(props: { person: Person }) {
   const person = props.person;
+  const failures = signal(0);
   return (
     <div class={s.avatar}>
       <span>{person.avatar || "？"}</span>
-      {person.image ? (
-        <img
-          src={portrait(person.image)}
-          alt={person.name}
-          loading="lazy"
-          onError={(event: Event) => (event.currentTarget as HTMLImageElement).remove()}
-        />
-      ) : null}
+      {() => {
+        if (!person.image || failures() >= 2) return null;
+        const base = portrait(person.image);
+        return (
+          <img
+            src={failures() === 0 ? base : `${base}${base.includes("?") ? "&" : "?"}retry=${failures()}`}
+            alt={person.name}
+            loading="lazy"
+            onError={() => failures.update((n) => n + 1)}
+          />
+        );
+      }}
     </div>
   );
 }
