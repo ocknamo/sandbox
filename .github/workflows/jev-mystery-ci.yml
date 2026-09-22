@@ -1,0 +1,114 @@
+name: jev-mystery CI
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'jev-mystery/**'
+      - '.github/workflows/jev-mystery-ci.yml'
+  # Unlike the Cloud Run services this runs on every branch, not just main.
+  # The live call is the only way to exercise the real API from this repo, and
+  # workflow_dispatch is unavailable until the file reaches the default branch.
+  push:
+    paths:
+      - 'jev-mystery/**'
+      - '.github/workflows/jev-mystery-ci.yml'
+
+jobs:
+  test:
+    name: Build and test
+    runs-on: ubuntu-latest
+    # Runs in well under a minute; nothing here touches the network.
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: jev-mystery
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version: '1.24'
+          cache: false
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: gofmt check
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "These files are not gofmt'd:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: go test
+        run: go test -race ./...
+
+  live:
+    name: Live playthrough
+    needs: test
+    runs-on: ubuntu-latest
+    # One request per line of the walkthrough, plus one to grade the solution.
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: jev-mystery
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version: '1.24'
+          cache: false
+
+      # The secrets context is not available in a job-level or step-level `if`,
+      # so whether the key exists has to become a step output first. A missing
+      # key skips the call rather than failing: forks and pull requests from
+      # them never receive secrets.
+      - name: Look for the API key
+        id: key
+        env:
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+        run: |
+          if [ -n "$TYPESAFE_API_KEY" ]; then
+            echo 'present=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'present=false' >> "$GITHUB_OUTPUT"
+            {
+              echo '### Live playthrough skipped'
+              echo
+              echo 'No `TYPESAFE_API_KEY` secret is available to this run.'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # The tally at the end is what this job exists for: whether the sentences
+      # a player would type land on the actions they meant. The run is not
+      # failed on it, because the number is the thing being measured and a
+      # threshold would only hide it.
+      - name: Play the walkthrough
+        if: steps.key.outputs.present == 'true'
+        env:
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+        run: |
+          {
+            echo '### Live playthrough'
+            echo
+            echo '```text'
+            go run ./cmd/cli -script testdata/walkthrough.txt -accuse testdata/solution.txt 2>&1
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Grade a solution that says nothing
+        if: steps.key.outputs.present == 'true'
+        env:
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+        run: |
+          {
+            echo '### A solution with the name but no reasoning'
+            echo
+            echo '```text'
+            go run ./cmd/cli -script testdata/walkthrough.txt -accuse testdata/weak-solution.txt 2>&1 | tail -20
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

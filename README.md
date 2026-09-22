@@ -12,6 +12,7 @@ Cloud Run に対して行われます（サービスアカウントキーは不�
 | [`go-cloudrun-echo`](go-cloudrun-echo) | `go-cloudrun-echo` | リクエストを JSON でそのまま返すサービス |
 | [`go-cloudrun-bird`](go-cloudrun-bird) | `go-cloudrun-bird` | ランダムな鳥の画像を返す API（画像は Wikimedia Commons） |
 | [`jev-nostr`](jev-nostr) | `jev-nostr-api` | Nostr の投稿を TypeSafe の Jev で判定するスコアリング API |
+| [`jev-mystery`](jev-mystery) | `jev-mystery-api` | 自由入力の推理ゲーム。入力の解釈と推理の採点を Jev が行う |
 
 ### ワークフローの構成
 
@@ -96,6 +97,10 @@ GCP 側の作業は不要です。デプロイ用サービスアカウントは�
 - https://ocknamo.github.io/sandbox/ — `go-cloudrun-bird` のフロントエンド
   （[`docs/index.html`](docs/index.html)）。詳細は
   [`go-cloudrun-bird/README.md`](go-cloudrun-bird/README.md#フロントエンド)。
+- https://ocknamo.github.io/sandbox/mystery.html — 自由入力の推理ゲーム
+  （[`docs/mystery.html`](docs/mystery.html)）。選択肢は表示されず、やりたいことを文章で
+  書きます。最後は推理を文章で述べて採点されます。詳細は
+  [`jev-mystery/README.md`](jev-mystery/README.md)。
 - https://ocknamo.github.io/sandbox/jev.html — Nostr の「おすすめタイムライン」
   （[`docs/jev.html`](docs/jev.html)）。リレーから流れてくる投稿を Jev に判定させ、
   しきい値・言語・トピックのフィルタをブラウザ側で適用します（日本語 / 英語表示）。詳細は
