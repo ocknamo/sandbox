@@ -273,11 +273,11 @@
     {
       "id": "look",
       "match": {
-        "what": "Look around the room the player is standing in; take in the surroundings again.",
-        "not_for": "Examining one particular object or person, and not for going up to a wall in the dark to see what is hanging on it.",
+        "what": "Take in the whole room again with nothing particular in mind: a plain look around, the kind a player types when they have just arrived or want the description repeated.",
+        "not_for": "Looking at, watching, peering at or noticing any one thing in the room — an object, a window, a desk, a wall in the dark, a picture, or how the people here are sitting. An input with a target of its own belongs to whatever covers that target, never here.",
         "examples": [
           "あたりを見回す",
-          "部屋を見る",
+          "もう一度ここを見る",
           "周囲を確認する"
         ]
       },
