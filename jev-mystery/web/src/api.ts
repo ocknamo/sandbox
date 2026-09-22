@@ -111,6 +111,12 @@ export interface Verdict {
   ending_id: string;
   title: string;
   text: string[];
+  /**
+   * Whether the case counts this ending as a win. Which endings do is the
+   * case's business, not the page's: a page that decided for itself would
+   * have to know every case's ending IDs.
+   */
+  celebrate?: boolean;
   correct: boolean;
   named_name?: string;
   points: Point[];

@@ -159,6 +159,11 @@ export function LogEntry(props: { entry: Entry }) {
  * The ending, and the scorecard behind it. The scorecard is safe here and
  * nowhere earlier: the case is over by the time it is read.
  *
+ * An ending the case marks as a win is drawn as one. The log is otherwise
+ * level throughout — a turn that cracks the case looks exactly like a turn
+ * that finds nothing — and this is the one screen that is allowed to say the
+ * player got there.
+ *
  * Only the elements the player reached are named. The rest are counted and
  * left unsaid, because the label of an element is a one-line statement of it:
  * a player who wrote half a solution and was shown "一匹分の足跡" against a ×
@@ -184,8 +189,16 @@ function Ending(props: { verdict: Verdict }) {
 
   const width = `${Math.round((100 * v.coherence) / (v.coherence_top || 1))}%`;
 
+  // The case says which of its endings is a win; the scorecard says how
+  // completely. Both are needed: reaching the true ending with a piece of the
+  // truth still unnamed is a solve, and saying so is not the same as saying
+  // the player left nothing behind.
+  const won = v.celebrate === true;
+  const banner = won && v.correct && missed === 0 ? "完 全 解 決" : "事 件 解 決";
+
   return (
-    <div class="entry said">
+    <div class={won ? "entry said won" : "entry said"}>
+      {won ? <p class="solved">{banner}</p> : null}
       <h3>{v.title}</h3>
       {v.text.map((line) => <p>{line}</p>)}
       <div class="score">

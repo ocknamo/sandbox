@@ -180,8 +180,27 @@ export function Game() {
         </form>
         <p class="hint">
           思いついたことを書いてください。できることの一覧はありません。
-          ここにいる人には、はい か いいえ で答えられる質問を、そのまま投げられます。
+          ここにいる人には、何を訊いても構いません。話を聞かせてくれと頼んでも、
+          「〜ですか」と一言で確かめても、どちらでも通ります。
         </p>
+        <Show when={() => at().finale_open}>
+          <div class={s.gather}>
+            {/* Outlined, not solid: the banner at the top of the board is the
+                offer, and this is the reminder sitting next to a submit button
+                it must not be mistaken for. */}
+            <button
+              type="button"
+              class="secondary"
+              disabled={busy}
+              onClick={() => play(at().finale_label ?? "全員を集める")}
+            >
+              {() => at().finale_label ?? "全員を集める"}
+            </button>
+            <p class="hint">
+              いつでも集められます。まだ聞き込みを続けても構いません。
+            </p>
+          </div>
+        </Show>
         </div>
       </Show>
       <Show when={() => error() !== ""}>

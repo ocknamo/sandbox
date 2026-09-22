@@ -256,6 +256,64 @@ export const log = css`
     margin: 0 0 10px;
   }
 
+  /* An ending the case counts as a win. The log is otherwise deliberately
+     flat — every turn looks like every other turn — so the one place worth
+     breaking that is the one the player played for. */
+  .entry.won {
+    border-top: 2px solid var(--accent);
+    padding-top: 18px;
+  }
+
+  .entry.won h3 {
+    font-size: 23px;
+    color: var(--accent);
+  }
+
+  .solved {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--ui);
+    font-size: 13px;
+    letter-spacing: 0.22em;
+    color: var(--accent);
+    margin: 0 0 8px;
+  }
+
+  .solved::before,
+  .solved::after {
+    content: "";
+    flex: 1 1 auto;
+    height: 1px;
+    background: var(--accent);
+    opacity: 0.4;
+  }
+
+  /* The badge arrives rather than simply being there: the ending is read
+     from the top down, and this is the line that answers the question the
+     player has been holding. A player who has asked for less motion gets the
+     same screen without it. */
+  .entry.won .solved {
+    animation: jev-solved 700ms ease-out both;
+  }
+
+  @keyframes jev-solved {
+    from {
+      opacity: 0;
+      letter-spacing: 0.02em;
+    }
+    to {
+      opacity: 1;
+      letter-spacing: 0.22em;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .entry.won .solved {
+      animation: none;
+    }
+  }
+
   .score {
     display: grid;
     grid-template-columns: auto 1fr;
@@ -336,6 +394,24 @@ export const control = css`
     font-size: 13px;
     font-family: var(--ui);
     margin: 8px 0 0;
+  }
+`;
+
+/**
+ * The gathering offered a second time, beside the form.
+ *
+ * The banner at the top of the board is easy to scroll past once the player is
+ * reading the log and typing, so the same button is repeated where their eyes
+ * already are — with the line that the banner cannot carry: that taking it is
+ * their choice and the questioning can go on.
+ */
+export const gather = css`
+  border-top: 1px solid var(--line);
+  margin-top: 12px;
+  padding-top: 12px;
+
+  .hint {
+    margin: 6px 0 0;
   }
 `;
 
