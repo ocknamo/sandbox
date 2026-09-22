@@ -5,7 +5,7 @@
   "opening": [
     "霧の深い山道を三時間登ったところに、鷲尾玄三郎の館はある。降りる道はその一本きりだ。",
     "蒐集家の鷲尾に招かれたあなたは、日暮れに門をくぐった。出迎えたのは家政婦の望月節子と、運転手の仁科徹、それに節子の娘の鈴だった。",
-    "館には先客が三人いるという。顧問弁護士の久瀬瑠依、主人の甥の鷲尾千歳、それに出入りの営業の海堂実。三人とも、この二週間ほど泊まり込んでいるそうだ。"
+    "館には先客がいるという。顧問弁護士の久瀬瑠依、居候の北村千歳、それに出入りの営業の海堂実。いずれもこの二週間ほど泊まり込んでいるそうだ。"
   ],
   "incident": [
     "夜八時すぎ、館じゅうに主人の叫び声が響いた。「やめろー！」――それきり、静かになった。",
@@ -173,7 +173,7 @@
           "叫び声のあとのことは覚えていない。気がつくと、この客間に三人とも揃っていた。どうやってここへ来たのかは覚えていない。",
           "廊下で誰かとすれ違った覚えはない。",
           "自分は三十代の女性で、そのことを疑ったことは一度もない。",
-          "今夜までは、甥の鷲尾千歳とも営業の海堂実とも、顔を合わせて話したことが一度もなかった。",
+          "今夜までは、居候の北村千歳とも営業の海堂実とも、顔を合わせて話したことが一度もなかった。",
           "館の規則は主人が決めたもので、自分が決めたものではない。"
         ],
         "hides": [
@@ -188,8 +188,8 @@
     },
     {
       "id": "chitose",
-      "name": "鷲尾 千歳",
-      "role": "主人の甥",
+      "name": "北村 千歳",
+      "role": "主人の家の居候",
       "avatar": "🧑‍🎓",
       "image": "portraits/yakata/chitose.png",
       "closed": {
@@ -200,7 +200,7 @@
           "廊下で誰かとすれ違った覚えはない。",
           "自分は受験生で、そのことを疑ったことは一度もない。",
           "今夜までは、弁護士の久瀬瑠依とも営業の海堂実とも、顔を合わせて話したことが一度もなかった。",
-          "叔父に学費を出してもらう話になっていた。"
+          "身寄りがなく、この館に置いてもらっている。学費も主人が出してくれる話になっていた。"
         ],
         "hides": [
           "模試の判定がずっと最低で、参考書を一度も開いていないこと。"
@@ -225,7 +225,7 @@
           "叫び声のあとのことは覚えていない。気がつくと、この客間に三人とも揃っていた。どうやってここへ来たのかは覚えていない。",
           "廊下で誰かとすれ違った覚えはない。",
           "自分は営業の男で、そのことを疑ったことは一度もない。",
-          "今夜までは、弁護士の久瀬瑠依とも甥の鷲尾千歳とも、顔を合わせて話したことが一度もなかった。",
+          "今夜までは、弁護士の久瀬瑠依とも居候の北村千歳とも、顔を合わせて話したことが一度もなかった。",
           "離れに積んである土産物は、干し肉、牛の大腿骨、鈴のついた輪などである。"
         ],
         "hides": [
@@ -260,7 +260,7 @@
     {
       "id": "meals",
       "name": "望月の献立帳",
-      "description": "十四日分、三人ぶんの食事が別々の部屋へ運ばれている。三人が同じ卓についた日は一度もない。"
+      "description": "十四日分、膳は毎食三つ、別々の部屋へ運ばれている。その三つが同じ卓に並んだ日は一度もない。"
     },
     {
       "id": "painting",
@@ -378,7 +378,7 @@
       "did": "二階の客間へ上がった。",
       "result": [
         "階段が一段ごとに鳴る。踊り場から見下ろすと、廊下の奥までまっすぐに見えた。",
-        "客間の戸を開けると、三人がいっせいにこちらを向いた。"
+        "客間の戸を開けると、顔がいっせいにこちらを向いた。"
       ],
       "moves_to": "guestroom"
     },
@@ -446,8 +446,8 @@
       },
       "did": "献立帳を調べた。",
       "result": [
-        "十四日分、几帳面に付けてある。朝も昼も夜も、三人ぶんの膳が三つの部屋へ別々に運ばれている。",
-        "三人が同じ卓についた日は、一日もない。"
+        "十四日分、几帳面に付けてある。朝も昼も夜も、膳は三つ、三つの部屋へ別々に運ばれている。",
+        "その三つが同じ卓に並んだ日は、一日もない。"
       ],
       "repeat": [
         "何度めくっても、膳は別々の部屋へ運ばれている。"
@@ -682,7 +682,7 @@
       "speaker": "ruise",
       "match": {
         "what": "Ask the lawyer Kuse Ruise — the woman of the three waiting in the parlour — where she was and what she remembers of the evening.",
-        "not_for": "Showing her the tracks from the master's room, or putting the same question to the bespectacled nephew Chitose or the shaven-headed salesman Kaido, who are sitting in the same room. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
+        "not_for": "Showing her the tracks from the master's room, or putting the same question to the bespectacled youth Chitose or the shaven-headed salesman Kaido, who are sitting in the same room. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
         "examples": [
           "久瀬さんに話を聞く",
           "弁護士に今夜のことを尋ねる",
@@ -774,7 +774,7 @@
           "どうやって館まで来たのか聞く"
         ]
       },
-      "did": "仁科徹に、三人が着いた日のことを尋ねた。",
+      "did": "仁科徹に、客たちが着いた日のことを尋ねた。",
       "result": [
         "「迎えに行ったのは一度きりだ。駅で乗せたのは一人。後ろの席に、一人だけ」",
         "「それが、門をくぐったのは三人だった。……まあ、あとの二人は歩いて登ってきたんだろうと思ったが」",
@@ -846,15 +846,15 @@
       ],
       "speaker": "chitose",
       "match": {
-        "what": "Ask the nephew Washio Chitose — the youth in glasses among the three waiting in the parlour — where he was and what he remembers of the evening.",
+        "what": "Ask the lodger Kitamura Chitose — the youth in glasses among the three waiting in the parlour — where he was and what he remembers of the evening.",
         "not_for": "Putting the same question to the lawyer Kuse Ruise or the shaven-headed salesman Kaido, who are sitting in the same room. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
         "examples": [
           "千歳くんに話を聞く",
-          "甥に今夜のことを尋ねる",
+          "居候の青年に今夜のことを尋ねる",
           "彼がどこにいたのか聞く"
         ]
       },
-      "did": "鷲尾千歳に、八時ごろのことを尋ねた。",
+      "did": "北村千歳に、八時ごろのことを尋ねた。",
       "result": [
         "「この部屋にいました。ひとりです。証明できる人は……いません」",
         "「叫び声は聞きました。そのあとですか。気がついたら、三人でここに座っていて」",
@@ -872,7 +872,7 @@
       "speaker": "kaido",
       "match": {
         "what": "Ask the salesman Kaido Minoru — the shaven-headed man among the three waiting in the parlour — where he was and what he remembers of the evening.",
-        "not_for": "Asking about the souvenirs piled in the annex, or putting the same question to the lawyer Kuse Ruise or the bespectacled nephew Chitose, who are sitting in the same room. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
+        "not_for": "Asking about the souvenirs piled in the annex, or putting the same question to the lawyer Kuse Ruise or the bespectacled youth Chitose, who are sitting in the same room. Also not for a yes-or-no question — one asking whether something is so, which wants a はい or an いいえ rather than an account.",
         "examples": [
           "海堂さんに話を聞く",
           "営業の男に今夜のことを尋ねる",
@@ -1085,9 +1085,9 @@
           "距離の取り方を見る"
         ]
       },
-      "did": "三人の座り方を眺めた。",
+      "did": "全員の座り方を眺めた。",
       "text": [
-        "三人は長椅子の端に、肩の触れそうな近さで並んでいる。部屋はこれだけ広いのに、誰も離れて座ろうとしない。",
+        "全員が長椅子の端に、肩の触れそうな近さで並んでいる。部屋はこれだけ広いのに、誰も離れて座ろうとしない。",
         "ランプは一つきりで、壁に落ちている影も一つきりだった。"
       ]
     },
@@ -1176,13 +1176,13 @@
       ]
     },
     "prompt": [
-      "望月が客間の三人に、広間へ下りてくるように伝えた。仁科と鈴は、階段の下に並んで立っている。",
+      "望月が客間へ行き、全員に広間へ下りてくるように伝えた。仁科と鈴は、階段の下に並んで立っている。",
       "廊下を渡ってくる足音が聞こえる。――ひと組だけ。",
       "あなたの見立てを、言葉にしてください。誰が、どうやって、なぜ。"
     ],
     "truth": [
-      "犯人は容疑者三人の全員である。正確には、一匹全員だった。",
-      "久瀬瑠依、鷲尾千歳、海堂実は別々の人間ではない。女性の頭、眼鏡の青年の頭、スキンヘッドの男の頭を持つ、一匹の三つ首のケルベロスである。二週間前、仁科が駅から乗せたのは一人だけなのに門をくぐったのは三人だったこと、その二週間、三人が一度も同席せず、食事が必ず別々の部屋へ運ばれ、廊下ですれ違うときも必ず一人ずつだったのは、そのためである。",
+      "犯人は容疑者全員である。正確には、一匹全員だった。",
+      "久瀬瑠依、北村千歳、海堂実は別々の人間ではない。女性の頭、眼鏡の青年の頭、スキンヘッドの男の頭を持つ、一匹の三つ首のケルベロスである。二週間前、仁科が駅から乗せたのは一人だけなのに門をくぐったのは三人だったこと、その二週間、三人が一度も同席せず、食事が必ず別々の部屋へ運ばれ、廊下ですれ違うときも必ず一人ずつだったのは、そのためである。",
       "いま三人が二階の客間に揃っているのも同じ理由による。三人とも「叫び声のあとの記憶がなく、気がついたら三人でこの部屋にいた」と言い、望月が叫び声のあと客間を覗いたときには、すでに三人が揃っていた。別々の部屋にいた三人が同時に一つの部屋へ移ることはできないが、もともと一匹であれば、どこにいようと三つの首は必ず揃っている。長椅子に肩の触れる近さで並び、ランプ一つの下に影が一つしか落ちていないのも、体が一つだからである。",
       "だから三人の目撃証言は食い違いながら、どれも正しい。八時少し前に廊下を通ったのはこの一匹で、望月節子は台所口から女性の首を、仁科徹は階段の上から眼鏡の首を、望月鈴は手すりの隙間からスキンヘッドの首を見た。それぞれの位置から見えた首が違っただけで、三人とも「ひとりだった」と言っているのも正しい。一匹だったからである。誰の証言も間違っておらず、三人の容疑者も嘘をついていない。三つの首には、叫び声のあとの記憶がない。鈴が聞いた「足が四つあるみたいな」足音は、その一匹が走り去る音である。",
       "現場に残っていた足跡が一匹分の犬のものだけで、人の足跡がまったくないのは、あの部屋に入ったのが一匹だけだからである。窓は内側から留まっていて、外から入った者はいない。",
@@ -1238,7 +1238,7 @@
         "title": "一匹全員",
         "text": [
           "三人は広間の同じ場所に立っていた。いや、立っていたのは一人分の幅だった。",
-          "久瀬瑠依が「それは私のルールじゃないので」と言い、鷲尾千歳が「模試が」と言いかけ、海堂実が「いやあ」と笑った。三つの声は、同じ胸のあたりから出ていた。",
+          "久瀬瑠依が「それは私のルールじゃないので」と言い、北村千歳が「模試が」と言いかけ、海堂実が「いやあ」と笑った。三つの声は、同じ胸のあたりから出ていた。",
           "望月節子が膝をつき、仁科徹が帽子を取った。鈴だけが、平気な顔で言った。「ほらね。足、四つだったでしょ」"
         ]
       },

@@ -589,7 +589,7 @@ func TestDescribeNamesThePeopleInTheRoom(t *testing.T) {
 	st.Scene = "guestroom"
 	parlour := Describe(s, st)
 	named := parlour[len(parlour)-1]
-	for _, want := range []string{"久瀬 瑠依", "鷲尾 千歳", "海堂 実"} {
+	for _, want := range []string{"久瀬 瑠依", "北村 千歳", "海堂 実"} {
 		if !strings.Contains(named, want) {
 			t.Errorf("the parlour does not name %s: %q", want, named)
 		}
