@@ -16,13 +16,16 @@
 頭を打ったという家具を確かめる	examine_tansu
 布が掛けてあるものをめくってみる	flavour:mirror
 外から入った者がいないか、窓のあたりを見る	flavour:window
+みんなが人影を見たという通路に出てみる	go_corridor
+暗くてよく見えない壁のほうに近寄る	examine_painting
+ここに立つと誰の目に入るのか考える	flavour:lamps
 廊下の奥の灯りのほうへ行く	go_kitchen
 階段の上から何が見えたのか、仁科さんに確かめる	ask_nishina
 二週間前、車に何人乗せたのか聞いてみる	ask_nishina_car
 女の子にも、そのとき誰を見たのか確かめる	ask_suzu
 走っていく音について、鈴ちゃんにもう少し話してもらう	ask_suzu_more
 壁にかかっている電話機のあたりを見る	flavour:phone
-望月さんが立っていた場所から、同じ方向を見てみる	flavour:corridor
+望月さんが立っていた場所から、同じ方向を見てみる	flavour:sightline
 上の階へ行ってみる	go_guestroom
 三人がどんなふうに腰かけているか、しばらく見ている	flavour:seats
 久瀬さんに、叫び声のときのことを話してもらう	ask_ruise

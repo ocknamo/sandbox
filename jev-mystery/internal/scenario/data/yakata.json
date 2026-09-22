@@ -50,6 +50,15 @@
       ]
     },
     {
+      "id": "corridor",
+      "name": "廊下",
+      "description": [
+        "長い廊下。灯りは二つおきにしか点いていなくて、明るいところと暗いところが交互に続く。",
+        "床板がきしむ。戸も窓もなく、通り過ぎるためだけの場所で、ほかには何もない。"
+      ],
+      "characters": []
+    },
+    {
       "id": "guestroom",
       "name": "二階の客間",
       "description": [
@@ -253,6 +262,11 @@
       "id": "meals",
       "name": "望月の献立帳",
       "description": "十四日分、三人ぶんの食事が別々の部屋へ運ばれている。三人が同じ卓についた日は一度もない。"
+    },
+    {
+      "id": "painting",
+      "name": "壁の絵",
+      "description": "廊下の暗がりに掛かっていた額。首が三つある黒い犬が、門の前に伏せている。名前は思い出せない。"
     }
   ],
   "actions": [
@@ -260,7 +274,7 @@
       "id": "look",
       "match": {
         "what": "Look around the room the player is standing in; take in the surroundings again.",
-        "not_for": "Examining one particular object or person.",
+        "not_for": "Examining one particular object or person, and not for going up to a wall in the dark to see what is hanging on it.",
         "examples": [
           "あたりを見回す",
           "部屋を見る",
@@ -277,12 +291,13 @@
       "scenes": [
         "chamber",
         "kitchen",
+        "corridor",
         "guestroom",
         "annex"
       ],
       "match": {
         "what": "Go to the entrance hall, the big room at the front of the house.",
-        "not_for": "Going to the master's room, the kitchen, the upstairs guest room or the annex.",
+        "not_for": "Going to the master's room, the kitchen, the corridor, the guest room or the annex.",
         "examples": [
           "広間へ戻る",
           "玄関のほうへ行く",
@@ -300,12 +315,13 @@
       "scenes": [
         "hall",
         "kitchen",
+        "corridor",
         "guestroom",
         "annex"
       ],
       "match": {
         "what": "Go to the master's own room, where the body is.",
-        "not_for": "Going to the entrance hall, the kitchen, the guest room or the annex.",
+        "not_for": "Going to the entrance hall, the kitchen, the corridor, the guest room or the annex.",
         "examples": [
           "主人の部屋へ行く",
           "現場に向かう",
@@ -323,12 +339,13 @@
       "scenes": [
         "hall",
         "chamber",
+        "corridor",
         "guestroom",
         "annex"
       ],
       "match": {
         "what": "Go to the kitchen at the end of the corridor, where the driver and the child are.",
-        "not_for": "Going to the entrance hall, the master's room, the guest room or the annex.",
+        "not_for": "Going to the entrance hall, the master's room, the corridor, the guest room or the annex.",
         "examples": [
           "台所へ行く",
           "竈のある部屋に向かう",
@@ -347,11 +364,12 @@
         "hall",
         "chamber",
         "kitchen",
+        "corridor",
         "annex"
       ],
       "match": {
         "what": "Go up to the guest room on the first floor, where the three suspects are waiting together.",
-        "not_for": "Going to the entrance hall, the master's room, the kitchen or the annex.",
+        "not_for": "Going to the entrance hall, the master's room, the kitchen, the corridor or the annex.",
         "examples": [
           "二階の客間へ行く",
           "三人のところへ向かう",
@@ -371,11 +389,12 @@
         "hall",
         "chamber",
         "kitchen",
+        "corridor",
         "guestroom"
       ],
       "match": {
         "what": "Go across to the annex at the end of the covered walkway, the room the salesman was given and is not in.",
-        "not_for": "Going to the entrance hall, the master's room, the kitchen or the guest room.",
+        "not_for": "Going to the entrance hall, the master's room, the kitchen, the corridor or the guest room.",
         "examples": [
           "離れへ行く",
           "渡り廊下を渡る",
@@ -387,6 +406,30 @@
         "板張りの廊下は、踏むたびに霧の湿りを返してくる。"
       ],
       "moves_to": "annex"
+    },
+    {
+      "id": "go_corridor",
+      "scenes": [
+        "hall",
+        "chamber",
+        "kitchen",
+        "guestroom",
+        "annex"
+      ],
+      "match": {
+        "what": "Go out into the corridor itself — the passage the three witnesses were looking at.",
+        "not_for": "Going to the entrance hall, the master's room, the kitchen, the guest room or the annex.",
+        "examples": [
+          "廊下へ出る",
+          "三人が見たという場所に立ってみる",
+          "通路のほうへ行く"
+        ]
+      },
+      "did": "廊下へ出た。",
+      "result": [
+        "灯りと灯りのあいだは、思っていたより暗い。"
+      ],
+      "moves_to": "corridor"
     },
     {
       "id": "examine_ledger",
@@ -493,6 +536,33 @@
       ],
       "sets_flags": [
         "saw_tansu"
+      ]
+    },
+    {
+      "id": "examine_painting",
+      "scenes": [
+        "corridor"
+      ],
+      "match": {
+        "what": "Go up to the walls of the dim corridor and look at them closely, hunting for whatever the dark is hiding.",
+        "not_for": "Standing where the witnesses stood and working out what each of them could see from there.",
+        "examples": [
+          "廊下をよく調べる",
+          "壁に近づいてみる",
+          "暗がりに目を凝らす"
+        ]
+      },
+      "did": "廊下の壁を調べた。",
+      "result": [
+        "灯りの届かないところに、額が一つ掛かっていた。埃を払う。",
+        "首の三つある黒い犬が、門の前に伏せている。三つの頭はそれぞれ別のほうを向いていて、目だけがこちらを見ていた。",
+        "地獄の門を守る番犬だ、というのは覚えている。名前は……なんだっけ、これ。喉まで出かかって、出てこない。"
+      ],
+      "repeat": [
+        "何度見ても名前は出てこない。首の数だけは、確かに三つある。"
+      ],
+      "gives_evidence": [
+        "painting"
       ]
     },
     {
@@ -937,7 +1007,7 @@
       ]
     },
     {
-      "id": "corridor",
+      "id": "sightline",
       "scenes": [
         "kitchen"
       ],
@@ -952,8 +1022,28 @@
       },
       "did": "台所口から廊下の奥を眺めた。",
       "text": [
-        "廊下は長く、灯りは二つおきにしか点いていない。奥を通る者は、明かりと明かりのあいだで一度だけ照らされる。",
-        "階段はその途中にあって、上からも、手すりの隙間からも、同じ場所が見下ろせる。"
+        "戸口に立つと、廊下の奥が細長く切り取られて見える。望月はここから人影を見たことになる。",
+        "見えるのは横顔だけだ。こちらを向いていない顔のことは、ここからでは分からない。"
+      ]
+    },
+    {
+      "id": "lamps",
+      "scenes": [
+        "corridor"
+      ],
+      "match": {
+        "what": "Stand in the corridor and work out who could see this spot, and from where.",
+        "not_for": "Searching the walls of the corridor closely.",
+        "examples": [
+          "ここから何が見えるか確かめる",
+          "三人の立っていた場所を順に見る",
+          "見通しを確かめてみる"
+        ]
+      },
+      "did": "廊下に立って、見える範囲を確かめた。",
+      "text": [
+        "台所の戸口、階段の上、手すりの隙間。三つとも、この明かりの下を別々の角度から見下ろしている。",
+        "ここを通る者は、明かりと明かりのあいだで一度だけ照らされる。誰がどの向きから見るかで、見えるものは変わるだろう。"
       ]
     },
     {
