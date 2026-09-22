@@ -1,27 +1,42 @@
 # One run through the case, in the words a player might actually type.
 # Each line is "input<TAB>the action it should land on"; `none` means the
-# input is meant to match nothing. The tally at the end of a run is the
-# number that decides whether this game works at all.
+# input is meant to match nothing, and `flavour:x` that it should reach prose
+# with no consequence rather than an action. The tally at the end of a run is
+# the number that decides whether this game works at all.
 #
 # The words here are deliberately not the examples the scenario shows the
 # model. A walkthrough written out of the option list measures nothing.
-柱時計をよく見てみる	examine_clock
-壁に並んでいる額を眺める	flavour:photographs
-倉田さんに今夜どこにいたのか聞きたい	ask_kurata_evening
-奥さんは何か物音を聞いていないだろうか	ask_reiko_sound
-書斎に入る	go_study
-遺体の様子を確かめる	examine_body
-机の引き出しを開けてみる	examine_desk
-空のグラスを持ち上げてみる	flavour:glass
-窓の留め金を確かめたい	examine_window
-外のテラスに出る	go_terrace
-南条に話を聞く	ask_nanjo_terrace
-煙草の吸い殻がいくつ落ちているか見る	flavour:cigarettes
-ホールへ戻る	go_hall
-帳簿のことで倉田さんを問い詰める	ask_kurata_ledger
-倉田さん、九時に本当に会ったんですか	closed:kurata
-奥さんは夫と仲が良かったのですか	closed:reiko
-雨はいつから降り続いているのだろう	flavour:rain
-屋根によじ登る	none
+机の上に広げてある帳面をめくる	examine_ledger
+主人はどんな写真を残しているのか見てみたい	flavour:photographs
+家政婦さんから、遺体を見つけたときの話を聞きたい	ask_mochizuki
+膳を別々に運んでいた理由を望月さんに聞く	ask_mochizuki_meals
+久瀬さんに、叫び声のときのことを話してもらう	ask_ruise
+鷲尾さんが倒れていた部屋に入る	go_chamber
+脚に残っている傷をよく見てみる	examine_body
+部屋に入った者の跡が床に残っていないか見る	examine_prints
+頭を打ったという家具を確かめる	examine_tansu
+布が掛けてあるものをめくってみる	flavour:mirror
+外から入った者がいないか、窓のあたりを見る	flavour:window
+廊下の奥の灯りのほうへ行く	go_kitchen
+階段の上から何が見えたのか、仁科さんに確かめる	ask_nishina
+二週間前、車に何人乗せたのか聞いてみる	ask_nishina_car
+女の子にも、そのとき誰を見たのか確かめる	ask_suzu
+走っていく音について、鈴ちゃんにもう少し話してもらう	ask_suzu_more
+壁にかかっている電話機のあたりを見る	flavour:phone
+望月さんが立っていた場所から、同じ方向を見てみる	flavour:corridor
+上の階へ行ってみる	go_guestroom
+千歳さんは八時ごろ何をしていたのか確かめる	ask_chitose
+勉強しているという机まわりを眺める	flavour:textbook
+渡り廊下の先の部屋へ移る	go_annex
+海堂さんが叫び声のあと何をしていたか聞く	ask_kaido
+もらったという品を一つずつ開けてみる	examine_gifts
+部屋の真ん中に通っている材木に近づく	flavour:pillar
+もう一度、入ってきたところへ戻る	go_hall
+あの部屋にあったのは犬の跡だけでしたと久瀬さんに言う	ask_ruise_prints
+久瀬さん、千歳さんと同じ部屋にいたことはありますか	closed:ruise
+望月さん、この館で犬を飼っていましたか	closed:mochizuki
+いちど腰を下ろして、三人の話を突き合わせてみる	flavour:notebook
+外はまだ霧がひどいのだろうか	flavour:mountain
+屋根によじ登って煙突から入る	none
 どうすればいいか教えてほしい	none
-全員を広間に集めて推理を話す	finale
+全員を広間に呼んで、分かったことを話す	finale

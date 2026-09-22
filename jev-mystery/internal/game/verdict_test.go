@@ -18,10 +18,10 @@ func TestEndingsFollowWhatWasFound(t *testing.T) {
 		f      fake
 		ending string
 	}{
-		{"right person, whole truth", fake{choice: "kurata", prob: 0.9, noul: 0.9, score: 4}, "true"},
-		{"right person, most of it", fake{choice: "kurata", prob: 0.9, noul: 0.9, score: 1}, "close"},
-		{"right person, nothing else", fake{choice: "kurata", prob: 0.9, noul: 0.1, score: 0}, "named"},
-		{"wrong person, right trick", fake{choice: "nanjo", prob: 0.9, noul: 0.9, score: 4}, "sharp"},
+		{"right person, whole truth", fake{choice: "ruise", prob: 0.9, noul: 0.9, score: 4}, "true"},
+		{"right person, most of it", fake{choice: "ruise", prob: 0.9, noul: 0.9, score: 1}, "close"},
+		{"right person, nothing else", fake{choice: "ruise", prob: 0.9, noul: 0.1, score: 0}, "named"},
+		{"wrong person, right trick", fake{choice: "mochizuki", prob: 0.9, noul: 0.9, score: 4}, "sharp"},
 		{"nobody, nothing", fake{choice: scenario.NoMatch, prob: 0.9, noul: 0.1, score: 0}, "fail"},
 	}
 	for _, c := range cases {
@@ -35,7 +35,7 @@ func TestEndingsFollowWhatWasFound(t *testing.T) {
 				t.Fatalf("ending = %q, want %q (hits %d, coherence %.1f)", v.Ending.ID, c.ending, v.Hits, v.Coherence)
 			}
 
-			wantCulprit := c.f.choice == s.Finale.Culprit
+			wantCulprit := s.Finale.Blames(c.f.choice)
 			if v.Correct != wantCulprit {
 				t.Errorf("correct = %v, want %v", v.Correct, wantCulprit)
 			}
@@ -54,10 +54,10 @@ func TestEndingsFollowWhatWasFound(t *testing.T) {
 // parallel.
 func TestWhatTheGraderIsAsked(t *testing.T) {
 	s := load(t)
-	f := &fake{choice: "kurata", prob: 0.9, noul: 0.9, score: 4}
+	f := &fake{choice: "ruise", prob: 0.9, noul: 0.9, score: 4}
 	e := &Engine{Asker: f, Policy: DefaultPolicy()}
 
-	v, err := e.Grade(context.Background(), s, "犯人は倉田静。柱時計が進めてあった。")
+	v, err := e.Grade(context.Background(), s, "犯人は久瀬瑠依。床に残っていたのは一匹分の足跡だけだった。")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -78,7 +78,7 @@ func TestWhatTheGraderIsAsked(t *testing.T) {
 	if len(view.WhatActuallyHappened) != len(s.Finale.Truth) {
 		t.Error("the model was not given the truth to grade against")
 	}
-	if !strings.Contains(strings.Join(view.Suspects, ""), "倉田") {
+	if !strings.Contains(strings.Join(view.Suspects, ""), "久瀬") {
 		t.Error("the suspects should be named for the culprit question")
 	}
 

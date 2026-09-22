@@ -100,7 +100,7 @@ GCP 側の作業は不要です。デプロイ用サービスアカウントは�
 - https://ocknamo.github.io/sandbox/mystery/ — 自由入力の推理ゲーム
   （[`docs/mystery/`](docs/mystery)、ソースは [`jev-mystery/web`](jev-mystery/web)）。
   選択肢は表示されず、やりたいことを文章で書きます。最後は推理を文章で述べて採点されます。
-  事件ごとにハッシュで分かれていて、`#clockwork` と `#curtain` が遊べます。
+  事件ごとにハッシュで分かれていて、いまは `#yakata`（「三つの証言」）が遊べます。
   [kanabun](https://github.com/ocknamo/kanabun) で書いてあり、ビルド結果をコミットしています。
   詳細は [`jev-mystery/README.md`](jev-mystery/README.md)。
 - https://ocknamo.github.io/sandbox/jev.html — Nostr の「おすすめタイムライン」

@@ -3,6 +3,7 @@
  * panel re-reads what changed instead of being rebuilt.
  */
 import { For, Show } from "@kanabun/core";
+import { portrait } from "./api";
 import type { Item, Person, Verdict, View } from "./api";
 import * as s from "./styles";
 
@@ -25,10 +26,13 @@ export type Entry =
   | { kind: "ending"; verdict: Verdict };
 
 /**
- * One portrait. A case may ship a picture; most do not, and the glyph is the
- * whole of it. The picture is drawn over the glyph rather than instead of it,
- * so a URL that never loads leaves the face behind it rather than a hole:
- * `onError` takes the image back out and the glyph is already there.
+ * One portrait. A case may ship a picture; a case without one is played with
+ * the glyph, and the glyph is what the picture is drawn over rather than
+ * instead of, so a URL that never loads leaves the face behind it rather than
+ * a hole: `onError` takes the image back out and the glyph is already there.
+ *
+ * The picture's own address comes from `portrait`, because a case keeps its
+ * pictures where it keeps itself: with the service.
  */
 export function Avatar(props: { person: Person }) {
   const person = props.person;
@@ -37,7 +41,7 @@ export function Avatar(props: { person: Person }) {
       <span>{person.avatar || "？"}</span>
       {person.image ? (
         <img
-          src={person.image}
+          src={portrait(person.image)}
           alt={person.name}
           loading="lazy"
           onError={(event: Event) => (event.currentTarget as HTMLImageElement).remove()}
@@ -145,7 +149,7 @@ export function LogEntry(props: { entry: Entry }) {
  *
  * Only the elements the player reached are named. The rest are counted and
  * left unsaid, because the label of an element is a one-line statement of it:
- * a player who wrote half a solution and was shown "柱時計のずれ" against a ×
+ * a player who wrote half a solution and was shown "一匹分の足跡" against a ×
  * has just been told the other half, which is the one thing this screen must
  * not do. The count still says how much was left, which is what the player
  * actually wants to know.

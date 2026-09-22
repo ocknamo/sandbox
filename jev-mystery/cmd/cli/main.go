@@ -25,7 +25,7 @@ import (
 
 func main() {
 	var (
-		caseID  = flag.String("scenario", "clockwork", "which built-in case to play")
+		caseID  = flag.String("scenario", "yakata", "which built-in case to play")
 		model   = flag.String("model", jev.DefaultModel, "model identifier")
 		script  = flag.String("script", "", "file of inputs to play, one per line (default: read stdin)")
 		accuse  = flag.String("accuse", "", "file holding a written solution to grade after the script")

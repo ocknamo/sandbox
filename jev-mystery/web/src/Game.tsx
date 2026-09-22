@@ -1,7 +1,7 @@
 /**
  * One playthrough.
  *
- * The case is chosen by the route, so `#clockwork` is a link to a case and
+ * The case is chosen by the route, so `#yakata` is a link to a case and
  * nothing else in the app has to know which one is being played. Everything
  * the player reads arrives from the service; the page keeps only the log of
  * what has been read and the state token that says where they are.

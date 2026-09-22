@@ -85,9 +85,10 @@ type Character struct {
 	Avatar string `json:"avatar"`
 
 	// Image is a portrait to draw instead of the glyph — an absolute URL, or a
-	// path the page can resolve. It is optional, and deliberately so: a case
-	// is playable written with nothing but glyphs, and a picture that fails to
-	// load falls back to one.
+	// path relative to the service, which is where the pictures a case ships
+	// with are served from (see PortraitPrefix). It is optional, and
+	// deliberately so: a case is playable written with nothing but glyphs, and
+	// a picture that fails to load falls back to one.
 	Image string `json:"image,omitempty"`
 
 	// Closed makes this person answerable with yes, no or "I don't know". A
@@ -315,6 +316,13 @@ type Finale struct {
 	Suspects []string `json:"suspects"`
 	Culprit  string   `json:"culprit"`
 
+	// AlsoCulprit names the other people an accusation may name and still be
+	// right. It is for a case whose answer is not one person — two who did it
+	// together, or three who turn out to be one — where the grader must still
+	// return a single name, because a choice returns one option. Naming any of
+	// them counts as naming the culprit; nothing else about them changes.
+	AlsoCulprit []string `json:"also_culprit,omitempty"`
+
 	Points []Point `json:"points"`
 
 	// CoherenceLevels is the rubric for how well the accusation hangs together
@@ -482,8 +490,9 @@ func (s *Scenario) validate() error {
 // checkImage rejects a portrait the page could not draw. A picture is fetched
 // by the browser from whatever this says, so the schemes are the two that name
 // a picture — http and https — and anything without a scheme is taken as a
-// path relative to the page. Everything else, `data:` and `javascript:` among
-// them, is a way of putting something other than a picture on the screen.
+// path relative to the service. Everything else, `data:` and `javascript:`
+// among them, is a way of putting something other than a picture on the
+// screen.
 func checkImage(id, image string) error {
 	if image == "" {
 		return nil
@@ -544,6 +553,14 @@ func (s *Scenario) validateFinale() error {
 	}
 	if !contains(f.Suspects, f.Culprit) {
 		return fmt.Errorf("scenario: finale culprit %q is not among the suspects", f.Culprit)
+	}
+	for _, id := range f.AlsoCulprit {
+		if id == f.Culprit {
+			return fmt.Errorf("scenario: finale names %q as culprit twice", id)
+		}
+		if !contains(f.Suspects, id) {
+			return fmt.Errorf("scenario: finale also_culprit %q is not among the suspects", id)
+		}
 	}
 	for _, e := range f.RequiresEvidence {
 		if _, ok := s.evidence[e]; !ok {
@@ -643,6 +660,13 @@ func (s *Scenario) Miss(intent string) []string {
 		return text
 	}
 	return s.Misses["default"]
+}
+
+// Blames says whether naming this person counts as naming the culprit. It is
+// how the grader decides a case whose answer is more than one name: the
+// accusation still settles on one person, and any of the guilty will do.
+func (f Finale) Blames(id string) bool {
+	return id != "" && (id == f.Culprit || contains(f.AlsoCulprit, id))
 }
 
 // SuspectNames lists the suspects in scenario order, as name and role, for the

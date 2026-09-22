@@ -2,7 +2,7 @@
  * The app: a router over the cases, and nothing else.
  *
  * The route lives in the URL hash, which browsers never send to a server, so
- * `#clockwork` is a deep link that survives a refresh on GitHub Pages with no
+ * `#yakata` is a deep link that survives a refresh on GitHub Pages with no
  * rewrite rules at all.
  */
 import { render } from "@kanabun/core";
