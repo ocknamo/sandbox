@@ -335,6 +335,13 @@ type Finale struct {
 	CoherenceLevels []string `json:"coherence_levels"`
 
 	Endings []Ending `json:"endings"`
+
+	// Hints are offered, one at a time and in order, to a player whose
+	// accusation missed. They are the case's own way out for a player who has
+	// gathered everyone and is stuck: the author knows where the case is hard,
+	// and the engine does not. They are never sent before an accusation has
+	// been graded, so a player who solves the case never sees them.
+	Hints []string `json:"hints,omitempty"`
 }
 
 // Load parses and validates a scenario.

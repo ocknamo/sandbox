@@ -29,6 +29,7 @@
 望月さんが立っていた場所から、同じ方向を見てみる	flavour:sightline
 上の階へ行ってみる	go_guestroom
 三人がどんなふうに腰かけているか、しばらく見ている	flavour:seats
+一人ずつ、どんな顔立ちをしているのか見ていく	flavour:faces
 久瀬さんに、叫び声のときのことを話してもらう	ask_ruise
 あの部屋にあったのは犬の跡だけでしたと久瀬さんに言う	ask_ruise_prints
 千歳さんは八時ごろ何をしていたのか確かめる	ask_chitose

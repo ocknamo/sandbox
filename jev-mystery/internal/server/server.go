@@ -374,6 +374,10 @@ type accuseResponse struct {
 	Coherence       float64 `json:"coherence"`
 	CoherenceTop    float64 `json:"coherence_top"`
 	CoherenceLegend string  `json:"coherence_legend,omitempty"`
+
+	// Hints are the case's hints, sent only with an ending it does not count
+	// as a win. The page reveals them one at a time.
+	Hints []string `json:"hints,omitempty"`
 }
 
 func (h *handlers) accuse(w http.ResponseWriter, r *http.Request) {
@@ -430,6 +434,9 @@ func (h *handlers) accuse(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, p := range v.Points {
 		resp.Points = append(resp.Points, pointView{Label: p.Label, Hit: p.Hit})
+	}
+	if !v.Ending.Celebrate {
+		resp.Hints = s.Finale.Hints
 	}
 	writeJSON(w, http.StatusOK, resp)
 }
