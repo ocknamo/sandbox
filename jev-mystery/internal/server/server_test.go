@@ -249,8 +249,12 @@ func TestAMissedAccusationCanBeRetriedWithHints(t *testing.T) {
 		t.Fatalf("accuse: %d %s", rec.Code, rec.Body)
 	}
 	hints, _ := out["hints"].([]any)
-	if len(hints) != 3 {
-		t.Fatalf("hints = %v, want the case's three", out["hints"])
+	yakata, err := scenario.Builtin("yakata")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := len(yakata.Finale.Hints); want == 0 || len(hints) != want {
+		t.Fatalf("hints = %v, want the case's %d", out["hints"], want)
 	}
 
 	// Going back to before the answer is the page keeping the token it had:
