@@ -1266,11 +1266,6 @@
         "question": "Does the detective's statement account for the witnesses' differing descriptions of the figure in the corridor by saying that they all saw the same single creature? A short statement is enough — for example, that the testimonies disagreed but the witnesses had all seen the same one beast. It does not need to say which witness saw which head, or that each witness said the figure was alone. It does not count if the statement never mentions the witnesses or their testimony at all, or if it explains the disagreement by somebody lying or being mistaken."
       },
       {
-        "id": "prints",
-        "label": "一匹分の足跡",
-        "question": "Does the detective's statement say that the only tracks in the master's room are a single animal's, with no human footprints at all, because only one body ever entered that room? It counts however it is worded, as long as the single set of tracks is tied to there having been only one body."
-      },
-      {
         "id": "death",
         "label": "簞笥の角",
         "question": "Does the detective's statement say that the master died from striking his head on the corner of the chest of drawers while being driven back, rather than from the bites, and that the three heads bit and cornered him — which is why there are three bite marks with different sets of teeth and why he was heard shouting? It counts however it is worded, as long as the fatal injury is the chest of drawers and the three heads are what drove him into it."
@@ -1297,8 +1292,10 @@
         "text": [
           "三人は広間の同じ場所に立っていた。いや、立っていたのは一人分の幅だった。",
           "久瀬瑠依が「それは私のルールじゃないので」と言い、北村千歳が「模試が」と言いかけ、海堂実が「いやあ」と笑った。三つの声は、同じ胸のあたりから出ていた。",
+          "よく見れば、そこに立っていたのは三人ではなかった。黒い犬の身体がひとつ。その肩から、髪を結った女の頭と、眼鏡の青年の頭と、つるりと剃り上げた男の頭が、三本並んで生えている。",
+          "彼らは、人の顔をした三つ首の犬――人面ケルベロスだったのだ！",
+          "……いや、はじめからわかっていたのだが。と、探偵は小さく咳払いをした。",
           "望月節子が膝をつき、仁科徹が帽子を取った。鈴だけが、平気な顔で言った。「ほらね。足、四つだったでしょ」",
-          "それから鈴が手を叩いた。ぱん、ぱん。仁科徹の拍手がそれに重なり、望月節子が泣き笑いのような息をつき、しまいには三つの首までが、てんでばらばらの調子で手を叩いていた。",
           "誰も見間違えてはいなかった。誰も嘘をついてはいなかった。その両方を立てたまま一つに収まる筋道は、最初から一本しかなく、あなたはそれを引き当てた。",
           "夜が明ける。霧が退き、山を降りる道が朝の色に浮かび上がった。――事件は、あなたの言葉で終わった。"
         ]
@@ -1329,10 +1326,10 @@
       },
       {
         "id": "sharp",
-        "min_points": 3,
+        "min_points": 2,
         "title": "仕掛けだけが残った",
         "text": [
-          "足跡のことも、三つの証言のことも、あなたの言うとおりだった。",
+          "仕掛けのほとんどは、あなたの言うとおりだった。",
           "ただ、あなたは最後に誰の名も呼ばなかったか、呼んではいけない名を呼んだ。",
           "三人は――三つの首は、順番に頷いて、それぞれの部屋へ戻っていった。"
         ]
