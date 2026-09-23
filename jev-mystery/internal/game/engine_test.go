@@ -42,6 +42,10 @@ type fake struct {
 	// so an accusation can find some of them and not others.
 	points map[string]float64
 
+	// culprit replaces the culprit question's distribution outright, for an
+	// accusation whose weight is spread across several people.
+	culprit map[string]float64
+
 	asked map[string]jev.Question
 	state any
 }
@@ -81,8 +85,11 @@ func (f *fake) Ask(_ context.Context, state any, qs map[string]jev.Question) (*j
 			}
 			answers[key] = a
 		case key == KeyCulprit:
-			answers[key] = jev.Answer{Type: jev.TypeChoice, Choice: f.choice,
-				Probabilities: map[string]float64{f.choice: f.prob}}
+			probs := map[string]float64{f.choice: f.prob}
+			if f.culprit != nil {
+				probs = f.culprit
+			}
+			answers[key] = jev.Answer{Type: jev.TypeChoice, Choice: f.choice, Probabilities: probs}
 		case strings.HasPrefix(key, scenario.ClosedPrefix):
 			answers[key] = jev.Answer{Type: jev.TypeChoice, Choice: f.said,
 				Probabilities: map[string]float64{f.said: orElse(f.saidProb, 0.9)}}

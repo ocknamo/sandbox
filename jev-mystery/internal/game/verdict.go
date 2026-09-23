@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/ocknamo/sandbox/jev-mystery/internal/jev"
 	"github.com/ocknamo/sandbox/jev-mystery/internal/scenario"
@@ -77,7 +78,10 @@ func (e *Engine) Grade(ctx context.Context, s *scenario.Scenario, answer string)
 	// An accusation naming nobody is not a wrong accusation: the ending for
 	// "named the right person" and the ending for "named no one" are
 	// different, so `none` is kept rather than folded into a miss.
-	if named.Choice != scenario.NoMatch {
+	switch {
+	case named.Choice == scenario.Together || blamesTheGroup(s, named):
+		v.Named, v.NamedName, v.Correct = scenario.Together, groupName(s), true
+	case named.Choice != scenario.NoMatch:
 		if c := s.Character(named.Choice); c != nil {
 			v.Named, v.NamedName = c.ID, c.Name
 			v.Correct = s.Finale.Blames(c.ID)
@@ -145,6 +149,36 @@ func (v *Verdict) hitAll(ids []string) bool {
 	return true
 }
 
+// blamesTheGroup reports whether, in a case whose answer is several people,
+// most of the grader's weight sat on them taken together even though no single
+// option won.
+//
+// This is the shape a right answer takes when it names all of them: the vote
+// splits three ways, each share loses to `none`, and a player who got the
+// culprits exactly right is told they named nobody. Summing the shares is the
+// honest reading of that distribution — the grader was sure the accusation
+// fell somewhere in this group, just not on which one of them.
+func blamesTheGroup(s *scenario.Scenario, a jev.Answer) bool {
+	if len(s.Finale.AlsoCulprit) == 0 {
+		return false
+	}
+	total := a.Probabilities[scenario.Together]
+	for _, c := range s.Culprits() {
+		total += a.Probabilities[c.ID]
+	}
+	return total > 0.5
+}
+
+// groupName is how an accusation of all the culprits at once is written back
+// to the player.
+func groupName(s *scenario.Scenario) string {
+	var names []string
+	for _, c := range s.Culprits() {
+		names = append(names, c.Name)
+	}
+	return strings.Join(names, "、")
+}
+
 // nearestLegend names the rubric level the score sits closest to. The score is
 // an expected level rather than an index, so it falls between the levels and
 // has to be rounded before it can be read as one.
@@ -189,6 +223,22 @@ func gradeQuestions(s *scenario.Scenario) map[string]jev.Question {
 			"blames several of the named people together, as its answer rather " +
 			"than out of indecision: that is an accusation, not a hedge, and it " +
 			"belongs to whichever of them it rests on most.",
+	}
+
+	// A case whose answer is several people gets an option for all of them at
+	// once. Without it an accusation naming every one of them has no single
+	// option to land on, and splits its weight until `none` wins.
+	if culprits := s.Culprits(); len(culprits) > 1 {
+		var names []string
+		for _, c := range culprits {
+			names = append(names, c.Name)
+		}
+		suspects[scenario.Together] = jev.Option{
+			What: "The detective blames " + strings.Join(names, ", ") + " together, " +
+				"all of them at once, as a single accusation.",
+			NotFor: "An accusation that settles on only one of them, or that blames " +
+				"them along with somebody who is not in this group.",
+		}
 	}
 
 	qs := map[string]jev.Question{
