@@ -1263,7 +1263,7 @@
       {
         "id": "testimony",
         "label": "食い違わない証言",
-        "question": "Does the detective's statement explain the three contradictory descriptions of the figure in the corridor by saying that each of the three witnesses saw a different head of that same single body as it passed, so that all three accounts — including each witness saying the figure was alone — are true and nobody lied or was mistaken? It counts however it is worded, as long as the contradiction is resolved by one body with three heads rather than by anyone being wrong."
+        "question": "Does the detective's statement account for the witnesses' differing descriptions of the figure in the corridor by saying that they all saw the same single creature? A short statement is enough — for example, that the testimonies disagreed but the witnesses had all seen the same one beast. It does not need to say which witness saw which head, or that each witness said the figure was alone. It does not count if the statement never mentions the witnesses or their testimony at all, or if it explains the disagreement by somebody lying or being mistaken."
       },
       {
         "id": "prints",
