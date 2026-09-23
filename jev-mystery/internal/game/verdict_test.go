@@ -5,6 +5,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ocknamo/sandbox/jev-mystery/internal/jev"
+
 	"github.com/ocknamo/sandbox/jev-mystery/internal/scenario"
 )
 
@@ -92,5 +94,69 @@ func TestWhatTheGraderIsAsked(t *testing.T) {
 
 	if v.Hits != len(s.Finale.Points) || v.CoherenceLegend == "" {
 		t.Errorf("hits = %d, legend = %q", v.Hits, v.CoherenceLegend)
+	}
+}
+
+// Naming all three of the one beast is the right answer, and has to read as
+// one. The grader's vote splits across the three names, none of them alone
+// beats "named nobody", and the player who got the culprits exactly right used
+// to be told they had named no one at all.
+func TestNamingEveryCulpritIsNamingTheCulprit(t *testing.T) {
+	s := load(t)
+	cases := map[string]fake{
+		"the group option wins": {choice: scenario.Together, prob: 0.9, noul: 0.9, score: 4},
+		"the vote splits and none edges it": {choice: scenario.NoMatch, noul: 0.9, score: 4,
+			culprit: map[string]float64{"ruise": 0.24, "chitose": 0.23, "kaido": 0.23, scenario.NoMatch: 0.3}},
+	}
+	for name, f := range cases {
+		t.Run(name, func(t *testing.T) {
+			e := &Engine{Asker: &f, Policy: DefaultPolicy()}
+			v, err := e.Grade(context.Background(), s, "犯人は久瀬、北村、海堂の三人。三人は一匹だった。")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !v.Correct {
+				t.Fatalf("naming all three was not counted as naming the culprit (named %q)", v.Named)
+			}
+			if !strings.Contains(v.NamedName, "久瀬") || !strings.Contains(v.NamedName, "海堂") {
+				t.Errorf("named_name = %q, want all three", v.NamedName)
+			}
+			if v.Ending.ID != "true" {
+				t.Errorf("ending = %q, want true", v.Ending.ID)
+			}
+		})
+	}
+}
+
+// Splitting the vote is not the same as spreading it everywhere: an accusation
+// that really named nobody still names nobody.
+func TestAHedgeIsNotAGroupAccusation(t *testing.T) {
+	s := load(t)
+	f := &fake{choice: scenario.NoMatch, noul: 0.1, score: 0,
+		culprit: map[string]float64{"ruise": 0.1, "chitose": 0.1, "kaido": 0.1, "mochizuki": 0.1, scenario.NoMatch: 0.6}}
+	e := &Engine{Asker: f, Policy: DefaultPolicy()}
+	v, err := e.Grade(context.Background(), s, "誰がやったのかはわからない。")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if v.Correct || v.Named != "" {
+		t.Errorf("correct = %v, named = %q, want nobody", v.Correct, v.Named)
+	}
+}
+
+// The group option is offered only where the answer is a group.
+func TestTheGroupIsOfferedToTheGrader(t *testing.T) {
+	s := load(t)
+	f := &fake{choice: "ruise", prob: 0.9, noul: 0.9, score: 4}
+	e := &Engine{Asker: f, Policy: DefaultPolicy()}
+	if _, err := e.Grade(context.Background(), s, "推理です"); err != nil {
+		t.Fatal(err)
+	}
+	opts, ok := f.asked[KeyCulprit].Criteria.(map[string]jev.Option)
+	if !ok {
+		t.Fatalf("culprit criteria are %T", f.asked[KeyCulprit].Criteria)
+	}
+	if _, ok := opts[scenario.Together]; !ok {
+		t.Error("a case with several culprits offered no option for all of them")
 	}
 }

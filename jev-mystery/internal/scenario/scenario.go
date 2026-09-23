@@ -614,6 +614,9 @@ func (s *Scenario) validateFinale() error {
 		if _, ok := s.characters[id]; !ok {
 			return fmt.Errorf("scenario: finale names unknown suspect %q", id)
 		}
+		if id == NoMatch || id == Together {
+			return fmt.Errorf("scenario: suspect id %q is reserved", id)
+		}
 	}
 	if _, ok := s.characters[f.Culprit]; !ok {
 		return fmt.Errorf("scenario: finale culprit %q is not a character", f.Culprit)
@@ -715,6 +718,11 @@ const FlavourPrefix = "flavour:"
 // because the engine, not the scenario, decides when it appears.
 const FinaleAction = "finale"
 
+// Together is the option the grader picks for an accusation that blames the
+// culprit and everyone in AlsoCulprit at once. It is only offered in a case
+// that has an AlsoCulprit, and no suspect may take the name.
+const Together = "together"
+
 // Scene returns a place by id, or nil.
 func (s *Scenario) Scene(id string) *Scene { return s.scenes[id] }
 
@@ -744,6 +752,17 @@ func (s *Scenario) Miss(intent string) []string {
 // accusation still settles on one person, and any of the guilty will do.
 func (f Finale) Blames(id string) bool {
 	return id != "" && (id == f.Culprit || contains(f.AlsoCulprit, id))
+}
+
+// Culprits lists the culprit and everyone in AlsoCulprit, in suspect order.
+func (s *Scenario) Culprits() []Character {
+	var out []Character
+	for _, c := range s.SuspectNames() {
+		if s.Finale.Blames(c.ID) {
+			out = append(out, c)
+		}
+	}
+	return out
 }
 
 // SuspectNames lists the suspects in scenario order, as name and role, for the
