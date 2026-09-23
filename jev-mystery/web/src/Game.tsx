@@ -178,6 +178,7 @@ export function Game() {
         gained: turn.gained ?? [],
         moved: turn.moved_to === undefined ? undefined : turn.view.scene.name,
         arrival: turn.arrival ?? [],
+        interlude: turn.interlude ?? [],
       });
       // The finale is not a screen the player opens: they ask to gather
       // everyone, in whatever words, and the service decides whether they may.

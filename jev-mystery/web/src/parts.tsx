@@ -21,6 +21,8 @@ export type Entry =
       moved?: string;
       /** The room walked into, described. Empty unless the turn moved. */
       arrival: string[];
+      /** What the case says unprompted because this turn completed something. */
+      interlude: string[];
     }
   | { kind: "answer"; text: string }
   | { kind: "ending"; verdict: Verdict };
@@ -150,6 +152,9 @@ export function LogEntry(props: { entry: Entry }) {
       {entry.moved ? <div class="moved">{"— " + entry.moved + " —"}</div> : null}
       {entry.arrival.length > 0 ? (
         <div class="arrival">{entry.arrival.map((line) => <p>{line}</p>)}</div>
+      ) : null}
+      {entry.interlude.length > 0 ? (
+        <div class="interlude">{entry.interlude.map((line) => <p>{line}</p>)}</div>
       ) : null}
     </div>
   );

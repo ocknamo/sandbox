@@ -621,3 +621,54 @@ func TestTheStoryTravelsOnlyWhereItIsAnswerable(t *testing.T) {
 		t.Error("the plot was sent to a room where nobody can answer for it")
 	}
 }
+
+// The case speaks up on its own the turn the last of the three witnesses is
+// heard, and only that once: a second hearing of the same child is a re-read,
+// not a new realisation.
+func TestAnInterludeFollowsTheTurnThatCompletesIt(t *testing.T) {
+	s := load(t)
+	f := &fake{choice: "ask_suzu", prob: 0.8, conf: 0.9, intent: IntentAsk}
+	e := &Engine{Asker: f, Policy: DefaultPolicy()}
+
+	st := New(s)
+	st.Scene = "kitchen"
+	st.Flags = []string{"heard_mochizuki", "heard_nishina"}
+
+	st, turn, err := e.Play(context.Background(), s, st, "鈴ちゃんに話を聞く")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(turn.Interlude) == 0 {
+		t.Fatal("the third witness was heard and the case said nothing")
+	}
+	if !strings.Contains(turn.Interlude[len(turn.Interlude)-1], "探偵はつぶやいた") {
+		t.Errorf("interlude = %v", turn.Interlude)
+	}
+
+	_, again, err := e.Play(context.Background(), s, st, "鈴ちゃんにもう一度話を聞く")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(again.Interlude) != 0 {
+		t.Errorf("the interlude was read twice: %v", again.Interlude)
+	}
+}
+
+// With a witness still unheard there is nothing to remark on yet.
+func TestAnInterludeWaitsForAllItsRequirements(t *testing.T) {
+	s := load(t)
+	f := &fake{choice: "ask_suzu", prob: 0.8, conf: 0.9, intent: IntentAsk}
+	e := &Engine{Asker: f, Policy: DefaultPolicy()}
+
+	st := New(s)
+	st.Scene = "kitchen"
+	st.Flags = []string{"heard_mochizuki"}
+
+	_, turn, err := e.Play(context.Background(), s, st, "鈴ちゃんに話を聞く")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(turn.Interlude) != 0 {
+		t.Errorf("interlude = %v, want nothing", turn.Interlude)
+	}
+}

@@ -34,6 +34,10 @@ type State struct {
 	// narrated once and re-reads get the shorter text.
 	Taken []string `json:"taken,omitempty"`
 
+	// Interludes records which of the case's unprompted asides have been
+	// read, so each is read once.
+	Interludes []string `json:"interludes,omitempty"`
+
 	Turn     int  `json:"turn"`
 	Finished bool `json:"finished,omitempty"`
 }
@@ -161,6 +165,26 @@ func Apply(s *scenario.Scenario, st State, a *scenario.Action) (State, Outcome) 
 		out.MovedTo = a.MovesTo
 	}
 	return st, out
+}
+
+// Interlude reports the asides the case volunteers now that the state has
+// moved: every interlude whose requirements have just come to hold and which
+// has not been read before, in file order, marked as read.
+//
+// It is checked after an action and nowhere else, because only an action moves
+// the state; a turn that answered a question or printed flavour cannot have
+// completed anything.
+func Interlude(s *scenario.Scenario, st State) (State, []string) {
+	var text []string
+	for i := range s.Interludes {
+		in := &s.Interludes[i]
+		if contains(st.Interludes, in.ID) || !met(in.Requires, st) {
+			continue
+		}
+		st.Interludes = add(st.Interludes, in.ID)
+		text = append(text, in.Text...)
+	}
+	return st, text
 }
 
 // Describe is the room as it reads on walking into it: the authored

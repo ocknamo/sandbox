@@ -274,6 +274,10 @@ type actResponse struct {
 	// have to look away from it to find out where they now are.
 	Arrival []string `json:"arrival,omitempty"`
 
+	// Interlude is what the case says unprompted because this turn completed
+	// something. It comes last, after the room.
+	Interlude []string `json:"interlude,omitempty"`
+
 	View    view     `json:"view"`
 	Signals *signals `json:"signals,omitempty"`
 }
@@ -313,12 +317,13 @@ func (h *handlers) act(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := actResponse{
-		State:   token,
-		Matched: turn.Matched,
-		Text:    turn.Text,
-		Finale:  turn.Finale,
-		Arrival: turn.Arrival,
-		View:    h.view(s, st),
+		State:     token,
+		Matched:   turn.Matched,
+		Text:      turn.Text,
+		Finale:    turn.Finale,
+		Arrival:   turn.Arrival,
+		Interlude: turn.Interlude,
+		View:      h.view(s, st),
 	}
 	if turn.Outcome != nil {
 		resp.Did = turn.Outcome.Did

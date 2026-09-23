@@ -137,6 +137,9 @@ func run(caseID, model, script, accuse string, policy game.Policy, verbose bool)
 		for _, p := range turn.Arrival {
 			fmt.Println("   ", p)
 		}
+		for _, p := range turn.Interlude {
+			fmt.Println("   ", p)
+		}
 		fmt.Println()
 
 		if interactive && turn.Finale {
