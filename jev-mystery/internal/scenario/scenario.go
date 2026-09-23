@@ -43,6 +43,12 @@ type Scenario struct {
 	// it changes nothing — which is what makes it safe to write a lot of.
 	Flavours []Flavour `json:"flavours,omitempty"`
 
+	// Interludes are prose the case volunteers on its own, once, on the turn
+	// its conditions first hold: the detective stopping to notice that the
+	// pieces now on the table do not fit. Nothing asks for them, so nothing
+	// has to match them.
+	Interludes []Interlude `json:"interludes,omitempty"`
+
 	// Misses is what the player reads when an input matches nothing, keyed by
 	// the intent behind it. A miss is most of what a player will see early on,
 	// so it is authored per intent rather than being one flat "何も起きない".
@@ -56,6 +62,7 @@ type Scenario struct {
 	evidence   map[string]*Evidence
 	actions    map[string]*Action
 	flavour    map[string]*Flavour
+	interlude  map[string]*Interlude
 }
 
 // Scene is a place the player can be. Its description is read on arrival and
@@ -266,6 +273,20 @@ type Flavour struct {
 	Text []string `json:"text"`
 }
 
+// Interlude is something the case says without being asked, the first time
+// the player has done enough for it to be worth saying.
+//
+// It is the one kind of prose that is not an answer to an input. An action or
+// a flavour entry waits for the player to reach for it; an interlude arrives
+// after a turn that happened to complete its requirements — the third witness
+// heard, say — and is appended to that turn. It is read once and never again,
+// and it changes nothing but the record that it has been read.
+type Interlude struct {
+	ID       string   `json:"id"`
+	Requires Requires `json:"requires"`
+	Text     []string `json:"text"`
+}
+
 // Point is one element of the truth the player's accusation is graded on. Each
 // becomes a noul: a narrow yes/no about the text the player wrote.
 type Point struct {
@@ -365,6 +386,7 @@ func (s *Scenario) index() error {
 	s.evidence = make(map[string]*Evidence, len(s.Evidence))
 	s.actions = make(map[string]*Action, len(s.Actions))
 	s.flavour = make(map[string]*Flavour, len(s.Flavours))
+	s.interlude = make(map[string]*Interlude, len(s.Interludes))
 
 	for i := range s.Scenes {
 		sc := &s.Scenes[i]
@@ -393,6 +415,12 @@ func (s *Scenario) index() error {
 	for i := range s.Flavours {
 		f := &s.Flavours[i]
 		if err := unique(s.flavour, f.ID, f, "flavour"); err != nil {
+			return err
+		}
+	}
+	for i := range s.Interludes {
+		in := &s.Interludes[i]
+		if err := unique(s.interlude, in.ID, in, "interlude"); err != nil {
 			return err
 		}
 	}
@@ -492,6 +520,21 @@ func (s *Scenario) validate() error {
 		if err := s.refs(f.ID, Action{
 			Scenes: f.Scenes, Requires: f.Requires, Speaker: f.Speaker,
 		}); err != nil {
+			return err
+		}
+	}
+
+	// An interlude with no requirements would fire on the first action of
+	// every game, which is what the opening is for.
+	for _, in := range s.Interludes {
+		if len(in.Text) == 0 {
+			return fmt.Errorf("scenario: interlude %q has no text", in.ID)
+		}
+		r := in.Requires
+		if len(r.Evidence) == 0 && len(r.Flags) == 0 && len(r.NotFlags) == 0 {
+			return fmt.Errorf("scenario: interlude %q requires nothing", in.ID)
+		}
+		if err := s.refs(in.ID, Action{Requires: r}); err != nil {
 			return err
 		}
 	}

@@ -132,6 +132,10 @@ type Turn struct {
 	// this says what they walked into.
 	Arrival []string `json:"arrival,omitempty"`
 
+	// Interlude is what the case says unprompted because this turn completed
+	// something — the last witness heard. It is read after everything else.
+	Interlude []string `json:"interlude,omitempty"`
+
 	Intent     string  `json:"intent"`
 	Choice     string  `json:"choice"`
 	Score      float64 `json:"score"`
@@ -219,6 +223,7 @@ func (e *Engine) Play(ctx context.Context, s *scenario.Scenario, st State, input
 			if out.MovedTo != "" {
 				turn.Arrival = Describe(s, st)
 			}
+			st, turn.Interlude = Interlude(s, st)
 			return st, turn, nil
 		}
 		// The model answered with an option that was never offered. Treat it

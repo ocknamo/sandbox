@@ -243,6 +243,18 @@ export const log = css`
     color: var(--muted);
   }
 
+  /* The detective thinking aloud, unprompted. It follows the turn that set it
+     off but is not part of it, so it sits apart and reads as an aside. */
+  .interlude {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--line);
+  }
+
+  .interlude p {
+    font-style: italic;
+  }
+
   /* An element of the truth the player did not reach. It is counted and left
      unnamed: naming it here would hand over the part of the case they were
      still working on. */
@@ -349,6 +361,28 @@ export const log = css`
     background: var(--accent);
     height: 6px;
     border-radius: 3px;
+  }
+
+  /* The result as it will be posted, shown before it is, so the player can
+     see that it gives nothing away. */
+  .share {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--line);
+  }
+
+  .share pre {
+    font-family: var(--ui);
+    font-size: 13px;
+    white-space: pre-wrap;
+    color: var(--muted);
+    margin: 0 0 10px;
+  }
+
+  .share .buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
   }
 `;
 

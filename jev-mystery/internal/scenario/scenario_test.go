@@ -128,6 +128,21 @@ func TestLoadRejects(t *testing.T) {
 				"match": map[string]any{"what": "listen"}, "text": []any{"rain"},
 			}}
 		},
+		// An interlude is read once, when its conditions first hold. One with
+		// no conditions would fire after the first action of every game.
+		"interlude that requires nothing": func(m map[string]any) {
+			m["interludes"] = []any{map[string]any{"id": "aside", "text": []any{"hm"}}}
+		},
+		"interlude with nothing to say": func(m map[string]any) {
+			m["interludes"] = []any{map[string]any{
+				"id": "aside", "requires": map[string]any{"flags": []any{"x"}},
+			}}
+		},
+		"interlude on evidence that does not exist": func(m map[string]any) {
+			m["interludes"] = []any{map[string]any{
+				"id": "aside", "requires": map[string]any{"evidence": []any{"nothing"}}, "text": []any{"hm"},
+			}}
+		},
 		// The glyph is the fallback behind every portrait, so a character
 		// without one has nothing to draw while the picture loads.
 		"character with no avatar": func(m map[string]any) {

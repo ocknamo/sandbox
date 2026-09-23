@@ -89,6 +89,8 @@ export interface Turn {
   moved_to?: string;
   /** The room just walked into, described. Only on a turn that moved. */
   arrival?: string[];
+  /** What the case says unprompted because this turn completed something. */
+  interlude?: string[];
   finale?: boolean;
   view: View;
 }

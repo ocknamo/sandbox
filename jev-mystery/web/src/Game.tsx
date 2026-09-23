@@ -178,6 +178,7 @@ export function Game() {
         gained: turn.gained ?? [],
         moved: turn.moved_to === undefined ? undefined : turn.view.scene.name,
         arrival: turn.arrival ?? [],
+        interlude: turn.interlude ?? [],
       });
       // The finale is not a screen the player opens: they ask to gather
       // everyone, in whatever words, and the service decides whether they may.
@@ -201,7 +202,11 @@ export function Game() {
       beforeAnswer.set(before);
       token.set(verdict.state);
       if (verdict.hints !== undefined && verdict.hints.length > 0) hints.set(verdict.hints);
-      append({ kind: "ending", verdict });
+      append({
+        kind: "ending",
+        verdict,
+        share: { title: started()?.title ?? "", turns: view()?.turn ?? 0 },
+      });
       phase.set("closed");
     } catch (err) {
       fail(err);
