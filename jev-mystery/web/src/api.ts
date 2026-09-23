@@ -123,6 +123,11 @@ export interface Verdict {
   coherence: number;
   coherence_top: number;
   coherence_legend?: string;
+  /**
+   * The case's hints, sent only with an ending that is not a win. The page
+   * reveals them one at a time, in this order.
+   */
+  hints?: string[];
 }
 
 async function request<T>(path: string, body?: unknown): Promise<T> {

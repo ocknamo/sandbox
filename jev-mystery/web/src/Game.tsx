@@ -29,6 +29,15 @@ export function Game() {
   const draft = signal("");
   const busy = signal(false);
   const error = signal("");
+  // The state as it stood just before the last accusation, so a player who
+  // missed can take their answer back instead of starting the case over. The
+  // service keeps nothing between requests: holding the earlier token is all
+  // going back needs.
+  const beforeAnswer = signal("");
+  // The case's hints, once a missed accusation has brought them, and how many
+  // of them the player has asked to see.
+  const hints = signal<string[]>([]);
+  const shown = signal(0);
 
   let logEl: Element | null = null;
   let inputEl: HTMLInputElement | null = null;
@@ -51,6 +60,9 @@ export function Game() {
     phase.set("playing");
     draft.set("");
     error.set("");
+    beforeAnswer.set("");
+    hints.set([]);
+    shown.set(0);
     document.title = start.title;
   });
 
@@ -98,8 +110,11 @@ export function Game() {
     error.set("");
     append({ kind: "answer", text: answer });
     try {
-      const verdict = await api.accuse(token.peek(), answer);
+      const before = token.peek();
+      const verdict = await api.accuse(before, answer);
+      beforeAnswer.set(before);
       token.set(verdict.state);
+      if (verdict.hints !== undefined && verdict.hints.length > 0) hints.set(verdict.hints);
       append({ kind: "ending", verdict });
       phase.set("closed");
     } catch (err) {
@@ -107,6 +122,15 @@ export function Game() {
     } finally {
       busy.set(false);
     }
+  };
+
+  /** Take the last answer back: everyone is gathered again, and nothing else changes. */
+  const rewind = () => {
+    if (busy.peek() || beforeAnswer.peek() === "") return;
+    token.set(beforeAnswer.peek());
+    error.set("");
+    append({ kind: "narration", lines: ["――もう一度、考え直すことにした。"] });
+    phase.set("accusing");
   };
 
   // `at` reads the current view without this function subscribing to it: the
@@ -142,7 +166,10 @@ export function Game() {
                 <p class={s.waiting}>……</p>
               </Show>
             </div>
-            <Show when={() => phase() !== "closed"}>{() => <Control />}</Show>
+            <Show when={() => phase() !== "closed"} fallback={() => <Closed />}>
+              {() => <Control />}
+            </Show>
+            <Show when={() => hints().length > 0}>{() => <Hints />}</Show>
           </div>
         </div>
       </div>
@@ -209,6 +236,33 @@ export function Game() {
     </div>
   );
 
+  /** After the ending: a way back to before the answer. */
+  const Closed = () => (
+    <div class={`${s.card} ${s.control}`}>
+      <button type="button" class="secondary" disabled={busy} onClick={rewind}>
+        推理を述べる前に戻る
+      </button>
+      <p class="hint">集めた手がかりはそのままに、推理だけを書き直せます。</p>
+    </div>
+  );
+
+  /**
+   * The case's hints, one per press. Offered only once an accusation has
+   * missed, and kept on screen after going back, which is when they are read.
+   */
+  const Hints = () => (
+    <div class={`${s.card} ${s.hints}`}>
+      <For each={() => hints().slice(0, shown())}>
+        {(hint: string, i: number) => <p>{`ヒント${i + 1}　${hint}`}</p>}
+      </For>
+      <Show when={() => shown() < hints().length}>
+        <button type="button" class="secondary" onClick={() => shown.update((n) => n + 1)}>
+          {() => (shown() === 0 ? "ヒントを見る" : "次のヒントを見る")}
+        </button>
+      </Show>
+    </div>
+  );
+
   const Accusation = () => {
     const answer = signal("");
     return (
@@ -234,6 +288,12 @@ export function Game() {
           </p>
         </form>
         <p class="hint">文章で書いてください。名指しだけでも、筋道まで書いても構いません。</p>
+        <div class={s.gather}>
+          <button type="button" class="secondary" disabled={busy} onClick={() => phase.set("playing")}>
+            聞き込みに戻る
+          </button>
+          <p class="hint">まだ推理を述べずに、館の中を調べ直せます。</p>
+        </div>
       </div>
     );
   };

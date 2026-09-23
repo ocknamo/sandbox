@@ -415,6 +415,16 @@ export const gather = css`
   }
 `;
 
+/** The case's hints, revealed one at a time after a missed accusation. */
+export const hints = css`
+  margin-top: 16px;
+
+  p {
+    margin: 0 0 10px;
+    font-size: 14px;
+  }
+`;
+
 /** The one thing the game volunteers: the case is ready to be closed. */
 export const banner = css`
   border: 1px solid var(--accent);

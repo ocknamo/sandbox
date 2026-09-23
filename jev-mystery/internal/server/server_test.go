@@ -223,11 +223,41 @@ func TestAccusingClosesTheCase(t *testing.T) {
 	if out["correct"] != true || out["ending_id"] != "true" {
 		t.Fatalf("verdict = %v", out)
 	}
+	if _, ok := out["hints"]; ok {
+		t.Fatalf("a won case was sent hints: %v", out["hints"])
+	}
 
 	// And the closed state refuses another turn.
 	rec, _ = post(t, h, "/api/act", map[string]any{"state": out["state"], "input": "もう一度調べる"})
 	if rec.Code != http.StatusConflict {
 		t.Fatalf("act after the ending: %d, want 409", rec.Code)
+	}
+}
+
+func TestAMissedAccusationCanBeRetriedWithHints(t *testing.T) {
+	h := serve(t, &stub{choice: scenario.NoMatch, noul: 0, score: 0})
+	codec, _ := session.New("test key")
+
+	st := game.State{Scenario: "yakata", Scene: "hall", Evidence: []string{"meals", "pawprint", "bite"}}
+	token, err := codec.Encode(st)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rec, out := post(t, h, "/api/accuse", map[string]any{"state": token, "answer": "わかりません"})
+	if rec.Code != http.StatusOK {
+		t.Fatalf("accuse: %d %s", rec.Code, rec.Body)
+	}
+	hints, _ := out["hints"].([]any)
+	if len(hints) != 3 {
+		t.Fatalf("hints = %v, want the case's three", out["hints"])
+	}
+
+	// Going back to before the answer is the page keeping the token it had:
+	// the state from before the accusation is still open to another one.
+	rec, _ = post(t, h, "/api/accuse", map[string]any{"state": token, "answer": "やはりわかりません"})
+	if rec.Code != http.StatusOK {
+		t.Fatalf("accuse again from the earlier state: %d %s", rec.Code, rec.Body)
 	}
 }
 
