@@ -202,7 +202,11 @@ export function Game() {
       beforeAnswer.set(before);
       token.set(verdict.state);
       if (verdict.hints !== undefined && verdict.hints.length > 0) hints.set(verdict.hints);
-      append({ kind: "ending", verdict });
+      append({
+        kind: "ending",
+        verdict,
+        share: { title: started()?.title ?? "", turns: view()?.turn ?? 0 },
+      });
       phase.set("closed");
     } catch (err) {
       fail(err);

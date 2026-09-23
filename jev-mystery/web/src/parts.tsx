@@ -25,7 +25,16 @@ export type Entry =
       interlude: string[];
     }
   | { kind: "answer"; text: string }
-  | { kind: "ending"; verdict: Verdict };
+  | {
+      kind: "ending";
+      verdict: Verdict;
+      /**
+       * The case's title and how many turns it took, for the result the
+       * player can share. Optional because a log saved before sharing existed
+       * has endings without it, and those still render.
+       */
+      share?: { title: string; turns: number };
+    };
 
 /**
  * One portrait. A case may ship a picture; a case without one is played with
@@ -134,7 +143,7 @@ export function LogEntry(props: { entry: Entry }) {
   }
 
   if (entry.kind === "ending") {
-    return <Ending verdict={entry.verdict} />;
+    return <Ending verdict={entry.verdict} share={entry.share} />;
   }
 
   return (
@@ -176,7 +185,7 @@ export function LogEntry(props: { entry: Entry }) {
  * not do. The count still says how much was left, which is what the player
  * actually wants to know.
  */
-function Ending(props: { verdict: Verdict }) {
+function Ending(props: { verdict: Verdict; share?: { title: string; turns: number } }) {
   const v = props.verdict;
   const named = v.correct
     ? `犯人を言い当てた（${v.named_name}）`
@@ -222,6 +231,93 @@ function Ending(props: { verdict: Verdict }) {
           <div style={{ width }} />
         </div>
         <Show when={() => v.coherence_legend !== undefined}>{v.coherence_legend}</Show>
+      </div>
+      {props.share ? <Share text={shareText(v, props.share)} title={props.share.title} /> : null}
+    </div>
+  );
+}
+
+/**
+ * The result as the player would post it.
+ *
+ * It says how well they did and nothing about what they found. The ending's
+ * title, the name they gave and the labels of the elements they reached are
+ * each a piece of the answer, and this text is meant for people who have not
+ * played yet — so it carries marks and counts, the way the scorecard does for
+ * what the player missed.
+ */
+export function shareText(v: Verdict, share: { title: string; turns: number }): string {
+  const found = v.points.filter((point) => point.hit).length;
+  const won = v.celebrate === true;
+  const result = won && v.correct && found === v.points.length ? "完全解決" : won ? "事件解決" : "未解決";
+  const marks = v.points.map((point) => (point.hit ? "○" : "×")).join("");
+  return [
+    `『${share.title}』${result}`,
+    `犯人 ${v.correct ? "○" : "×"}／真相 ${marks} ${found}/${v.points.length}`,
+    `筋の通り ${v.coherence.toFixed(1)}/${v.coherence_top}・${share.turns}手`,
+    "#jevmystery",
+  ].join("\n");
+}
+
+/**
+ * The link to the case, without `?api=`: that points the page at a service
+ * somebody was testing against, and a friend following the link wants the
+ * real one.
+ */
+function shareURL(): string {
+  const url = new URL(location.href);
+  url.searchParams.delete("api");
+  return url.toString();
+}
+
+/**
+ * Two ways to take the result off the page: the device's own share sheet,
+ * where there is one, and a plain copy to the clipboard, which works
+ * everywhere and is what a desktop browser is left with.
+ */
+function Share(props: { text: string; title: string }) {
+  const url = shareURL();
+  const copied = signal(false);
+  const canShare = typeof navigator.share === "function";
+
+  const share = () => {
+    navigator.share({ title: props.title, text: props.text, url }).catch(() => {
+      // Closing the share sheet rejects, and that is not an error to report.
+    });
+  };
+
+  const copy = async () => {
+    const all = `${props.text}\n${url}`;
+    try {
+      await navigator.clipboard.writeText(all);
+    } catch {
+      // No clipboard API (an insecure origin, an old browser): the textarea
+      // route still works nearly everywhere.
+      const area = document.createElement("textarea");
+      area.value = all;
+      area.style.position = "fixed";
+      area.style.opacity = "0";
+      document.body.appendChild(area);
+      area.select();
+      document.execCommand("copy");
+      area.remove();
+    }
+    copied.set(true);
+    setTimeout(() => copied.set(false), 2000);
+  };
+
+  return (
+    <div class="share">
+      <pre>{props.text}</pre>
+      <div class="buttons">
+        {canShare ? (
+          <button type="button" class="secondary" onClick={share}>
+            共有する
+          </button>
+        ) : null}
+        <button type="button" class="secondary" onClick={() => void copy()}>
+          {() => (copied() ? "コピーしました" : "結果をコピー")}
+        </button>
       </div>
     </div>
   );

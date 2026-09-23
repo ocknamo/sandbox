@@ -362,6 +362,28 @@ export const log = css`
     height: 6px;
     border-radius: 3px;
   }
+
+  /* The result as it will be posted, shown before it is, so the player can
+     see that it gives nothing away. */
+  .share {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--line);
+  }
+
+  .share pre {
+    font-family: var(--ui);
+    font-size: 13px;
+    white-space: pre-wrap;
+    color: var(--muted);
+    margin: 0 0 10px;
+  }
+
+  .share .buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 `;
 
 export const control = css`
