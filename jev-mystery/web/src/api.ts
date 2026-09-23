@@ -119,6 +119,8 @@ export interface Verdict {
    * have to know every case's ending IDs.
    */
   celebrate?: boolean;
+  /** Whether the case counts this ending as solving it outright: 完全解決. */
+  complete?: boolean;
   correct: boolean;
   named_name?: string;
   points: Point[];

@@ -369,6 +369,10 @@ type accuseResponse struct {
 	// can mark the ending without knowing any case's ending IDs.
 	Celebrate bool `json:"celebrate,omitempty"`
 
+	// Complete is the case's word for "solved outright", which the page
+	// draws as 完全解決.
+	Complete bool `json:"complete,omitempty"`
+
 	// Correct and Points are the scorecard, shown after the ending. They are
 	// safe here and nowhere earlier: the case is over by the time they are
 	// read.
@@ -431,6 +435,7 @@ func (h *handlers) accuse(w http.ResponseWriter, r *http.Request) {
 		Title:           v.Ending.Title,
 		Text:            v.Ending.Text,
 		Celebrate:       v.Ending.Celebrate,
+		Complete:        v.Ending.Complete,
 		Correct:         v.Correct,
 		NamedName:       v.NamedName,
 		Coherence:       v.Coherence,

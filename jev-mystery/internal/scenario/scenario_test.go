@@ -106,6 +106,16 @@ func TestLoadRejects(t *testing.T) {
 		},
 		// Endings are tested in order and the player always gets one, so an
 		// unreachable last ending would leave a finished case with no text.
+		"ending requires a point that does not exist": func(m map[string]any) {
+			finale(m)["endings"] = append([]any{map[string]any{
+				"id": "best", "title": "B", "text": []any{"fin"}, "require_points": []any{"nothing"},
+			}}, finale(m)["endings"].([]any)...)
+		},
+		"complete ending that is not a win": func(m map[string]any) {
+			finale(m)["endings"] = append([]any{map[string]any{
+				"id": "best", "title": "B", "text": []any{"fin"}, "complete": true,
+			}}, finale(m)["endings"].([]any)...)
+		},
 		"last ending has conditions": func(m map[string]any) {
 			finale(m)["endings"].([]any)[0].(map[string]any)["require_culprit"] = true
 		},

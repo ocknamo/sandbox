@@ -38,6 +38,10 @@ type fake struct {
 	flavourProb float64
 	flavourNone float64
 
+	// points overrides noul for single elements of the truth, by point id,
+	// so an accusation can find some of them and not others.
+	points map[string]float64
+
 	asked map[string]jev.Question
 	state any
 }
@@ -88,6 +92,9 @@ func (f *fake) Ask(_ context.Context, state any, qs map[string]jev.Question) (*j
 				Legend: map[string]string{"0": "bad", "1": "ok", "2": "fine", "3": "good", "4": "airtight"}}
 		case q.Type == jev.TypeNoul:
 			n := f.noul
+			if v, ok := f.points[strings.TrimPrefix(key, pointPrefix)]; ok {
+				n = v
+			}
 			answers[key] = jev.Answer{Type: jev.TypeNoul, Noul: &n}
 		}
 	}

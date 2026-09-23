@@ -203,12 +203,8 @@ function Ending(props: { verdict: Verdict; share?: { title: string; turns: numbe
 
   const width = `${Math.round((100 * v.coherence) / (v.coherence_top || 1))}%`;
 
-  // The case says which of its endings is a win; the scorecard says how
-  // completely. Both are needed: reaching the true ending with a piece of the
-  // truth still unnamed is a solve, and saying so is not the same as saying
-  // the player left nothing behind.
   const won = v.celebrate === true;
-  const banner = won && v.correct && missed === 0 ? "完 全 解 決" : "事 件 解 決";
+  const banner = complete(v) ? "完 全 解 決" : "事 件 解 決";
 
   return (
     <div class={won ? "entry said won" : "entry said"}>
@@ -238,6 +234,18 @@ function Ending(props: { verdict: Verdict; share?: { title: string; turns: numbe
 }
 
 /**
+ * Whether the case was solved outright. The case says which of its endings
+ * counts — it may ask for the heart of the matter rather than every point on
+ * the scorecard — and an ending it has not marked still counts when nothing at
+ * all was left behind, which is also how an ending saved before the case could
+ * say so is read.
+ */
+function complete(v: Verdict): boolean {
+  if (v.celebrate !== true) return false;
+  return v.complete === true || (v.correct && v.points.every((point) => point.hit));
+}
+
+/**
  * The result as the player would post it.
  *
  * It says how well they did and nothing about what they found. The ending's
@@ -248,8 +256,7 @@ function Ending(props: { verdict: Verdict; share?: { title: string; turns: numbe
  */
 export function shareText(v: Verdict, share: { title: string; turns: number }): string {
   const found = v.points.filter((point) => point.hit).length;
-  const won = v.celebrate === true;
-  const result = won && v.correct && found === v.points.length ? "完全解決" : won ? "事件解決" : "未解決";
+  const result = complete(v) ? "完全解決" : v.celebrate === true ? "事件解決" : "未解決";
   const marks = v.points.map((point) => (point.hit ? "○" : "×")).join("");
   return [
     `『${share.title}』${result}`,

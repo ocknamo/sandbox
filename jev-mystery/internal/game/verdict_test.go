@@ -19,7 +19,15 @@ func TestEndingsFollowWhatWasFound(t *testing.T) {
 		ending string
 	}{
 		{"right person, whole truth", fake{choice: "ruise", prob: 0.9, noul: 0.9, score: 4}, "true"},
-		{"right person, most of it", fake{choice: "ruise", prob: 0.9, noul: 0.9, score: 1}, "close"},
+		// The heart of the case is that the three are one and that the
+		// witnesses are all right. That much is the whole solve, however thin
+		// the rest of the account and however loosely it hangs together.
+		{"right person, the heart of it", fake{choice: "kaido", prob: 0.9, noul: 0.1, score: 1,
+			points: map[string]float64{"one_beast": 0.9, "testimony": 0.9}}, "true"},
+		{"right person, one beast but not the witnesses", fake{choice: "ruise", prob: 0.9, noul: 0.9, score: 4,
+			points: map[string]float64{"testimony": 0.1}}, "close"},
+		{"right person, witnesses but not one beast", fake{choice: "ruise", prob: 0.9, noul: 0.9, score: 4,
+			points: map[string]float64{"one_beast": 0.1}}, "close"},
 		{"right person, nothing else", fake{choice: "ruise", prob: 0.9, noul: 0.1, score: 0}, "named"},
 		{"wrong person, right trick", fake{choice: "mochizuki", prob: 0.9, noul: 0.9, score: 4}, "sharp"},
 		{"nobody, nothing", fake{choice: scenario.NoMatch, prob: 0.9, noul: 0.1, score: 0}, "fail"},
