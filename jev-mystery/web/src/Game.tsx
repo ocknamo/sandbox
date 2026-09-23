@@ -5,6 +5,11 @@
  * nothing else in the app has to know which one is being played. Everything
  * the player reads arrives from the service; the page keeps only the log of
  * what has been read and the state token that says where they are.
+ *
+ * That much is kept in localStorage, per case, so a reload or a closed tab
+ * picks up where the player left off — including the way back from a missed
+ * accusation and the hints already read. Storage is a convenience: when it is
+ * unavailable, the page plays exactly as it would without it.
  */
 import { For, Show, effect, resource, signal } from "@kanabun/core";
 import { useParams } from "@kanabun/router";
@@ -14,6 +19,44 @@ import type { Entry } from "./parts";
 import * as s from "./styles";
 
 type Phase = "playing" | "accusing" | "closed";
+
+/** Everything the page needs to carry on from where the player left off. */
+interface Saved {
+  token: string;
+  view: api.View;
+  entries: Entry[];
+  phase: Phase;
+  beforeAnswer: string;
+  hints: string[];
+  shown: number;
+}
+
+const storageKey = (id: string) => `jev-mystery:${id}`;
+
+function load(id: string): Saved | null {
+  try {
+    const raw = localStorage.getItem(storageKey(id));
+    return raw === null ? null : (JSON.parse(raw) as Saved);
+  } catch {
+    return null;
+  }
+}
+
+function save(id: string, saved: Saved) {
+  try {
+    localStorage.setItem(storageKey(id), JSON.stringify(saved));
+  } catch {
+    // A full or blocked storage only costs the resume.
+  }
+}
+
+function forget(id: string) {
+  try {
+    localStorage.removeItem(storageKey(id));
+  } catch {
+    // Nothing was saved, then.
+  }
+}
 
 export function Game() {
   const params = useParams();
@@ -42,10 +85,33 @@ export function Game() {
   let logEl: Element | null = null;
   let inputEl: HTMLInputElement | null = null;
 
-  // A new case — or a restart, which refetches — begins here.
+  const caseId = () => params()["case"] ?? "";
+  // The case the board is showing. Saving goes by this rather than by the
+  // route, so a route that has already moved on never files one case's game
+  // under another's name.
+  let playing = "";
+
+  // A new case — or a restart, which refetches — begins here. A case already
+  // under way in this browser is picked up instead of begun again.
   effect(() => {
     const start = started();
     if (start === undefined) return;
+    document.title = start.title;
+    draft.set("");
+    error.set("");
+    playing = caseId();
+    const saved = load(playing);
+    if (saved !== null) {
+      token.set(saved.token);
+      view.set(saved.view);
+      entries.set(saved.entries);
+      phase.set(saved.phase);
+      beforeAnswer.set(saved.beforeAnswer);
+      hints.set(saved.hints);
+      shown.set(saved.shown);
+      requestAnimationFrame(() => logEl?.lastElementChild?.scrollIntoView({ block: "end" }));
+      return;
+    }
     token.set(start.state);
     view.set(start.view);
     // Where the case opens is described in the log as well as in the panel
@@ -58,13 +124,33 @@ export function Game() {
       ...(arrival.length > 0 ? [{ kind: "narration" as const, lines: arrival }] : []),
     ]);
     phase.set("playing");
-    draft.set("");
-    error.set("");
     beforeAnswer.set("");
     hints.set([]);
     shown.set(0);
-    document.title = start.title;
   });
+
+  // Every change worth resuming from is written back as it happens.
+  effect(() => {
+    const v = view();
+    if (v === null || playing === "") return;
+    save(playing, {
+      token: token(),
+      view: v,
+      entries: entries(),
+      phase: phase(),
+      beforeAnswer: beforeAnswer(),
+      hints: hints(),
+      shown: shown(),
+    });
+  });
+
+  // The board is cleared before the refetch, so nothing is written back
+  // between forgetting the game and the new one arriving.
+  const restart = () => {
+    view.set(null);
+    forget(playing);
+    refetch();
+  };
 
   const append = (entry: Entry) => {
     entries.update((list) => [...list, entry]);
@@ -309,7 +395,7 @@ export function Game() {
           <p class="byline">{() => started()?.byline ?? ""}</p>
         </div>
         <Show when={() => started() !== undefined}>
-          <button type="button" class="secondary" disabled={busy} onClick={() => refetch()}>
+          <button type="button" class="secondary" disabled={busy} onClick={restart}>
             最初から
           </button>
         </Show>
