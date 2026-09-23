@@ -120,9 +120,29 @@ func pickEnding(s *scenario.Scenario, v *Verdict) scenario.Ending {
 		if v.Coherence < end.MinCoherence {
 			continue
 		}
+		if !v.hitAll(end.RequirePoints) {
+			continue
+		}
 		return end
 	}
 	return s.Finale.Endings[len(s.Finale.Endings)-1]
+}
+
+// hitAll reports whether every one of the named points was found.
+func (v *Verdict) hitAll(ids []string) bool {
+	for _, id := range ids {
+		hit := false
+		for _, p := range v.Points {
+			if p.ID == id {
+				hit = p.Hit
+				break
+			}
+		}
+		if !hit {
+			return false
+		}
+	}
+	return true
 }
 
 // nearestLegend names the rubric level the score sits closest to. The score is

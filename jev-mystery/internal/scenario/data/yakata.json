@@ -1287,9 +1287,12 @@
       {
         "id": "true",
         "require_culprit": true,
-        "min_points": 4,
-        "min_coherence": 2.5,
+        "require_points": [
+          "one_beast",
+          "testimony"
+        ],
         "celebrate": true,
+        "complete": true,
         "title": "一匹全員",
         "text": [
           "三人は広間の同じ場所に立っていた。いや、立っていたのは一人分の幅だった。",

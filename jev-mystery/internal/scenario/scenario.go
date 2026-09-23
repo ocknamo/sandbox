@@ -309,6 +309,12 @@ type Ending struct {
 	MinPoints      int     `json:"min_points,omitempty"`
 	MinCoherence   float64 `json:"min_coherence,omitempty"`
 
+	// RequirePoints names the elements of the truth this ending cannot be had
+	// without. MinPoints counts; this picks. A case whose heart is one or two
+	// realisations can ask for exactly those, and let the rest of the points
+	// decide only the endings below.
+	RequirePoints []string `json:"require_points,omitempty"`
+
 	Title string   `json:"title"`
 	Text  []string `json:"text"`
 
@@ -316,6 +322,12 @@ type Ending struct {
 	// decides which of its endings count as solving it: the engine grades,
 	// and only the scenario knows whether a given ending is worth cheering.
 	Celebrate bool `json:"celebrate,omitempty"`
+
+	// Complete marks the ending that counts as solving the case outright, so
+	// the page can say 完全解決 rather than 事件解決. It is the case's call
+	// for the same reason Celebrate is: what "the whole of it" means differs
+	// from case to case, and need not be every point on the scorecard.
+	Complete bool `json:"complete,omitempty"`
 }
 
 // Finale is the endgame: the player gathers everyone and writes out what they
@@ -653,8 +665,18 @@ func (s *Scenario) validateFinale() error {
 	}
 	// Endings are tested in order and the player always gets one, so the last
 	// must be reachable however badly the accusation went.
+	for _, end := range f.Endings {
+		for _, id := range end.RequirePoints {
+			if !seen[id] {
+				return fmt.Errorf("scenario: ending %q requires unknown point %q", end.ID, id)
+			}
+		}
+		if end.Complete && !end.Celebrate {
+			return fmt.Errorf("scenario: ending %q is complete but not celebrated", end.ID)
+		}
+	}
 	last := f.Endings[len(f.Endings)-1]
-	if last.RequireCulprit || last.MinPoints > 0 || last.MinCoherence > 0 {
+	if last.RequireCulprit || last.MinPoints > 0 || last.MinCoherence > 0 || len(last.RequirePoints) > 0 {
 		return fmt.Errorf("scenario: the last ending %q must have no conditions", last.ID)
 	}
 	return nil
