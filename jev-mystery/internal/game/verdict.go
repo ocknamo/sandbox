@@ -251,7 +251,11 @@ func gradeQuestions(s *scenario.Scenario) map[string]jev.Question {
 		KeyCoherence: jev.Score(
 			"Read the detective's statement as an argument, setting aside whether "+
 				"it matches what actually happened. How well does it hang together: "+
-				"does it explain the events, and does one part follow from another?",
+				"do its claims fit with one another without contradiction, and does "+
+				"it resolve the puzzle it takes on? Judge the reasoning, not the "+
+				"length. A short statement that names the key trick and uses it to "+
+				"clear up the case's contradictions hangs together fully; do not mark "+
+				"it down for leaving out details, events or evidence it never needed.",
 			s.Finale.CoherenceLevels),
 	}
 
