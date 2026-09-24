@@ -84,6 +84,10 @@ export function Game() {
 
   let logEl: Element | null = null;
   let inputEl: HTMLInputElement | null = null;
+  // On a touch screen a focused field keeps the keyboard up over the reply
+  // the player is waiting to read, so there the field lets go after a turn
+  // instead of taking focus back.
+  const touch = window.matchMedia("(pointer: coarse)").matches;
 
   const caseId = () => params()["case"] ?? "";
   // The case the board is showing. Saving goes by this rather than by the
@@ -187,7 +191,7 @@ export function Game() {
       fail(err);
     } finally {
       busy.set(false);
-      inputEl?.focus();
+      if (!touch) inputEl?.focus();
     }
   };
 
@@ -277,6 +281,7 @@ export function Game() {
             event.preventDefault();
             const input = draft.peek().trim();
             draft.set("");
+            if (touch) inputEl?.blur();
             void play(input);
           }}
         >
@@ -288,7 +293,7 @@ export function Game() {
             disabled={busy}
             ref={(el: Element) => {
               inputEl = el as HTMLInputElement;
-              inputEl.focus();
+              if (!touch) inputEl.focus();
             }}
             onInput={(event: Event) => draft.set((event.target as HTMLInputElement).value)}
           />
