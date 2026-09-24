@@ -9,6 +9,8 @@ on:
   # Unlike the Cloud Run services this runs on every branch, not just main.
   # The live call is the only way to exercise the real API from this repo, and
   # workflow_dispatch is unavailable until the file reaches the default branch.
+  # A branch with a pull request would then be tested twice, once per event;
+  # the jobs below skip the pull_request run in that case.
   push:
     paths:
       - 'jev-nostr/**'
@@ -17,6 +19,12 @@ on:
 jobs:
   test:
     name: Build and test
+    # A pull request from a branch of this repository was already tested by
+    # the push that updated it, so its pull_request run is skipped. Pull
+    # requests from forks trigger no push here and still run.
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
     # Runs in well under a minute; nothing here touches the network.
     timeout-minutes: 15
