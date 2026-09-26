@@ -1,0 +1,327 @@
+/**
+ * Scoped styles, via core's `css` helper: each block is hashed and injected
+ * once, so a class name here cannot collide with one anywhere else.
+ *
+ * The palette lives in index.html as custom properties, because it belongs to
+ * the page rather than to any one component, and because the light/dark
+ * switch has to apply before the first paint.
+ */
+import { css } from "@kanabun/core";
+
+export const shell = css`
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 32px 16px 56px;
+
+  .titlebar {
+    display: flex;
+    gap: 16px;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  h1 {
+    font-size: 24px;
+    margin: 0;
+    letter-spacing: 0.02em;
+  }
+
+  h1 a.home {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .byline {
+    color: var(--muted);
+    font-size: 13px;
+    margin: 2px 0 20px;
+  }
+
+  footer {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 40px;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+
+  footer a {
+    color: inherit;
+  }
+`;
+
+export const card = css`
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+
+  h2 {
+    font-size: 13px;
+    margin: 0 0 10px;
+    color: var(--muted);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+  }
+`;
+
+/** One answer: the question it answers, then what a person wrote. */
+export const answer = css`
+  .meta {
+    display: flex;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--muted);
+    margin: 0;
+  }
+
+  .meta a {
+    color: var(--muted);
+    text-decoration: none;
+  }
+
+  h3 {
+    font-size: 17px;
+    line-height: 1.5;
+    margin: 2px 0 8px;
+  }
+
+  .prose p {
+    margin: 0 0 10px;
+    white-space: pre-line;
+  }
+
+  .pending {
+    color: var(--muted);
+    font-style: italic;
+    margin: 0 0 6px;
+  }
+
+  details {
+    margin: 4px 0 8px;
+    border-left: 2px solid var(--line);
+    padding-left: 12px;
+  }
+
+  summary {
+    cursor: pointer;
+    color: var(--accent);
+    font-size: 13.5px;
+    margin-bottom: 6px;
+  }
+
+  .related {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    margin-top: 8px;
+  }
+
+  .label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-right: 2px;
+  }
+
+  .sources {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--muted);
+    overflow-wrap: anywhere;
+  }
+
+  .sources a {
+    color: var(--muted);
+  }
+
+  button.chip {
+    font-size: 12.5px;
+    padding: 3px 12px;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--accent);
+    text-align: left;
+  }
+`;
+
+export const suggestions = css`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 8px;
+
+  .label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-right: 2px;
+  }
+
+  button.chip {
+    font-size: 12.5px;
+    padding: 3px 12px;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--accent);
+    text-align: left;
+  }
+`;
+
+/**
+ * The owl, large, with what it is saying above its head. The moods are classes
+ * on the wrapper; the drawing itself never changes, only how it moves.
+ */
+export const owl = css`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 8px 0 4px;
+
+  .bubble {
+    position: relative;
+    margin: 0 0 10px;
+    padding: 8px 16px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--card);
+    font-size: 14.5px;
+    min-height: 1.85em;
+    text-align: center;
+  }
+
+  .bubble::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -7px;
+    width: 12px;
+    height: 12px;
+    background: var(--card);
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    transform: translateX(-50%) rotate(45deg);
+  }
+
+  svg {
+    width: min(260px, 64vw);
+    height: auto;
+    display: block;
+  }
+
+  .bird,
+  .pupils,
+  .lid {
+    transform-box: fill-box;
+  }
+
+  .bird {
+    transform-origin: 50% 100%;
+    transition: transform 0.3s ease;
+  }
+
+  .pupils {
+    transition: transform 0.25s ease;
+  }
+
+  /* Keyframes are global in kanabun's css helper, hence the owl- prefix.
+     The lids sit shut-flat until a blink opens them downward for a moment. */
+  .lid {
+    transform-origin: 50% 0%;
+    transform: scaleY(0);
+    animation: owl-blink 5s infinite;
+  }
+
+  &.thinking .bird {
+    animation: owl-ponder 1.4s ease-in-out infinite;
+  }
+
+  &.thinking .pupils {
+    transform: translate(3px, -6px);
+  }
+
+  &.answer .bird {
+    animation: owl-hop 0.5s ease-out 1;
+  }
+
+  &.suggest .bird,
+  &.miss .bird {
+    transform: rotate(-8deg);
+  }
+
+  &.miss .pupils {
+    transform: translate(-3px, 2px);
+  }
+
+  @keyframes owl-blink {
+    0%, 94%, 100% { transform: scaleY(0); }
+    97% { transform: scaleY(1); }
+  }
+
+  @keyframes owl-ponder {
+    0%, 100% { transform: rotate(-6deg); }
+    50% { transform: rotate(6deg); }
+  }
+
+  @keyframes owl-hop {
+    0% { transform: translateY(0); }
+    40% { transform: translateY(-8px); }
+    100% { transform: translateY(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lid,
+    &.thinking .bird,
+    &.answer .bird {
+      animation: none;
+    }
+  }
+`;
+
+/** The one field. No button: pausing is asking. */
+export const field = css`
+  margin: 0 0 20px;
+
+  input {
+    font: inherit;
+    font-size: 17px;
+    width: 100%;
+    padding: 14px 18px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--fg);
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.06);
+  }
+
+  input:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+`;
+
+/** Where the answer lands. It dims while a newer question is being read. */
+export const reply = css`
+  transition: opacity 0.2s ease;
+
+  &.stale {
+    opacity: 0.45;
+  }
+
+  .message p {
+    margin: 0 0 4px;
+    color: var(--muted);
+  }
+`;
+
+export const error = css`
+  color: var(--warn);
+  font-size: 13px;
+  text-align: center;
+  margin: -8px 0 16px;
+`;
