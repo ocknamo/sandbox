@@ -14,8 +14,8 @@ func TestBuiltinLoads(t *testing.T) {
 	if got := len(c.Categories); got != 12 {
 		t.Errorf("categories = %d, want 12", got)
 	}
-	if got := c.Len(); got != 426 {
-		t.Errorf("questions = %d, want 426", got)
+	if got := c.Len(); got != 432 {
+		t.Errorf("questions = %d, want 432", got)
 	}
 	q := c.Question("1-1")
 	if q == nil || q.Category.ID != "basics" || q.Title != "ビットコインとは何ですか？" {
