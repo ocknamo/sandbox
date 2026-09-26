@@ -250,7 +250,7 @@ absolute timelockは特定の時刻・ブロック高を基準にし、relative 
 
 ## 3-36
 
-`OP_CHECKSEQUENCEVERIFY`（CSV、BIP112）はrelative locktime、`OP_CHECKLOCKTIMEVERIFY`（CLTV、BIP65）はabsolute locktimeに対応するscriptの機能です。名前が似ていますが基準が異なります。
+OP_CHECKSEQUENCEVERIFY（CSV、BIP112）はrelative locktime、OP_CHECKLOCKTIMEVERIFY（CLTV、BIP65）はabsolute locktimeに対応するscriptの機能です。名前が似ていますが基準が異なります。
 
 出典: https://bips.xyz/112
 出典: https://bips.xyz/65

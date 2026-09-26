@@ -51,7 +51,7 @@ P2TRのoutputは公開鍵（x-only public key）をoutput自体に含むため�
 
 ## 12-7
 
-BIP360は、Pay-to-Merkle-Root（P2MR）というSegWit v2の新しいoutputの種類（アドレスは`bc1z`で始まる）をソフトフォークで導入する提案で、Taprootの量子に弱いkey-path spendを取り除きます。2026年9月時点の状態はDraftで、有効化はされていません。
+BIP360は、Pay-to-Merkle-Root（P2MR）というSegWit v2の新しいoutputの種類（アドレスはbc1zで始まる）をソフトフォークで導入する提案で、Taprootの量子に弱いkey-path spendを取り除きます。2026年9月時点の状態はDraftで、有効化はされていません。
 
 出典: https://bips.xyz/360
 関連: 12-8, 12-13

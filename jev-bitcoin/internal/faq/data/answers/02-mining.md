@@ -168,7 +168,7 @@ outputを構成することはできますが、許容されるsubsidyと手数�
 
 ## 2-26
 
-正確には単純なブロック数ではなく、最も大きな**累積Proof of Work**を持つ有効チェーンを選びます。「longest chain」は古い説明として便利ですが、文字どおりの長さと理解すると不正確です。
+正確には単純なブロック数ではなく、最も大きな累積Proof of Workを持つ有効チェーンを選びます。「longest chain」は古い説明として便利ですが、文字どおりの長さと理解すると不正確です。
 
 タグ: 誤前提
 
@@ -297,7 +297,7 @@ V2はバイナリ通信、通信効率・セキュリティの改善、Job Decla
 
 ## 2-46
 
-いいえ。coinbase outputにはmaturity（成熟期間）があり、十分なブロックが積み重なるまで支出できません。Bitcoin Coreでは`COINBASE_MATURITY`として100ブロックが用いられます。
+いいえ。coinbase outputにはmaturity（成熟期間）があり、十分なブロックが積み重なるまで支出できません。Bitcoin CoreではCOINBASE_MATURITYとして100ブロックが用いられます。
 
 出典: https://github.com/bitcoin/bitcoin/blob/master/src/consensus/consensus.h
 タグ: 安定

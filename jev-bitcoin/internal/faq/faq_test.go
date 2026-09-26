@@ -30,6 +30,24 @@ func TestBuiltinLoads(t *testing.T) {
 	}
 }
 
+// Answers are shown as plain text, so Markdown emphasis in them would reach
+// the reader as literal backquotes and asterisks.
+func TestBuiltinAnswersHaveNoMarkup(t *testing.T) {
+	c, err := Builtin()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, cat := range c.Categories {
+		for _, q := range cat.Questions {
+			for _, p := range append(append([]string{}, q.Answer...), q.More...) {
+				if strings.Contains(p, "`") || strings.Contains(p, "**") {
+					t.Errorf("%s: answer contains Markdown markup: %q", q.ID, p)
+				}
+			}
+		}
+	}
+}
+
 const cats = `[
   {"id": "a", "number": 1, "name": "A", "match": {"what": "a things"}},
   {"id": "b", "number": 2, "name": "B", "match": {"what": "b things"}}

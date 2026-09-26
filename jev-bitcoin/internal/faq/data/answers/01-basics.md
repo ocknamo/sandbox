@@ -7,7 +7,7 @@ Bitcoinは、中央の運営者を必要とせず、P2PネットワークとProo
 
 ## 1-2
 
-慣用上、`Bitcoin`はネットワーク・プロトコル、`bitcoin`は通貨単位を指すことがあります。ただしこれはコンセンサスルールではなく表記上の慣行なので、文脈で判断します。
+慣用上、大文字の「Bitcoin」はネットワーク・プロトコル、小文字の「bitcoin」は通貨単位を指すことがあります。ただしこれはコンセンサスルールではなく表記上の慣行なので、文脈で判断します。
 
 タグ: 安定
 
@@ -31,7 +31,7 @@ Bitcoinは、中央の運営者を必要とせず、P2PネットワークとProo
 
 <!-- more -->
 
-Bitcoin Coreには`MAX_MONEY`という21,000,000 BTCの定数がありますが、これは金額の妥当性チェックに使う上限値であり、実際の発行総量そのものではありません。
+Bitcoin CoreにはMAX_MONEYという21,000,000 BTCの定数がありますが、これは金額の妥当性チェックに使う上限値であり、実際の発行総量そのものではありません。
 
 出典: https://github.com/bitcoin/bitcoin/blob/master/src/consensus/amount.h
 タグ: 安定
@@ -45,7 +45,7 @@ Bitcoin Coreには`MAX_MONEY`という21,000,000 BTCの定数がありますが�
 
 ## 1-7
 
-1 BTCは100,000,000 satoshiです。Bitcoin Coreでも1 BTCに相当する`COIN`が100,000,000単位として定義されています。
+1 BTCは100,000,000 satoshiです。Bitcoin Coreでも1 BTCに相当するCOINが100,000,000単位として定義されています。
 
 出典: https://github.com/bitcoin/bitcoin/blob/master/src/consensus/amount.h
 タグ: 安定
