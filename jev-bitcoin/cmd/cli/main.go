@@ -37,7 +37,7 @@ func main() {
 	var (
 		queries = flag.String("queries", "", "file of \"input<TAB>expected\" lines (default: read stdin)")
 		model   = flag.String("model", jev.DefaultModel, "model identifier")
-		mode    = flag.String("mode", string(router.Single), "single or two_stage")
+		mode    = flag.String("mode", string(router.TwoStage), "two_stage or single")
 		match   = flag.Float64("match", d.Match, "the best question needs this combined score to be answered")
 		margin  = flag.Float64("margin", d.Margin, "and must lead the runner-up by this much")
 		floor   = flag.Float64("floor", d.Floor, "a question is suggested at or above this score")

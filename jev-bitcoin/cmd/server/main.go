@@ -55,11 +55,13 @@ func main() {
 		logger.Warn("using endpoint override", "endpoint", endpoint)
 	}
 
-	mode := router.Single
+	// Two requests per question by default: the corpus no longer fits one
+	// request's context once every shelf is in it.
+	mode := router.TwoStage
 	switch m := os.Getenv("ROUTER_MODE"); m {
-	case "", string(router.Single):
-	case string(router.TwoStage):
-		mode = router.TwoStage
+	case "", string(router.TwoStage):
+	case string(router.Single):
+		mode = router.Single
 	default:
 		logger.Error("ROUTER_MODE must be single or two_stage", "value", m)
 		os.Exit(1)
