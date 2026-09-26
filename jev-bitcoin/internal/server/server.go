@@ -159,7 +159,7 @@ type categoryScore struct {
 }
 
 type askResponse struct {
-	// Status is answer, suggest or miss.
+	// Status is answer, suggest, miss or multiple.
 	Status string `json:"status"`
 	Kind   string `json:"kind,omitempty"`
 
@@ -187,6 +187,7 @@ type debugView struct {
 	Kind           string             `json:"kind"`
 	KindConfidence float64            `json:"kind_confidence"`
 	Level          string             `json:"level"`
+	Multi          float64            `json:"multi"`
 	Requests       int                `json:"requests"`
 	InputTokens    int                `json:"input_tokens"`
 	Cached         bool               `json:"cached"`
@@ -291,6 +292,7 @@ func debugOf(res *router.Result, cached bool) *debugView {
 		Kind:           res.Kind,
 		KindConfidence: res.KindConfidence,
 		Level:          res.Level,
+		Multi:          round(res.Multi),
 		Requests:       res.Requests,
 		InputTokens:    res.InputTokens,
 		Cached:         cached,

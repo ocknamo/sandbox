@@ -9,6 +9,7 @@
 //	1-7            the prepared question it should be answered with
 //	none           nothing should be answered
 //	kind:advice    nothing should be answered, and it should read as advice
+//	multi          it should be read as several questions at once
 //
 // A line with no expectation is just asked. The run ends with a tally and
 // with the categories the model confused, which say where a category's
@@ -40,12 +41,13 @@ func main() {
 		match   = flag.Float64("match", d.Match, "the best question needs this combined score to be answered")
 		margin  = flag.Float64("margin", d.Margin, "and must lead the runner-up by this much")
 		floor   = flag.Float64("floor", d.Floor, "a question is suggested at or above this score")
+		multi   = flag.Float64("multi", d.Multi, "an input counts as several questions at or above this")
 		verbose = flag.Bool("v", false, "print every candidate with its numbers")
 	)
 	flag.Parse()
 
 	p := d
-	p.Match, p.Margin, p.Floor = *match, *margin, *floor
+	p.Match, p.Margin, p.Floor, p.Multi = *match, *margin, *floor, *multi
 	if err := run(*queries, *model, router.Mode(*mode), p, *verbose); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
 		os.Exit(1)
@@ -88,7 +90,7 @@ func run(path, model string, mode router.Mode, policy router.Policy, verbose boo
 		return err
 	}
 	for _, q := range qs {
-		if q.expect == "" || q.expect == "none" || strings.HasPrefix(q.expect, "kind:") {
+		if q.expect == "" || q.expect == "none" || q.expect == "multi" || strings.HasPrefix(q.expect, "kind:") {
 			continue
 		}
 		if corpus.Question(q.expect) == nil {
@@ -107,7 +109,7 @@ func run(path, model string, mode router.Mode, policy router.Policy, verbose boo
 		t.tokens += res.InputTokens
 		verdict := judge(corpus, &t, q, res)
 		fmt.Printf("%-5s %s  (%.1fs)\n", verdict, q.input, time.Since(start).Seconds())
-		fmt.Printf("      => %s  [%s, %s]%s\n", describe(res, policy), res.Kind, res.Level, expected(corpus, q.expect))
+		fmt.Printf("      => %s  [%s, %s, multi %.2f]%s\n", describe(res, policy), res.Kind, res.Level, res.Multi, expected(corpus, q.expect))
 		if verbose {
 			for _, c := range res.Candidates {
 				fmt.Printf("         %-6s %.3f = %.2f × %.2f  %v  %s\n",
@@ -150,6 +152,8 @@ func judge(corpus *faq.Corpus, t *tally, q query, res *router.Result) string {
 	switch {
 	case q.expect == "none":
 		ok = res.Status == router.Miss
+	case q.expect == "multi":
+		ok = res.Status == router.Multiple
 	case strings.HasPrefix(q.expect, "kind:"):
 		ok = res.Status != router.Answer && res.Kind == strings.TrimPrefix(q.expect, "kind:")
 	default:
@@ -191,6 +195,12 @@ func describe(res *router.Result, p router.Policy) string {
 	switch res.Status {
 	case router.Answer:
 		return fmt.Sprintf("answer %s %s (%.2f)", res.Best.ID, res.Best.Title, res.Candidates[0].Score)
+	case router.Multiple:
+		var parts []string
+		for _, c := range res.Suggestions(p) {
+			parts = append(parts, fmt.Sprintf("%s (%.2f)", c.Question.ID, c.Score))
+		}
+		return "multiple " + strings.Join(parts, ", ")
 	case router.Suggest:
 		var parts []string
 		for _, c := range res.Suggestions(p) {

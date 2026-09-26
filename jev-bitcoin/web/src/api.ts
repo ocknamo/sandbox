@@ -49,7 +49,7 @@ export interface CategoryScore extends CategoryRef {
 }
 
 export interface Answer {
-  status: "answer" | "suggest" | "miss";
+  status: "answer" | "suggest" | "miss" | "multiple";
   kind?: string;
   answer?: Entry;
   /** The question read as a technical one: start with the longer half open. */

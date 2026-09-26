@@ -38,6 +38,7 @@ const (
 	KeyCategory = "category"
 	KeyKind     = "kind"
 	KeyLevel    = "level"
+	KeyMulti    = "multi"
 
 	// shelfPrefix + a category ID is that category's question choice.
 	shelfPrefix = "in_"
@@ -98,6 +99,11 @@ type Policy struct {
 	// Floor is the score a question needs to be offered as "もしかして".
 	Floor float64
 
+	// Multi is how sure the model has to be that the input asks several
+	// separate things before it is met with "one at a time, please" instead
+	// of an answer.
+	Multi float64
+
 	// Spread and MaxCategories bound the second request in TwoStage: the
 	// likeliest categories are asked about until their probabilities add up
 	// to Spread, and never more than MaxCategories of them.
@@ -107,7 +113,7 @@ type Policy struct {
 
 // DefaultPolicy is a starting point, not a measurement.
 func DefaultPolicy() Policy {
-	return Policy{Match: 0.40, Margin: 0.15, Floor: 0.15, Spread: 0.80, MaxCategories: 3}
+	return Policy{Match: 0.40, Margin: 0.15, Floor: 0.15, Multi: 0.60, Spread: 0.80, MaxCategories: 3}
 }
 
 // Status is what the router concluded.
@@ -120,6 +126,11 @@ const (
 	Suggest Status = "suggest"
 	// Miss means nothing prepared is close.
 	Miss Status = "miss"
+	// Multiple means the input asks several separate things at once. Each
+	// prepared answer answers one question, so answering the one that
+	// happened to score best would quietly drop the rest; the reader is asked
+	// to split them instead, with the closest questions offered to start from.
+	Multiple Status = "multiple"
 )
 
 // Candidate is one prepared question and how well it fits.
@@ -150,6 +161,9 @@ type Result struct {
 	Kind           string
 	KindConfidence float64
 	Level          string
+	// Multi is the model's belief that the input asks several separate
+	// things.
+	Multi float64
 
 	// Requests is how many calls to the API this took.
 	Requests    int
@@ -242,6 +256,9 @@ func (r *Router) read(res *Result, answers map[string]jev.Answer) {
 	res.Kind = kind.Choice
 	res.KindConfidence = kind.Probabilities[kind.Choice]
 	res.Level = answers[KeyLevel].Choice
+	if m := answers[KeyMulti].Noul; m != nil {
+		res.Multi = *m
+	}
 
 	var all []Candidate
 	for _, c := range r.Corpus.Categories {
@@ -274,6 +291,11 @@ func (r *Router) read(res *Result, answers map[string]jev.Answer) {
 	res.Candidates = all
 
 	res.Status = r.Policy.decide(all, cat.Probabilities[faq.NoMatch])
+	// Checked after the ranking, not instead of it: the candidates are still
+	// worth offering, one of them is probably where the reader starts.
+	if res.Multi > 0 && res.Multi >= r.Policy.Multi {
+		res.Status = Multiple
+	}
 	if res.Status == Answer {
 		res.Best = all[0].Question
 	}
@@ -349,6 +371,7 @@ func (r *Router) build() {
 		KeyCategory: categoryQuestion(r.Corpus),
 		KeyKind:     kindQuestion(),
 		KeyLevel:    levelQuestion(),
+		KeyMulti:    multiQuestion(),
 	}
 	r.shelves = make(map[string]jev.Question, len(r.Corpus.Categories))
 	for _, c := range r.Corpus.Categories {
@@ -428,6 +451,20 @@ func kindQuestion() jev.Question {
 			KindOffTopic: "A question about something other than Bitcoin, including other cryptocurrencies on their own.",
 			KindNonsense: "Text that asks nothing and says nothing: gibberish, a stray word, a keyboard mash.",
 		})
+}
+
+// multiQuestion asks whether one message holds several questions. It is a
+// noul of its own rather than an option of kind: a message with two questions
+// in it is still a question, and making the two compete would have one of
+// them lose.
+func multiQuestion() jev.Question {
+	return jev.Noul(
+		"A user typed this into a Bitcoin Q&A service that answers one question " +
+			"at a time. Does the message ask two or more separate questions that " +
+			"would each need their own answer? True for \"What is Lightning, and " +
+			"who invented Bitcoin?\". False for a single question, even a long " +
+			"one, and false for one question with a follow-up detail about the " +
+			"same point, such as \"What is a UTXO, in simple terms?\".")
 }
 
 func levelQuestion() jev.Question {

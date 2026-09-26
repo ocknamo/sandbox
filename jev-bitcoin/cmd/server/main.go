@@ -73,6 +73,7 @@ func main() {
 		{"MATCH_THRESHOLD", &policy.Match},
 		{"MARGIN_THRESHOLD", &policy.Margin},
 		{"FLOOR_THRESHOLD", &policy.Floor},
+		{"MULTI_THRESHOLD", &policy.Multi},
 	} {
 		if !setFloat(logger, t.env, t.field, 0, 1) {
 			os.Exit(1)

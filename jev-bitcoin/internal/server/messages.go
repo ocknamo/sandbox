@@ -3,16 +3,25 @@ package server
 import "github.com/ocknamo/sandbox/jev-bitcoin/internal/router"
 
 // What the service says when it has no answer to give. Like the answers, these
-// are written by a person; the model only picks which one fits.
+// are prepared in advance; the model only picks which one fits.
 //
 // A miss is not an error. The reader asked something real that the corpus
 // does not cover yet, and the most useful thing to say is exactly that.
 var (
 	msgSuggest = []string{"ぴったりの答えは見つかりませんでしたが、近い質問があります。"}
 
+	msgMultiple = []string{
+		"一度にいくつかのことを聞かれているようです。答えは質問ひとつにつきひとつなので、ひとつずつ質問してください。",
+	}
+
+	msgMultipleNear = []string{
+		"一度にいくつかのことを聞かれているようです。答えは質問ひとつにつきひとつなので、ひとつずつ質問してください。",
+		"近い質問から選ぶこともできます。",
+	}
+
 	msgMiss = []string{
 		"その質問への答えはまだ用意していません。",
-		"このサービスは、人が書いてレビューした答えだけを返します。推測で答えを作ることはしません。",
+		"このサービスは、あらかじめ用意した答えだけを返します。その場で答えを作ることはしません。",
 		"質問は記録され、今後の答えを増やす参考にします。言い方を変えると見つかることもあります。",
 	}
 
@@ -36,6 +45,12 @@ var (
 
 // message picks the words for a routing that ended without an answer.
 func message(res *router.Result, suggesting bool) []string {
+	if res.Status == router.Multiple {
+		if suggesting {
+			return msgMultipleNear
+		}
+		return msgMultiple
+	}
 	if suggesting {
 		return msgSuggest
 	}

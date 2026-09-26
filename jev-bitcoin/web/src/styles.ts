@@ -67,7 +67,7 @@ export const card = css`
   }
 `;
 
-/** One answer: the question it answers, then what a person wrote. */
+/** One answer: the question it answers, then the prepared answer. */
 export const answer = css`
   .meta {
     display: flex;
@@ -271,6 +271,15 @@ export const owl = css`
     transform: translate(-3px, 2px);
   }
 
+  /* Several questions at once: the owl's eyes go round in circles. */
+  &.multiple .bird {
+    animation: owl-dizzy 0.9s ease-in-out 2;
+  }
+
+  &.multiple .pupils {
+    animation: owl-roll 0.9s linear 2;
+  }
+
   @keyframes owl-blink {
     0%, 94%, 100% { transform: scaleY(0); }
     97% { transform: scaleY(1); }
@@ -279,6 +288,20 @@ export const owl = css`
   @keyframes owl-ponder {
     0%, 100% { transform: rotate(-6deg); }
     50% { transform: rotate(6deg); }
+  }
+
+  @keyframes owl-dizzy {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-9deg); }
+    75% { transform: rotate(9deg); }
+  }
+
+  @keyframes owl-roll {
+    0% { transform: translate(3px, 0); }
+    25% { transform: translate(0, 3px); }
+    50% { transform: translate(-3px, 0); }
+    75% { transform: translate(0, -3px); }
+    100% { transform: translate(3px, 0); }
   }
 
   @keyframes owl-hop {
@@ -290,7 +313,9 @@ export const owl = css`
   @media (prefers-reduced-motion: reduce) {
     .lid,
     &.thinking .bird,
-    &.answer .bird {
+    &.answer .bird,
+    &.multiple .bird,
+    &.multiple .pupils {
       animation: none;
     }
   }
@@ -329,6 +354,86 @@ export const reply = css`
   .message p {
     margin: 0 0 4px;
     color: var(--muted);
+  }
+`;
+
+/** The reader's own questions, folded away under the answer. */
+export const history = css`
+  margin-top: 28px;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+
+  summary {
+    cursor: pointer;
+    font-size: 13.5px;
+    color: var(--muted);
+  }
+
+  ol {
+    list-style: none;
+    margin: 8px 0 0;
+    padding: 0;
+  }
+
+  li {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    border-bottom: 1px solid var(--line);
+    padding: 6px 0;
+  }
+
+  li button {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--fg);
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  li button:hover .q {
+    color: var(--accent);
+  }
+
+  .q {
+    overflow-wrap: anywhere;
+  }
+
+  .a {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .at {
+    flex: 0 0 auto;
+    font-size: 11.5px;
+    color: var(--muted);
+  }
+
+  .foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--muted);
+    margin: 8px 0 0;
+  }
+
+  button.clear {
+    font-size: 12px;
+    padding: 2px 10px;
+    background: transparent;
+    color: var(--muted);
+    border-color: var(--line);
   }
 `;
 

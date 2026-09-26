@@ -72,12 +72,12 @@ func TestAnswersAClearMatch(t *testing.T) {
 	if res.Level != LevelBeginner || res.Kind != KindQuestion {
 		t.Errorf("level = %q, kind = %q", res.Level, res.Kind)
 	}
-	// One request, carrying the category, the kind, the level and every
-	// shelf.
+	// One request, carrying the category, the kind, the level, the
+	// several-questions check and every shelf.
 	if len(f.requests) != 1 || res.Requests != 1 {
 		t.Fatalf("requests = %d, want 1", len(f.requests))
 	}
-	if got, want := len(f.requests[0]), 3+len(r.Corpus.Categories); got != want {
+	if got, want := len(f.requests[0]), 4+len(r.Corpus.Categories); got != want {
 		t.Errorf("questions in the request = %d, want %d", got, want)
 	}
 }
@@ -153,6 +153,39 @@ func TestMissWhenNothingIsClose(t *testing.T) {
 	}
 }
 
+func noul(v float64) jev.Answer { return jev.Answer{Type: jev.TypeNoul, Noul: &v} }
+
+// Two questions in one message are not answered by whichever scored best:
+// the reader is asked to split them, and the close questions are kept.
+func TestSeveralQuestionsAreSentBack(t *testing.T) {
+	r, _ := newRouter(t, Single, map[string]jev.Answer{
+		KeyCategory:    choice(map[string]float64{"lightning": 0.5, "basics": 0.45, "none": 0.05}),
+		"in_lightning": choice(map[string]float64{"q8_1": 0.9, "none": 0.1}),
+		"in_basics":    choice(map[string]float64{"q1_3": 0.9, "none": 0.1}),
+		KeyMulti:       noul(0.9),
+	})
+	res, err := r.Route(context.Background(), "ライトニングって何？あとビットコインは誰が作ったの？")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.Status != Multiple || res.Best != nil {
+		t.Fatalf("status = %s, best = %v; want multiple", res.Status, res.Best)
+	}
+	if len(res.Candidates) < 2 {
+		t.Errorf("candidates = %v, want both questions kept", res.Candidates)
+	}
+
+	// Below the threshold the answer stands.
+	r2, _ := newRouter(t, Single, map[string]jev.Answer{
+		KeyCategory:    choice(map[string]float64{"lightning": 0.9, "none": 0.1}),
+		"in_lightning": choice(map[string]float64{"q8_1": 0.9, "none": 0.1}),
+		KeyMulti:       noul(0.3),
+	})
+	if res, _ := r2.Route(context.Background(), "ライトニングって何？簡単に言うと？"); res.Status != Answer {
+		t.Errorf("status = %s, want answer", res.Status)
+	}
+}
+
 func TestTwoStageAsksOnlyLikelyShelves(t *testing.T) {
 	r, f := newRouter(t, TwoStage, map[string]jev.Answer{
 		KeyCategory:  choice(map[string]float64{"privacy": 0.6, "keys": 0.3, "wallet": 0.05, "none": 0.05}),
@@ -166,7 +199,7 @@ func TestTwoStageAsksOnlyLikelyShelves(t *testing.T) {
 	if len(f.requests) != 2 || res.Requests != 2 || res.InputTokens != 200 {
 		t.Fatalf("requests = %d (%d tokens), want 2", len(f.requests), res.InputTokens)
 	}
-	if got := strings.Join(f.requests[0], ","); got != "category,kind,level" {
+	if got := strings.Join(f.requests[0], ","); got != "category,kind,level,multi" {
 		t.Errorf("first request = %s", got)
 	}
 	// 0.6 + 0.3 reaches the 0.8 spread; wallet is not asked about.

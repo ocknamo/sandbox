@@ -114,6 +114,26 @@ func TestAskMissUsesKind(t *testing.T) {
 	}
 }
 
+func TestAskSeveralQuestions(t *testing.T) {
+	multi := 0.9
+	h, _ := newServer(t, map[string]jev.Answer{
+		router.KeyCategory: choice("basics", map[string]float64{"basics": 0.9, "none": 0.1}),
+		"in_basics":        choice("q1_7", map[string]float64{"q1_7": 0.6, "q1_3": 0.3, "none": 0.1}),
+		router.KeyKind:     choice(router.KindQuestion, map[string]float64{router.KindQuestion: 1}),
+		router.KeyMulti:    {Type: jev.TypeNoul, Noul: &multi},
+	}, nil)
+	_, out := do(t, h, "POST", "/api/ask", `{"question": "1BTCは何satで、誰が作ったの？"}`)
+	if out["status"] != "multiple" || out["answer"] != nil {
+		t.Fatalf("out = %v", out)
+	}
+	if msg := out["message"].([]any); msg[0] != msgMultipleNear[0] {
+		t.Errorf("message = %v", msg)
+	}
+	if s, _ := out["suggestions"].([]any); len(s) != 2 {
+		t.Errorf("suggestions = %v, want both questions offered", out["suggestions"])
+	}
+}
+
 func TestAskCachesAndLimits(t *testing.T) {
 	limiter := NewLimiter(2, 0)
 	h, f := newServer(t, clearAnswer, limiter)

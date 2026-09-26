@@ -1,11 +1,13 @@
 /**
- * The pieces of the screen: an answer, and the close calls.
+ * The pieces of the screen: an answer, the close calls, and the history.
  *
- * Every answer on this page was written by a person. The model only chose
+ * Every answer on this page was prepared in advance. The model only chose
  * which one; so the card says which prepared question it is answering, and a
  * reader can see whether that is the question they meant.
  */
-import { Show } from "@kanabun/core";
+import { For, Show } from "@kanabun/core";
+import { clear, history } from "./history";
+import type { Asked } from "./history";
 import * as api from "./api";
 import * as s from "./styles";
 
@@ -107,15 +109,65 @@ export function AnswerCard(props: { entry: api.Entry; expand?: boolean; open: (i
 }
 
 /** Close calls, each one a button that opens its answer. */
-export function Suggestions(props: { items: api.Scored[]; open: (id: string) => void }) {
+export function Suggestions(props: { label: string; items: api.Scored[]; open: (id: string) => void }) {
   return (
     <div class={s.suggestions}>
-      <span class="label">もしかして</span>
+      <span class="label">{props.label}</span>
       {props.items.map((q) => (
         <button type="button" class="chip" onClick={() => props.open(q.id)}>
           {q.title}
         </button>
       ))}
     </div>
+  );
+}
+
+/** What became of an earlier question, in a line. */
+function outcome(e: Asked): string {
+  if (e.title !== undefined) return `→ ${e.title}`;
+  if (e.status === "multiple") return "→ 質問がいくつか入っていました";
+  if (e.status === "suggest") return "→ 近い質問がありました";
+  return "→ 答えは見つかりませんでした";
+}
+
+/** "9/26 14:03", or just the time for today. */
+function when(at: number): string {
+  const d = new Date(at);
+  const hm = `${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`;
+  return d.toDateString() === new Date().toDateString() ? hm : `${d.getMonth() + 1}/${d.getDate()} ${hm}`;
+}
+
+/**
+ * What this reader has asked, newest first. Pressing an entry that found an
+ * answer reopens it for free; one that did not is asked again. The list lives
+ * only in this browser, which the panel says, so nobody wonders whether it is
+ * being kept somewhere else.
+ */
+export function HistoryPanel(props: { again: (q: string, id?: string) => void }) {
+  return (
+    <Show when={() => history().length > 0}>
+      <details class={s.history}>
+        <summary>{() => `これまでの質問（${history().length}）`}</summary>
+        <ol>
+          <For each={history}>
+            {(e: Asked) => (
+              <li>
+                <button type="button" onClick={() => props.again(e.q, e.id)}>
+                  <span class="q">{e.q}</span>
+                  <span class="a">{outcome(e)}</span>
+                </button>
+                <span class="at">{when(e.at)}</span>
+              </li>
+            )}
+          </For>
+        </ol>
+        <p class="foot">
+          <span>履歴はこのブラウザの中にだけ保存されています。</span>
+          <button type="button" class="clear" onClick={() => clear()}>
+            履歴を消す
+          </button>
+        </p>
+      </details>
+    </Show>
   );
 }

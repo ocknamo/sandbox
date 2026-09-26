@@ -1,8 +1,8 @@
 // Package faq is the corpus: the categories, the questions, and the answers
-// people wrote for them.
+// prepared for them.
 //
 // Nothing a reader sees is written by the model. Jev only says which prepared
-// question an input is asking; the answer shown is whatever a person wrote
+// question an input is asking; the answer shown is whatever was prepared
 // here. That is the point of the service: on a topic where a confident wrong
 // sentence about keys or supply does real damage, every answer is something
 // that can be reviewed in a pull request.

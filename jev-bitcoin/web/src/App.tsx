@@ -16,12 +16,16 @@
  *
  * `#1-7` shows that question's answer, which is what the link on an answer
  * points at. Looking an answer up by its number never calls the model.
+ *
+ * What the reader asked is kept in their own browser (see history.ts) and
+ * listed under the answer, so they can go back to an earlier one.
  */
 import { Show, effect, onCleanup, signal } from "@kanabun/core";
 import * as api from "./api";
 import { Owl } from "./Owl";
 import type { Mood } from "./Owl";
-import { AnswerCard, Suggestions } from "./parts";
+import { AnswerCard, HistoryPanel, Suggestions } from "./parts";
+import { record, resolveLatest } from "./history";
 import * as s from "./styles";
 
 /** How long the typing has to pause before the field is asked. */
@@ -57,13 +61,16 @@ export function App() {
     return r.status;
   };
 
-  const run = async (work: () => Promise<api.Answer>) => {
+  const run = async (work: () => Promise<api.Answer>, then?: (r: api.Answer) => void) => {
     const mine = ++latest;
     busy.set(true);
     error.set("");
     try {
       const r = await work();
-      if (mine === latest) reply.set(r);
+      if (mine === latest) {
+        reply.set(r);
+        then?.(r);
+      }
     } catch (err) {
       if (mine === latest) error.set(err instanceof Error ? err.message : String(err));
     } finally {
@@ -75,7 +82,10 @@ export function App() {
     const q = normalise(text);
     if (length(q) < MIN_CHARS || q === lastAsked) return;
     lastAsked = q;
-    void run(() => api.ask(q));
+    void run(
+      () => api.ask(q),
+      (r) => record(q, r.status, r.answer?.id, r.answer?.title),
+    );
   };
 
   const schedule = () => {
@@ -85,13 +95,37 @@ export function App() {
     if (length(normalise(text)) >= MIN_CHARS) timer = setTimeout(() => ask(text), PAUSE_MS);
   };
 
-  /** A question opened by its number: a suggestion, a related link, `#1-7`. */
-  const open = (id: string) => {
+  /**
+   * A question opened by its number: a suggestion, a related link, `#1-7`,
+   * the history. `pick` marks the reader choosing among suggestions, which
+   * is what the question they just asked turned out to mean.
+   */
+  const show = (id: string, pick: boolean) => {
     clearTimeout(timer);
-    void run(async () => {
-      const entry = await api.entry(id);
-      return { status: "answer", answer: entry, categories: [] } satisfies api.Answer;
-    });
+    void run(
+      async () => {
+        const entry = await api.entry(id);
+        return { status: "answer", answer: entry, categories: [] } satisfies api.Answer;
+      },
+      (r) => {
+        if (pick && r.answer !== undefined) resolveLatest(r.answer.id, r.answer.title);
+      },
+    );
+  };
+  const open = (id: string) => show(id, false);
+  const pick = (id: string) => show(id, true);
+
+  /** An earlier question from the history, asked again or reopened. */
+  const again = (q: string, id?: string) => {
+    draft.set(q);
+    if (id !== undefined) {
+      lastAsked = normalise(q);
+      open(id);
+      return;
+    }
+    lastAsked = "";
+    clearTimeout(timer);
+    ask(q);
   };
 
   const fromHash = () => {
@@ -165,18 +199,24 @@ export function App() {
                   <AnswerCard entry={r.answer} expand={r.expand} open={open} />
                 </div>
               ) : null}
-              {(r.message ?? []).length > 0 && (r.suggestions ?? []).length === 0 ? (
+              {(r.message ?? []).length > 0 && r.status !== "suggest" ? (
                 <div class={`${s.card} message`}>
                   {(r.message ?? []).map((line) => (
                     <p>{line}</p>
                   ))}
                 </div>
               ) : null}
-              {(r.suggestions ?? []).length > 0 ? <Suggestions items={r.suggestions ?? []} open={open} /> : null}
+              {(r.suggestions ?? []).length > 0 ? <Suggestions
+                  label={r.status === "multiple" ? "近い質問" : "もしかして"}
+                  items={r.suggestions ?? []}
+                  open={pick}
+                /> : null}
             </div>
           );
         }}
       </div>
+
+      <HistoryPanel again={again} />
     </div>
   );
 }

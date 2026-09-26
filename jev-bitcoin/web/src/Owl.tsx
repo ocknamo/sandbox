@@ -4,12 +4,13 @@
  *
  * Its mood is the only animation on the page, and it carries information: the
  * owl tilts its head and looks up while a question is being read, perks up
- * when it has an answer, and cocks its head when it has none. A reader who
+ * when it has an answer, cocks its head when it has none, and gets dizzy when
+ * asked several things at once. A reader who
  * typed and paused sees at once that something is happening.
  */
 import * as s from "./styles";
 
-export type Mood = "idle" | "thinking" | "answer" | "suggest" | "miss";
+export type Mood = "idle" | "thinking" | "answer" | "suggest" | "miss" | "multiple";
 
 /** What the owl says over its head, per mood. */
 export const lines: Record<Mood, string> = {
@@ -18,6 +19,7 @@ export const lines: Record<Mood, string> = {
   answer: "お答えします。",
   suggest: "もしかして、これのことでしょうか？",
   miss: "うーん、それはまだ勉強中です。",
+  multiple: "いっぺんに聞かれると目が回ります……ひとつずつどうぞ。",
 };
 
 /**
