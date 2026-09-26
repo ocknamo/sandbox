@@ -1,0 +1,30 @@
+name: Deploy jev-bitcoin
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'jev-bitcoin/**'
+      - '.github/workflows/deploy-jev-bitcoin.yml'
+      - '.github/workflows/deploy-service.yml'
+  workflow_dispatch:
+
+# Required for Workload Identity Federation: the job mints a GitHub OIDC token
+# that Google exchanges for short-lived credentials. No service account key.
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy-service.yml
+    with:
+      service: jev-bitcoin-api
+      directory: jev-bitcoin
+    secrets:
+      # TYPESAFE_API_KEY: the service refuses to start without it, so a missing
+      # secret shows up as a revision that never becomes healthy rather than as
+      # an API that 500s on every request. Nothing else is secret: the service
+      # keeps no state, so there is nothing to sign.
+      env_vars: |
+        TYPESAFE_API_KEY=${{ secrets.TYPESAFE_API_KEY }}

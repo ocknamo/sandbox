@@ -1,0 +1,19 @@
+{
+  "name": "jev-bitcoin-web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "kanabun dev",
+    "build": "rm -rf ../../docs/bitcoin && kanabun build index.html --outdir ../../docs/bitcoin --no-sourcemap && rm -f ../../docs/bitcoin/*.map",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@kanabun/core": "^0.0.1"
+  },
+  "devDependencies": {
+    "@kanabun/cli": "^0.0.1",
+    "@types/bun": "latest",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ビットコイン Q&amp;A</title>
+    <style>
+      /* The palette and the page frame are global: they belong to the document
+         rather than to any one component, and the light/dark choice has to
+         apply before the first paint. Component styling lives in styles.ts. */
+      :root {
+        color-scheme: light dark;
+        --bg: #fbfaf7;
+        --fg: #1c1b19;
+        --muted: #6b6862;
+        --line: #e2ded5;
+        --card: #ffffff;
+        --accent: #a94f0c;
+        --on-accent: #ffffff;
+        --warn: #a4562a;
+        --bar: #d9d4c8;
+        --ui: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #16181a;
+          --fg: #ececea;
+          --muted: #9b9a96;
+          --line: #2c2f33;
+          --card: #1e2124;
+          --accent: #f2a65a;
+          --on-accent: #1c1b19;
+          --warn: #e0a074;
+          --bar: #363a3f;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font: 15px/1.85 var(--ui);
+      }
+      button {
+        font: inherit;
+        font-family: var(--ui);
+        padding: 7px 16px;
+        border-radius: 8px;
+        border: 1px solid var(--accent);
+        background: var(--accent);
+        color: var(--on-accent);
+        cursor: pointer;
+      }
+      button.secondary {
+        background: transparent;
+        color: var(--accent);
+      }
+      button:disabled {
+        opacity: 0.45;
+        cursor: default;
+      }
+      a {
+        color: var(--accent);
+      }
+    </style>
+  <script type="module" crossorigin src="./chunk-pxg6tnd2.js"></script></head>
+  <body>
+    <div id="app"></div>
+    
+  </body>
+</html>

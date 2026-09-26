@@ -13,6 +13,7 @@ Cloud Run に対して行われます（サービスアカウントキーは不�
 | [`go-cloudrun-bird`](go-cloudrun-bird) | `go-cloudrun-bird` | ランダムな鳥の画像を返す API（画像は Wikimedia Commons） |
 | [`jev-nostr`](jev-nostr) | `jev-nostr-api` | Nostr の投稿を TypeSafe の Jev で判定するスコアリング API |
 | [`jev-mystery`](jev-mystery) | `jev-mystery-api` | 自由入力の推理ゲーム。入力の解釈と推理の採点を Jev が行う |
+| [`jev-bitcoin`](jev-bitcoin) | `jev-bitcoin-api` | ビットコインの質問に答える Q&A。質問をカテゴリ→質問の 2 段で Jev が分類し、用意した答えを返す |
 
 ### ワークフローの構成
 
@@ -103,6 +104,11 @@ GCP 側の作業は不要です。デプロイ用サービスアカウントは�
   事件ごとにハッシュで分かれていて、いまは `#yakata`（「三つの証言」）が遊べます。
   [kanabun](https://github.com/ocknamo/kanabun) で書いてあり、ビルド結果をコミットしています。
   詳細は [`jev-mystery/README.md`](jev-mystery/README.md)。
+- https://ocknamo.github.io/sandbox/bitcoin/ — ビットコイン Q&A
+  （[`docs/bitcoin/`](docs/bitcoin)、ソースは [`jev-bitcoin/web`](jev-bitcoin/web)）。
+  フクロウの下の入力欄に質問を書いて手を止めると、用意した質問のどれに当たるかを Jev が判定し、
+  用意した答えを返します。kanabun で書いてあり、ビルド結果をコミットしています。
+  詳細は [`jev-bitcoin/README.md`](jev-bitcoin/README.md)。
 - https://ocknamo.github.io/sandbox/jev.html — Nostr の「おすすめタイムライン」
   （[`docs/jev.html`](docs/jev.html)）。リレーから流れてくる投稿を Jev に判定させ、
   しきい値・言語・トピックのフィルタをブラウザ側で適用します（日本語 / 英語表示）。詳細は

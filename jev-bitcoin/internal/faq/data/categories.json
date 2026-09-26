@@ -1,0 +1,170 @@
+[
+  {
+    "id": "basics",
+    "number": 1,
+    "name": "基礎知識",
+    "match": {
+      "what": "ビットコインの入門的な疑問と、よくある誤解や批判。何なのか、誰が作ったか、誰が管理しているか、発行上限、価値の根拠、値動き、使い道、取引所や政府との関係、犯罪利用のイメージなど、仕組みの細部を知らなくても出てくる問い。",
+      "not_for": "マイニングの計算や半減期の仕組み（mining）、UTXO や手数料の計算方法・送金の取り消し（transactions）、鍵やアドレスの暗号の話（keys）、ウォレットの操作やバックアップ（wallet）、ノードやルール変更の決まり方（nodes / upgrades）、ライトニング（lightning）、アドレス再利用や追跡の技術的な話（privacy）、量子コンピュータ（quantum）、「CEO は誰」「SHA-512 で採掘している」のような誤った前提を確かめる質問（sources）。",
+      "examples": [
+        "仮想通貨ってそもそも何",
+        "ビットコインって結局だれのもの？",
+        "なんであんなのに値段がつくの"
+      ]
+    }
+  },
+  {
+    "id": "mining",
+    "number": 2,
+    "name": "マイニング・PoW・ブロック生成",
+    "match": {
+      "what": "マイニングと Proof of Work、ブロックの生成間隔、ブロック報酬と半減期、難易度調整、ハッシュレート、51%攻撃、マイニングプールと Stratum、coinbase トランザクション、ブロックの競合とチェーンの選択、マイナーによる取引の選別や検閲、ブロックの時刻。新規発行が止まったあとのマイナーの収入。",
+      "not_for": "手数料の相場や送金の承認待ちの対処（transactions）、フルノードが何を検証するか（nodes）、ルール変更の手続き（upgrades）、量子計算機と暗号（quantum）、採掘に使うハッシュ関数を取り違えた前提の確認（sources）。",
+      "examples": [
+        "採掘って何をしてるの",
+        "報酬が半分になるのはいつ",
+        "プールに参加すると取り分はどうなる"
+      ]
+    }
+  },
+  {
+    "id": "transactions",
+    "number": 3,
+    "name": "トランザクション・UTXO・手数料",
+    "match": {
+      "what": "オンチェーンの送金そのもの。トランザクションの構造、UTXO とお釣り、手数料の決まり方と単位（sat/vB, vByte）、mempool、未承認の取引の扱い（RBF, CPFP, キャンセル）、承認数と確定、送金先を間違えたときの取り消し、dust、txid、二重支払い、タイムロック、リレーの方針と非標準トランザクション、OP_RETURN、まとめ送金と UTXO の整理。",
+      "not_for": "アドレスの種類や鍵の仕組み（keys）、ウォレットの機能としての coin control や PSBT（wallet）、ライトニングの手数料や支払い（lightning）、UTXO の結び付けによる追跡（privacy）、マイナーの報酬（mining）。",
+      "examples": [
+        "送金が全然承認されない",
+        "手数料ってどうやって決まるの",
+        "お釣りはどこに行く"
+      ]
+    }
+  },
+  {
+    "id": "keys",
+    "number": 4,
+    "name": "アドレス・鍵・暗号",
+    "match": {
+      "what": "秘密鍵・公開鍵・アドレスの関係、アドレスの種類と形式（Legacy, P2SH, SegWit, Taproot, Base58Check, Bech32/Bech32m）、署名方式（ECDSA, Schnorr, RSA ではないこと）、xpub、multisig の鍵、アドレスの再利用の是非、Bitcoin Script と Miniscript。",
+      "not_for": "シードフレーズやバックアップ、ハードウェアウォレットの扱い（wallet）、アドレスから個人が特定されるかという監視・追跡の話（privacy）、Taproot 導入の経緯やソフトフォークの手続き（upgrades）、量子コンピュータによる脅威と対策（quantum）。",
+      "examples": [
+        "秘密鍵と公開鍵ってどう違う",
+        "量子コンピュータでビットコインは破られる？",
+        "bc1 で始まるアドレスは何"
+      ]
+    }
+  },
+  {
+    "id": "wallet",
+    "number": 5,
+    "name": "ウォレット・シード・鍵管理",
+    "match": {
+      "what": "ウォレットの実際の使い方と鍵の管理。シードフレーズ（12/24 単語、Electrum 方式）、BIP32/39/44、パスフレーズ（25 番目の単語）、HD ウォレット、ハードウェアウォレット、ホット/コールド、watch-only、スマホの紛失や故障やアプリの削除、coin control、PSBT、descriptor、multisig のバックアップ、相続。",
+      "not_for": "鍵とアドレスの暗号学的な関係や署名方式、Miniscript（keys）、取引所が倒産した場合（basics）、送金手数料の仕組み（transactions）、アドレス再利用による追跡（privacy）、開発者に秘密鍵を復元してもらえるかという誤った前提（sources）。",
+      "examples": [
+        "復元用の単語を忘れた",
+        "ハードウェアウォレットって要る？",
+        "機種変更したらビットコインはどうなる"
+      ]
+    }
+  },
+  {
+    "id": "nodes",
+    "number": 6,
+    "name": "ノード・コンセンサス・ネットワーク",
+    "match": {
+      "what": "Bitcoin Core とフルノード、ノードが検証すること、pruned ノード、UTXO set、初期同期（IBD, AssumeUTXO）、SPV との違い、ノードの発見と P2P ネットワーク（DNS seed, eclipse attack, BIP324 暗号化, compact block）、チェーンの再編成、コンセンサスルールを誰が決め、誰が強制するかという役割分担。",
+      "not_for": "マイニングの仕組みや報酬（mining）、SegWit や Taproot などの個別のアップグレードとソフトフォークの有効化方法（upgrades）、仕様と実装をどう見分けるかや情報源の話、特定の団体が発行量を変えられるかという誤った前提（sources）、ノードを使うことによるプライバシー（privacy）。",
+      "examples": [
+        "自分でノードを立てる意味ってある？",
+        "ノードはどうやって仲間を見つけるの",
+        "開発者が勝手にルールを変えたら？"
+      ]
+    }
+  },
+  {
+    "id": "upgrades",
+    "number": 7,
+    "name": "SegWit・Taproot・プロトコル変更",
+    "match": {
+      "what": "プロトコルのアップグレードとその手続き。SegWit（block weight, witness, malleability）、Taproot（Schnorr の採用、Tapscript, key-path / script-path）、BIP の位置付け、soft fork と hard fork、Bitcoin Cash の分岐、ソフトフォークの有効化とマイナーのシグナリング、covenant と提案中のオペコード（CTV, CSFS, OP_CAT）。",
+      "not_for": "アドレスの形式や署名方式そのものの説明（keys）、量子耐性への移行案（keys）、BIP の状態が仕様かどうかや情報源の確かめ方（sources）、ノードが何を検証するか（nodes）。",
+      "examples": [
+        "ソフトフォークとハードフォークの違い",
+        "タップルートで何ができるようになった",
+        "コベナンツって何"
+      ]
+    }
+  },
+  {
+    "id": "lightning",
+    "number": 8,
+    "name": "Lightning Network",
+    "match": {
+      "what": "Lightning Network。チャネルの開閉（force close / cooperative close）、容量と流動性（inbound / outbound）、ルーティングと中継ノード、HTLC と invoice と preimage、BOLT11 / BOLT12 / Lightning Address、支払いの失敗、watchtower、submarine swap と Loop、LSP、trampoline、gossip、splicing、multipath / AMP、route blinding、onion message、定期支払い。",
+      "not_for": "オンチェーンの送金手数料（transactions）、ライトニング以外の L2（l2）、ライトニングの匿名性や中継ノードに何が見えるか（privacy）、BOLT という仕様書の位置付けや「すべて記録されるから安全」のような誤った前提の確認（sources）。",
+      "examples": [
+        "ライトニングで受け取れないのはなぜ",
+        "チャネルを閉じたらお金はどうなる",
+        "インボイスの期限切れ"
+      ]
+    }
+  },
+  {
+    "id": "sources",
+    "number": 9,
+    "name": "仕様・実装・情報源・ハルシネーション検出",
+    "match": {
+      "what": "何が Bitcoin の仕様で何が実装の都合かを見分ける話と、情報源の確かさ。公式の仕様書の有無、ホワイトペーパーの位置付け、BIP の状態、Bitcoin Core のコードと他の実装、consensus rule と policy rule、ブロックエクスプローラや bitcoin.org の信頼性、BOLT。誤った前提や存在しないものを前提にした質問：Bitcoin の CEO、Bitcoin Foundation による発行量の変更、存在しない BIP 番号、Bitcoin Core の公式クラウド API、サトシの新しい論文、SHA-512 での採掘、10 分で必ず確定、ライトニングはすべて記録される、開発者による秘密鍵の復元、2,100 万 BTC を超えた発行。",
+      "not_for": "特定の BIP やアップグレードの中身の説明（upgrades）、量子耐性の提案の中身（quantum）、ライトニングの機能そのもの（lightning）、ノードの動かし方（nodes）。",
+      "examples": [
+        "ビットコインの正式な仕様書はどこ",
+        "この BIP は本当にあるの？",
+        "ホワイトペーパーと今の実装は同じ？"
+      ]
+    }
+  },
+  {
+    "id": "privacy",
+    "number": 10,
+    "name": "プライバシー・匿名性・オンチェーン分析",
+    "match": {
+      "what": "プライバシーと追跡。ビットコインが匿名かどうか、取引や残高が誰に見えるか、アドレスから個人が特定されるか、アドレス再利用とプライバシー、common-input-ownership heuristic、お釣りの特定、チェーン分析会社、取引所と KYC、CoinJoin、Payjoin、Silent Payments、coin control とプライバシー、自前ノードや Tor、compact block filter、ライトニングの匿名性。ライトニングの中継ノードに何が見えるか。",
+      "not_for": "アドレスや鍵の形式そのもの（keys）、ウォレットのバックアップ（wallet）、ライトニングのルーティングの仕組み一般（lightning）。",
+      "examples": [
+        "送金したら相手に全財産ばれる？",
+        "ミキシングって何",
+        "取引所から出したコインは追跡される？"
+      ]
+    }
+  },
+  {
+    "id": "l2",
+    "number": 11,
+    "name": "Bitcoin L2・周辺プロトコル",
+    "match": {
+      "what": "ライトニング以外のレイヤー2とサイドチェーン、およびその比較。L2 の定義、Statechain、Ark と VTXO、Spark と FROST、Liquid と L-BTC と federation、サイドチェーンの信頼前提、BitVM、rollup、カストディ・信頼・退出の比べ方。",
+      "not_for": "Lightning Network そのものの機能（lightning）、Ethereum など他のチェーンの話（none）。",
+      "examples": [
+        "ライトニング以外の L2 って何がある",
+        "Liquid は安全？",
+        "BitVM で何ができる"
+      ]
+    }
+  },
+  {
+    "id": "quantum",
+    "number": 12,
+    "name": "量子コンピュータ・耐量子性",
+    "match": {
+      "what": "量子コンピュータが Bitcoin に与える影響と対策。どの暗号（ECDSA / Schnorr と SHA-256）がどの程度脅かされるか、公開鍵が露出した UTXO のリスク、Taproot と量子、サトシのコインや失われたコイン、量子耐性署名への移行、BIP360 / P2MR、QSB（Quantum Safe Bitcoin）。",
+      "not_for": "量子と関係のない鍵・アドレス・署名方式の説明（keys）、存在しない BIP 番号を前提にした質問（sources）。",
+      "examples": [
+        "量子計算機ができたら秘密鍵は破られる？",
+        "P2MR って何",
+        "サトシのコインは量子で盗まれる？"
+      ]
+    }
+  }
+]
