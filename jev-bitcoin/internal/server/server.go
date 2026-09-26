@@ -110,6 +110,7 @@ type entryView struct {
 	Related []ref    `json:"related,omitempty"`
 	Sources []string `json:"sources,omitempty"`
 	Updated string   `json:"updated,omitempty"`
+	Tags    []string `json:"tags,omitempty"`
 }
 
 func (h *handlers) view(q *faq.Question) entryView {
@@ -119,6 +120,7 @@ func (h *handlers) view(q *faq.Question) entryView {
 		More:    q.More,
 		Sources: q.Sources,
 		Updated: q.Updated,
+		Tags:    q.Tags,
 	}
 	if v.Answer == nil {
 		v.Answer = []string{}

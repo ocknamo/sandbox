@@ -36,6 +36,8 @@ export interface Entry extends Ref {
   sources?: string[];
   /** The day the answer's facts were last checked. */
   updated?: string;
+  /** What kind of fact the answer rests on: 時点依存, 研究提案, 誤前提, … */
+  tags?: string[];
 }
 
 export interface Scored extends Ref {

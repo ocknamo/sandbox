@@ -126,6 +126,19 @@ export const answer = css`
     margin-right: 2px;
   }
 
+  .notes {
+    margin: 10px 0 0;
+    padding: 6px 12px 6px 28px;
+    border-radius: 8px;
+    background: var(--bg);
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  .notes li {
+    margin: 1px 0;
+  }
+
   .sources {
     display: flex;
     flex-direction: column;

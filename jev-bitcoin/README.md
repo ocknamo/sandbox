@@ -6,9 +6,9 @@
 https://ocknamo.github.io/sandbox/bitcoin/ （ソースは [`web/`](web)、ビルド結果は
 [`../docs/bitcoin/`](../docs/bitcoin)）
 
-> **いまの状態：** 質問 426 問（11 カテゴリ）は入っています。**回答はまだ 0 件**で、
-> 当たった質問には「回答を準備中です」と表示されます。回答の書き方は
-> [`internal/faq/data/answers/README.md`](internal/faq/data/answers/README.md)。
+> **いまの状態：** 質問 426 問（12 カテゴリ）のうち 424 問に回答が入っています。回答は
+> 人が書いた案を一次資料と突き合わせて確認したもので、2026-09-26 時点の内容です。
+> 回答の書き方は [`internal/faq/data/answers/README.md`](internal/faq/data/answers/README.md)。
 
 ## 基本方針：答えは人が書く
 
@@ -42,13 +42,13 @@ https://ocknamo.github.io/sandbox/bitcoin/ （ソースは [`web/`](web)、ビ�
 
 | キー | 型 | 内容 |
 | --- | --- | --- |
-| `category` | `choice`（11 カテゴリ + `none`） | どの棚の質問か |
-| `in_<カテゴリ>` × 11 | `choice`（その棚の質問 + `none`） | 棚の中のどの質問か |
+| `category` | `choice`（12 カテゴリ + `none`） | どの棚の質問か |
+| `in_<カテゴリ>` × 12 | `choice`（その棚の質問 + `none`） | 棚の中のどの質問か |
 | `kind` | `choice`（質問 / 挨拶 / 投資助言の要求 / ビットコイン以外 / 無意味） | 外れたときの返し方 |
 | `level` | `choice`（初心者 / 中級 / 技術者） | 「もっと詳しく」を最初から開くか |
 
-を全部入れます。質問は並列に評価されるので、棚が 11 あっても待ち時間はほとんど増えません。
-**高いのは質問の数ではなくリクエストの数**です。1 リクエストはおよそ 53 KB で、
+を全部入れます。質問は並列に評価されるので、棚が 12 あっても待ち時間はほとんど増えません。
+**高いのは質問の数ではなくリクエストの数**です。1 リクエストはおよそ 55 KB で、
 コンテキストの上限（64k トークン）に収まります。
 
 スコアは Go 側で合成します（[`internal/router`](internal/router/router.go)）。

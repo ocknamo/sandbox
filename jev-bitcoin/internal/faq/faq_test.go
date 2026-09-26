@@ -11,8 +11,8 @@ func TestBuiltinLoads(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Builtin: %v", err)
 	}
-	if got := len(c.Categories); got != 11 {
-		t.Errorf("categories = %d, want 11", got)
+	if got := len(c.Categories); got != 12 {
+		t.Errorf("categories = %d, want 12", got)
 	}
 	if got := c.Len(); got != 426 {
 		t.Errorf("questions = %d, want 426", got)
@@ -69,6 +69,7 @@ Deeper.
 出典: https://example.com/a
 出典: https://example.com/b
 更新: 2026-09-26
+タグ: 誤前提・時点依存
 `,
 	})
 	if err != nil {
@@ -86,6 +87,9 @@ Deeper.
 	}
 	if len(q.Sources) != 2 || q.Updated != "2026-09-26" {
 		t.Errorf("sources = %q, updated = %q", q.Sources, q.Updated)
+	}
+	if strings.Join(q.Tags, ",") != "誤前提,時点依存" {
+		t.Errorf("tags = %q", q.Tags)
 	}
 	if !q.Answered() || c.Question("1-2").Answered() {
 		t.Error("only 1-1 should count as answered")

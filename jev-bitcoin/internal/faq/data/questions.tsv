@@ -26,28 +26,24 @@
 1-25	基礎知識	ビットコインはハッキングされると仕組みそのものが破られるのですか？
 1-26	基礎知識	ビットコインはコピーできるデジタルデータなのに、なぜ二重に使えないのですか？
 1-27	基礎知識	ビットコインは発行上限があるなら、将来足りなくなるのでは？
-1-28	基礎知識	ビットコインは新しいコインが発行されなくなったらマイナーがいなくなるのでは？
-1-29	基礎知識	ビットコインは送金先を間違えたら取り消せないのですか？
-1-30	基礎知識	ビットコインは銀行口座がない人でも使えるのですか？
-1-31	基礎知識	ビットコインを使うには必ず取引所の口座が必要ですか？
-1-32	基礎知識	ビットコインを使うにはBitcoin Coreを動かす必要がありますか？
-1-33	基礎知識	ビットコインは24時間365日送金できますか？
-1-34	基礎知識	ビットコインのネットワークは誰かが止めることができますか？
-1-35	基礎知識	ビットコインが2,100万枚しかないなら、世界中の人が使うには少なすぎないですか？
-1-36	基礎知識	ビットコインはデフレ通貨なので経済活動には使えないのでは？
-1-37	基礎知識	ビットコインは昔の技術なので、もっと新しい暗号資産のほうが優れているのでは？
-1-38	基礎知識	2,100万BTCすべてが発行されたら、新しくBitcoinを買えなくなるのですか？
-1-39	基礎知識	誰もBitcoinを売らなくなったらどうなりますか？
-1-40	基礎知識	秘密鍵をなくして永久に動かせなくなったBTCは発行上限から差し引かれますか？
-1-41	基礎知識	大量のBitcoinが失われると、残っているBitcoinの価値や仕組みに影響しますか？
-1-42	基礎知識	Bitcoinは「デジタルゴールド」と言われますが、金と何が似ていて何が違いますか？
-1-43	基礎知識	Bitcoinには配当や利息がないのに、なぜ価値を持つのですか？
-1-44	基礎知識	Bitcoinは価格が上昇し続けないと成立しない仕組みですか？
-1-45	基礎知識	新しくBitcoinを使い始める人は、必ず誰かからBTCを買う必要がありますか？
-1-46	基礎知識	Bitcoinを持つこととBitcoinネットワークを利用することは同じですか？
-1-47	基礎知識	Bitcoinを所有しているとは、具体的には何を所有していることになるのですか？
-1-48	基礎知識	BitcoinのCEOは誰ですか？
-1-49	基礎知識	21,000,000 BTCを超えて発行されたことがありますか？
+1-28	基礎知識	ビットコインは銀行口座がない人でも使えるのですか？
+1-29	基礎知識	ビットコインを使うには必ず取引所の口座が必要ですか？
+1-30	基礎知識	ビットコインを使うにはBitcoin Coreを動かす必要がありますか？
+1-31	基礎知識	ビットコインは24時間365日送金できますか？
+1-32	基礎知識	ビットコインのネットワークは誰かが止めることができますか？
+1-33	基礎知識	ビットコインが2,100万枚しかないなら、世界中の人が使うには少なすぎないですか？
+1-34	基礎知識	ビットコインはデフレ通貨なので経済活動には使えないのでは？
+1-35	基礎知識	ビットコインは昔の技術なので、もっと新しい暗号資産のほうが優れているのでは？
+1-36	基礎知識	2,100万BTCすべてが発行されたら、新しくBitcoinを買えなくなるのですか？
+1-37	基礎知識	誰もBitcoinを売らなくなったらどうなりますか？
+1-38	基礎知識	秘密鍵をなくして永久に動かせなくなったBTCは発行上限から差し引かれますか？
+1-39	基礎知識	大量のBitcoinが失われると、残っているBitcoinの価値や仕組みに影響しますか？
+1-40	基礎知識	Bitcoinは「デジタルゴールド」と言われますが、金と何が似ていて何が違いますか？
+1-41	基礎知識	Bitcoinには配当や利息がないのに、なぜ価値を持つのですか？
+1-42	基礎知識	Bitcoinは価格が上昇し続けないと成立しない仕組みですか？
+1-43	基礎知識	新しくBitcoinを使い始める人は、必ず誰かからBTCを買う必要がありますか？
+1-44	基礎知識	Bitcoinを持つこととBitcoinネットワークを利用することは同じですか？
+1-45	基礎知識	Bitcoinを所有しているとは、具体的には何を所有していることになるのですか？
 2-1	マイニング・PoW・ブロック生成	ブロックは平均何分ごとに生成されますか？
 2-2	マイニング・PoW・ブロック生成	Proof of Workとは何ですか？
 2-3	マイニング・PoW・ブロック生成	ビットコインのマイニングでは具体的に何を計算していますか？
@@ -79,21 +75,21 @@
 2-29	マイニング・PoW・ブロック生成	難易度調整までブロック生成が遅い状態が続くことはありますか？
 2-30	マイニング・PoW・ブロック生成	すべてのBTCが発行されたあと、マイナーは何を収入源にするのでしょうか？
 2-31	マイニング・PoW・ブロック生成	マイニング報酬が減り続けるとBitcoinのセキュリティは必ず低下しますか？
-2-32	マイニング・PoW・ブロック生成	マイニングで使っている計算能力をAIや科学計算などの「役に立つ計算」に使えないのですか？
-2-33	マイニング・PoW・ブロック生成	Bitcoinのマイニング計算は結果を捨てているので完全な無駄なのですか？
-2-34	マイニング・PoW・ブロック生成	マイナーとマイニングプールは同じものですか？
-2-35	マイニング・PoW・ブロック生成	マイニングプールの運営者と実際にハッシュを計算するマイナーは、それぞれ何を決められますか？
-2-36	マイニング・PoW・ブロック生成	Stratumとは何ですか？
-2-37	マイニング・PoW・ブロック生成	Stratum V2は従来のマイニングと何が違いますか？
-2-38	マイニング・PoW・ブロック生成	マイニングプールは特定のユーザーのトランザクションを検閲できますか？
-2-39	マイニング・PoW・ブロック生成	すべての大手マイニングプールが同じトランザクションを検閲したらどうなりますか？
-2-40	マイニング・PoW・ブロック生成	BitcoinにもEthereumで言われるMEVは存在しますか？
-2-41	マイニング・PoW・ブロック生成	selfish miningとは何ですか？
-2-42	マイニング・PoW・ブロック生成	block withholding attackとは何ですか？
-2-43	マイニング・PoW・ブロック生成	マイナーがブロックの時刻を自由に設定してBitcoinの時計を操作できますか？
-2-44	マイニング・PoW・ブロック生成	Median Time Past（MTP）とは何ですか？
-2-45	マイニング・PoW・ブロック生成	coinbase transactionで得たBTCはすぐに使えますか？
-2-46	マイニング・PoW・ブロック生成	BitcoinはSHA-512を使ってマイニングしているのですよね？
+2-32	マイニング・PoW・ブロック生成	ビットコインは新しいコインが発行されなくなったらマイナーがいなくなるのでは？
+2-33	マイニング・PoW・ブロック生成	マイニングで使っている計算能力をAIや科学計算などの「役に立つ計算」に使えないのですか？
+2-34	マイニング・PoW・ブロック生成	Bitcoinのマイニング計算は結果を捨てているので完全な無駄なのですか？
+2-35	マイニング・PoW・ブロック生成	マイナーとマイニングプールは同じものですか？
+2-36	マイニング・PoW・ブロック生成	マイニングプールの運営者と実際にハッシュを計算するマイナーは、それぞれ何を決められますか？
+2-37	マイニング・PoW・ブロック生成	Stratumとは何ですか？
+2-38	マイニング・PoW・ブロック生成	Stratum V2は従来のマイニングと何が違いますか？
+2-39	マイニング・PoW・ブロック生成	マイニングプールは特定のユーザーのトランザクションを検閲できますか？
+2-40	マイニング・PoW・ブロック生成	すべての大手マイニングプールが同じトランザクションを検閲したらどうなりますか？
+2-41	マイニング・PoW・ブロック生成	BitcoinにもEthereumで言われるMEVは存在しますか？
+2-42	マイニング・PoW・ブロック生成	selfish miningとは何ですか？
+2-43	マイニング・PoW・ブロック生成	block withholding attackとは何ですか？
+2-44	マイニング・PoW・ブロック生成	マイナーがブロックの時刻を自由に設定してBitcoinの時計を操作できますか？
+2-45	マイニング・PoW・ブロック生成	Median Time Past（MTP）とは何ですか？
+2-46	マイニング・PoW・ブロック生成	coinbase transactionで得たBTCはすぐに使えますか？
 3-1	トランザクション・UTXO・手数料	ビットコインのトランザクションはどのような構造になっていますか？
 3-2	トランザクション・UTXO・手数料	UTXOとは何ですか？
 3-3	トランザクション・UTXO・手数料	アカウントモデルとUTXOモデルの違いは何ですか？
@@ -125,20 +121,20 @@
 3-29	トランザクション・UTXO・手数料	mempoolはBitcoinネットワーク全体で1つだけ存在するのですか？
 3-30	トランザクション・UTXO・手数料	自分のノードのmempoolと他人のノードのmempoolが違うことはありますか？
 3-31	トランザクション・UTXO・手数料	ブロックチェーンに入っていないトランザクションでも受け取ったと判断してよい場合はありますか？
-3-32	トランザクション・UTXO・手数料	Bitcoinのトランザクションには有効期限がありますか？
-3-33	トランザクション・UTXO・手数料	nLockTimeとは何ですか？
-3-34	トランザクション・UTXO・手数料	absolute timelockとrelative timelockは何が違いますか？
-3-35	トランザクション・UTXO・手数料	CSVとCLTVは何が違いますか？
-3-36	トランザクション・UTXO・手数料	transaction pinningとは何ですか？
-3-37	トランザクション・UTXO・手数料	package relayとは何ですか？
-3-38	トランザクション・UTXO・手数料	親トランザクション単体ではmempoolに入らない場合でもCPFPできますか？
-3-39	トランザクション・UTXO・手数料	standard transactionでないトランザクションは無効なBitcoinトランザクションなのですか？
-3-40	トランザクション・UTXO・手数料	ノードがrelayしないトランザクションでもブロックに含めることはできますか？
-3-41	トランザクション・UTXO・手数料	OP_RETURNとは何ですか？
-3-42	トランザクション・UTXO・手数料	BitcoinのブロックチェーンにはBitcoin送金以外のデータも書き込めますか？
-3-43	トランザクション・UTXO・手数料	トランザクションをbatchすると手数料を節約できるのはなぜですか？
-3-44	トランザクション・UTXO・手数料	UTXO consolidationとは何ですか？いつ行うべきですか？
-3-45	トランザクション・UTXO・手数料	Bitcoinの送金は10分経てば必ず確定しますよね？
+3-32	トランザクション・UTXO・手数料	ビットコインは送金先を間違えたら取り消せないのですか？
+3-33	トランザクション・UTXO・手数料	Bitcoinのトランザクションには有効期限がありますか？
+3-34	トランザクション・UTXO・手数料	nLockTimeとは何ですか？
+3-35	トランザクション・UTXO・手数料	absolute timelockとrelative timelockは何が違いますか？
+3-36	トランザクション・UTXO・手数料	CSVとCLTVは何が違いますか？
+3-37	トランザクション・UTXO・手数料	transaction pinningとは何ですか？
+3-38	トランザクション・UTXO・手数料	package relayとは何ですか？
+3-39	トランザクション・UTXO・手数料	親トランザクション単体ではmempoolに入らない場合でもCPFPできますか？
+3-40	トランザクション・UTXO・手数料	standard transactionでないトランザクションは無効なBitcoinトランザクションなのですか？
+3-41	トランザクション・UTXO・手数料	ノードがrelayしないトランザクションでもブロックに含めることはできますか？
+3-42	トランザクション・UTXO・手数料	OP_RETURNとは何ですか？
+3-43	トランザクション・UTXO・手数料	BitcoinのブロックチェーンにはBitcoin送金以外のデータも書き込めますか？
+3-44	トランザクション・UTXO・手数料	トランザクションをbatchすると手数料を節約できるのはなぜですか？
+3-45	トランザクション・UTXO・手数料	UTXO consolidationとは何ですか？いつ行うべきですか？
 4-1	アドレス・鍵・暗号	ビットコインアドレスにはどんな種類がありますか？
 4-2	アドレス・鍵・暗号	Legacy、P2SH、SegWit、Taprootアドレスの違いは何ですか？
 4-3	アドレス・鍵・暗号	秘密鍵と公開鍵とビットコインアドレスの関係を説明してください。
@@ -163,19 +159,9 @@
 4-22	アドレス・鍵・暗号	xpubを他人に教えるとBTCを盗まれますか？
 4-23	アドレス・鍵・暗号	xpubを公開することにはどんなプライバシー上の問題がありますか？
 4-24	アドレス・鍵・暗号	multisigでは秘密鍵を1個失っても資金を使える場合がありますか？
-4-25	アドレス・鍵・暗号	量子コンピュータが登場したらBitcoinは終わるのでは？
-4-26	アドレス・鍵・暗号	量子コンピュータはBitcoinのどの暗号方式を破る可能性がありますか？
-4-27	アドレス・鍵・暗号	SHA-256とECDSA/Schnorrでは量子コンピュータから受ける影響は同じですか？
-4-28	アドレス・鍵・暗号	公開鍵がまだ公開されていないUTXOと、すでに公開されているUTXOでは量子攻撃のリスクが違いますか？
-4-29	アドレス・鍵・暗号	TaprootのUTXOは量子コンピュータに対して特に危険なのですか？
-4-30	アドレス・鍵・暗号	Bitcoinを量子耐性署名へ移行するにはsoft forkが必要ですか？
-4-31	アドレス・鍵・暗号	BIP360/P2MRとは何ですか？
-4-32	アドレス・鍵・暗号	P2MRを使えばBitcoinは量子耐性になりますか？
-4-33	アドレス・鍵・暗号	QSBとは何ですか？
-4-34	アドレス・鍵・暗号	QSBはBitcoinのコンセンサスルールを変更していますか？
-4-35	アドレス・鍵・暗号	十分強力な量子コンピュータが突然登場した場合、失われた古いBitcoinまで盗まれる可能性がありますか？
-4-36	アドレス・鍵・暗号	SatoshiのBitcoinは量子コンピュータによって盗まれる可能性がありますか？
-4-37	アドレス・鍵・暗号	Bitcoinコミュニティでは量子耐性への移行についてどのような案が議論されていますか？
+4-25	アドレス・鍵・暗号	Miniscriptとは何ですか？
+4-26	アドレス・鍵・暗号	MiniscriptとBitcoin Scriptは何が違いますか？
+4-27	アドレス・鍵・暗号	Bitcoin Scriptは一般的なプログラミング言語と何が違いますか？
 5-1	ウォレット・シード・鍵管理	シードフレーズとは何ですか？
 5-2	ウォレット・シード・鍵管理	12単語と24単語のシードフレーズは安全性がどのくらい違いますか？
 5-3	ウォレット・シード・鍵管理	BIP32、BIP39、BIP44はそれぞれ何を規定していますか？
@@ -204,18 +190,14 @@
 5-26	ウォレット・シード・鍵管理	Output Script Descriptorとは何ですか？
 5-27	ウォレット・シード・鍵管理	descriptorとBitcoinアドレスは何が違いますか？
 5-28	ウォレット・シード・鍵管理	multisig walletでは秘密鍵をすべて持っていても、descriptorを失うと復元が難しくなることがありますか？
-5-29	ウォレット・シード・鍵管理	Miniscriptとは何ですか？
-5-30	ウォレット・シード・鍵管理	MiniscriptとBitcoin Scriptは何が違いますか？
-5-31	ウォレット・シード・鍵管理	Bitcoin Scriptは一般的なプログラミング言語と何が違いますか？
-5-32	ウォレット・シード・鍵管理	Electrumのseed phraseはBIP39のseed phraseと同じですか？
-5-33	ウォレット・シード・鍵管理	BIP39ではないseed phraseも存在しますか？
-5-34	ウォレット・シード・鍵管理	シードフレーズをサイコロで生成することはできますか？
-5-35	ウォレット・シード・鍵管理	ハードウェアウォレット自身が悪い乱数を生成していた場合、どんな問題が起こりますか？
-5-36	ウォレット・シード・鍵管理	multisigで複数メーカーのhardware walletを使うメリットはありますか？
-5-37	ウォレット・シード・鍵管理	wallet descriptorが他人に漏れるとBitcoinを盗まれますか？
-5-38	ウォレット・シード・鍵管理	wallet descriptorが漏れるとプライバシーに影響しますか？
-5-39	ウォレット・シード・鍵管理	Bitcoinを相続できるようにするにはどのような方法がありますか？
-5-40	ウォレット・シード・鍵管理	秘密鍵をBitcoin Coreの開発者に依頼すれば復元してもらえますか？
+5-29	ウォレット・シード・鍵管理	Electrumのseed phraseはBIP39のseed phraseと同じですか？
+5-30	ウォレット・シード・鍵管理	BIP39ではないseed phraseも存在しますか？
+5-31	ウォレット・シード・鍵管理	シードフレーズをサイコロで生成することはできますか？
+5-32	ウォレット・シード・鍵管理	ハードウェアウォレット自身が悪い乱数を生成していた場合、どんな問題が起こりますか？
+5-33	ウォレット・シード・鍵管理	multisigで複数メーカーのhardware walletを使うメリットはありますか？
+5-34	ウォレット・シード・鍵管理	wallet descriptorが他人に漏れるとBitcoinを盗まれますか？
+5-35	ウォレット・シード・鍵管理	wallet descriptorが漏れるとプライバシーに影響しますか？
+5-36	ウォレット・シード・鍵管理	Bitcoinを相続できるようにするにはどのような方法がありますか？
 6-1	ノード・コンセンサス・ネットワーク	Bitcoin Coreとは何ですか？
 6-2	ノード・コンセンサス・ネットワーク	フルノードを動かすメリットは何ですか？
 6-3	ノード・コンセンサス・ネットワーク	フルノードとマイナーは何が違いますか？
@@ -252,7 +234,6 @@
 6-34	ノード・コンセンサス・ネットワーク	compact block relayとは何ですか？
 6-35	ノード・コンセンサス・ネットワーク	AssumeUTXOとは何ですか？
 6-36	ノード・コンセンサス・ネットワーク	フルノードの同期を高速化しても検証を省略しない方法はありますか？
-6-37	ノード・コンセンサス・ネットワーク	Bitcoin FoundationがBitcoinの発行量を変更することはできますか？
 7-1	SegWit・Taproot・プロトコル変更	SegWitはなぜ導入されたのですか？
 7-2	SegWit・Taproot・プロトコル変更	Taprootによって何が変わりましたか？
 7-3	SegWit・Taproot・プロトコル変更	Bitcoinは一度公開されたら仕様変更できないのですか？
@@ -283,42 +264,42 @@
 7-28	SegWit・Taproot・プロトコル変更	OP_CATは昔のBitcoinに存在していたのですか？
 7-29	SegWit・Taproot・プロトコル変更	OP_CATを有効化するとBitcoinで何が変わりますか？
 7-30	SegWit・Taproot・プロトコル変更	covenantは現在のBitcoinメインネットですでに利用できますか？
-7-31	SegWit・Taproot・プロトコル変更	BIP番号が割り当てられた機能はBitcoinに採用されたという意味ですか？
-7-32	SegWit・Taproot・プロトコル変更	Bitcoin Coreにコードが実装されたら、それだけでsoft forkは有効になりますか？
-7-33	SegWit・Taproot・プロトコル変更	soft fork activationにはどんな方法がありますか？
-7-34	SegWit・Taproot・プロトコル変更	miner signalingはBitcoinのルール変更に対する投票ですか？
+7-31	SegWit・Taproot・プロトコル変更	Bitcoin Coreにコードが実装されたら、それだけでsoft forkは有効になりますか？
+7-32	SegWit・Taproot・プロトコル変更	soft fork activationにはどんな方法がありますか？
+7-33	SegWit・Taproot・プロトコル変更	miner signalingはBitcoinのルール変更に対する投票ですか？
+7-34	SegWit・Taproot・プロトコル変更	BIP番号が割り当てられた機能はBitcoinに採用されたという意味ですか？
 8-1	Lightning Network	Lightning Networkとは何ですか？
 8-2	Lightning Network	Lightning Networkの支払いはビットコインのブロックチェーン上に毎回記録されますか？
 8-3	Lightning Network	Lightningのinvoice、payment hash、preimageの関係を説明してください。
-8-4	Lightning Network	Lightning Networkを使うには最初にオンチェーントランザクションが必要ですか？
-8-5	Lightning Network	payment channelとは何ですか？
-8-6	Lightning Network	Lightning channelを開くとBTCはどこに行くのですか？
-8-7	Lightning Network	channelを閉じるとBitcoinはどうなりますか？
-8-8	Lightning Network	Lightningの支払いはマイナーに承認してもらう必要がありますか？
-8-9	Lightning Network	Lightningなら必ず一瞬で送金できますか？
-8-10	Lightning Network	Lightningなら手数料は必ず0円ですか？
-8-11	Lightning Network	Lightningで1 BTCを送るには1 BTC以上のチャネル容量が必要ですか？
-8-12	Lightning Network	inbound liquidityとは何ですか？
-8-13	Lightning Network	outbound liquidityとは何ですか？
-8-14	Lightning Network	Bitcoinを持っているのにLightningで支払えないことがあるのはなぜですか？
-8-15	Lightning Network	Lightningでは直接チャネルを開いていない相手にも支払えますか？
-8-16	Lightning Network	Lightningのroutingとは何ですか？
-8-17	Lightning Network	中継ノードは送金者と受取人のBitcoinを盗めますか？
-8-18	Lightning Network	HTLCとは何ですか？
-8-19	Lightning Network	HTLCでpayment hashとpreimageはどのように使われますか？
-8-20	Lightning Network	Lightning invoiceを他人に見せても安全ですか？
-8-21	Lightning Network	Lightning invoiceには有効期限がありますか？
-8-22	Lightning Network	同じLightning invoiceを何度も支払えますか？
-8-23	Lightning Network	Lightningの支払いに失敗する主な理由には何がありますか？
-8-24	Lightning Network	force closeとは何ですか？
-8-25	Lightning Network	cooperative closeとは何ですか？
-8-26	Lightning Network	Lightningノードをずっとオンラインにしておく必要がありますか？
-8-27	Lightning Network	watchtowerとは何ですか？
-8-28	Lightning Network	古いchannel stateを公開するとどうなりますか？
-8-29	Lightning Network	BOLT11とは何ですか？
-8-30	Lightning Network	BOLT12とは何ですか？
-8-31	Lightning Network	Lightning AddressはBitcoinのプロトコルそのものですか？
-8-32	Lightning Network	Lightning Networkを使えば、ビットコインの送金速度や手数料の問題はすべて解決するのですか？
+8-4	Lightning Network	Lightning Networkを使えば、ビットコインの送金速度や手数料の問題はすべて解決するのですか？
+8-5	Lightning Network	Lightning Networkを使うには最初にオンチェーントランザクションが必要ですか？
+8-6	Lightning Network	payment channelとは何ですか？
+8-7	Lightning Network	Lightning channelを開くとBTCはどこに行くのですか？
+8-8	Lightning Network	channelを閉じるとBitcoinはどうなりますか？
+8-9	Lightning Network	Lightningの支払いはマイナーに承認してもらう必要がありますか？
+8-10	Lightning Network	Lightningなら必ず一瞬で送金できますか？
+8-11	Lightning Network	Lightningなら手数料は必ず0円ですか？
+8-12	Lightning Network	Lightningで1 BTCを送るには1 BTC以上のチャネル容量が必要ですか？
+8-13	Lightning Network	inbound liquidityとは何ですか？
+8-14	Lightning Network	outbound liquidityとは何ですか？
+8-15	Lightning Network	Bitcoinを持っているのにLightningで支払えないことがあるのはなぜですか？
+8-16	Lightning Network	Lightningでは直接チャネルを開いていない相手にも支払えますか？
+8-17	Lightning Network	Lightningのroutingとは何ですか？
+8-18	Lightning Network	中継ノードは送金者と受取人のBitcoinを盗めますか？
+8-19	Lightning Network	HTLCとは何ですか？
+8-20	Lightning Network	HTLCでpayment hashとpreimageはどのように使われますか？
+8-21	Lightning Network	Lightning invoiceを他人に見せても安全ですか？
+8-22	Lightning Network	Lightning invoiceには有効期限がありますか？
+8-23	Lightning Network	同じLightning invoiceを何度も支払えますか？
+8-24	Lightning Network	Lightningの支払いに失敗する主な理由には何がありますか？
+8-25	Lightning Network	force closeとは何ですか？
+8-26	Lightning Network	cooperative closeとは何ですか？
+8-27	Lightning Network	Lightningノードをずっとオンラインにしておく必要がありますか？
+8-28	Lightning Network	watchtowerとは何ですか？
+8-29	Lightning Network	古いchannel stateを公開するとどうなりますか？
+8-30	Lightning Network	BOLT11とは何ですか？
+8-31	Lightning Network	BOLT12とは何ですか？
+8-32	Lightning Network	Lightning AddressはBitcoinのプロトコルそのものですか？
 8-33	Lightning Network	Lightning Networkの「channel capacity」と「liquidity」は同じですか？
 8-34	Lightning Network	ネットワーク全体のLightning capacityを見れば、実際に送れる金額が分かりますか？
 8-35	Lightning Network	Lightningで受け取るためにはなぜinbound liquidityが必要なのですか？
@@ -341,7 +322,6 @@
 8-52	Lightning Network	BOLT12なら同じOfferを繰り返し使えますか？
 8-53	Lightning Network	Lightningで定期支払い・サブスクリプションを実現できますか？
 8-54	Lightning Network	Lightningで支払いが失敗してもBitcoinを失うことがありますか？
-8-55	Lightning Network	Lightning Networkではすべての取引がブロックチェーンに記録されるので安全なのですよね？
 9-1	仕様・実装・情報源・ハルシネーション検出	「Bitcoinの仕様として公式に決まっていること」と「Bitcoin Coreの実装上そうなっているだけのこと」は、どう区別すればよいですか？
 9-2	仕様・実装・情報源・ハルシネーション検出	BitcoinにはRFCのような唯一の公式仕様書がありますか？
 9-3	仕様・実装・情報源・ハルシネーション検出	Bitcoin Whitepaperは現在のBitcoinの完全な仕様書ですか？
@@ -363,9 +343,16 @@
 9-19	仕様・実装・情報源・ハルシネーション検出	存在するか分からないBIP番号について質問された場合、どう確認すべきですか？
 9-20	仕様・実装・情報源・ハルシネーション検出	Bitcoin Coreの将来バージョンに追加予定の機能について聞かれた場合、どう答えるべきですか？
 9-21	仕様・実装・情報源・ハルシネーション検出	Bitcoinについて一次情報で確認できない場合、「分からない」と答えるべきなのはどんなケースですか？
-9-22	仕様・実装・情報源・ハルシネーション検出	BIP-999で導入された量子耐性署名について教えてください。
-9-23	仕様・実装・情報源・ハルシネーション検出	Bitcoin Coreの公式クラウドAPIの料金はいくらですか？
-9-24	仕様・実装・情報源・ハルシネーション検出	Satoshi Nakamotoが2024年に公開した論文について説明してください。
+9-22	仕様・実装・情報源・ハルシネーション検出	BitcoinのCEOは誰ですか？
+9-23	仕様・実装・情報源・ハルシネーション検出	Bitcoin FoundationがBitcoinの発行量を変更することはできますか？
+9-24	仕様・実装・情報源・ハルシネーション検出	BIP-999で導入された量子耐性署名について教えてください。
+9-25	仕様・実装・情報源・ハルシネーション検出	Bitcoin Coreの公式クラウドAPIの料金はいくらですか？
+9-26	仕様・実装・情報源・ハルシネーション検出	Satoshi Nakamotoが2024年に公開した論文について説明してください。
+9-27	仕様・実装・情報源・ハルシネーション検出	Lightning Networkではすべての取引がブロックチェーンに記録されるので安全なのですよね？
+9-28	仕様・実装・情報源・ハルシネーション検出	BitcoinはSHA-512を使ってマイニングしているのですよね？
+9-29	仕様・実装・情報源・ハルシネーション検出	21,000,000 BTCを超えて発行されたことがありますか？
+9-30	仕様・実装・情報源・ハルシネーション検出	Bitcoinの送金は10分経てば必ず確定しますよね？
+9-31	仕様・実装・情報源・ハルシネーション検出	秘密鍵をBitcoin Coreの開発者に依頼すれば復元してもらえますか？
 10-1	プライバシー・匿名性・オンチェーン分析	Bitcoinは匿名で使える通貨ですか？
 10-2	プライバシー・匿名性・オンチェーン分析	Bitcoinアドレスから持ち主の名前を特定できますか？
 10-3	プライバシー・匿名性・オンチェーン分析	Bitcoinのすべての取引は誰でも見ることができますか？
@@ -425,3 +412,16 @@
 11-24	Bitcoin L2・周辺プロトコル	BitVMによってBitcoin自体にEthereumのようなVMが追加されるのですか？
 11-25	Bitcoin L2・周辺プロトコル	rollupをBitcoin上に作ることはできますか？
 11-26	Bitcoin L2・周辺プロトコル	Bitcoin L2ごとの「custody」「trust」「exit」の違いはどう比較すればいいですか？
+12-1	量子コンピュータ・耐量子性	ビットコインは量子コンピュータが登場したら終わるのでは？
+12-2	量子コンピュータ・耐量子性	量子コンピュータはBitcoinのどの暗号方式を破る可能性がありますか？
+12-3	量子コンピュータ・耐量子性	SHA-256とECDSA/Schnorrでは量子コンピュータから受ける影響は同じですか？
+12-4	量子コンピュータ・耐量子性	公開鍵がまだ公開されていないUTXOと、すでに公開されているUTXOでは量子攻撃のリスクが違いますか？
+12-5	量子コンピュータ・耐量子性	TaprootのUTXOは量子コンピュータに対して特に危険なのですか？
+12-6	量子コンピュータ・耐量子性	Bitcoinを量子耐性署名へ移行するにはsoft forkが必要ですか？
+12-7	量子コンピュータ・耐量子性	BIP360/P2MRとは何ですか？
+12-8	量子コンピュータ・耐量子性	P2MRを使えばBitcoinは量子耐性になりますか？
+12-9	量子コンピュータ・耐量子性	QSBとは何ですか？
+12-10	量子コンピュータ・耐量子性	QSBはBitcoinのコンセンサスルールを変更していますか？
+12-11	量子コンピュータ・耐量子性	十分強力な量子コンピュータが突然登場した場合、失われた古いBitcoinまで盗まれる可能性がありますか？
+12-12	量子コンピュータ・耐量子性	SatoshiのBitcoinは量子コンピュータによって盗まれる可能性がありますか？
+12-13	量子コンピュータ・耐量子性	Bitcoinコミュニティでは量子耐性への移行についてどのような案が議論されていますか？

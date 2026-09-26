@@ -79,6 +79,12 @@ type Question struct {
 	Related []string
 	Sources []string
 	Updated string
+
+	// Tags say what kind of fact the answer rests on: 時点依存 (it changes
+	// with time), 研究提案 (a proposal, not the current rules), 誤前提 (the
+	// question assumes something false), and so on. The page turns some of
+	// them into a note under the answer.
+	Tags []string
 }
 
 // Answered reports whether anybody has written this question's answer yet.
@@ -247,6 +253,7 @@ const (
 	relatedPrefix = "関連:"
 	sourcePrefix  = "出典:"
 	updatedPrefix = "更新:"
+	tagsPrefix    = "タグ:"
 )
 
 // readAnswers reads every answers/*.md except README.md. A section is
@@ -262,6 +269,7 @@ const (
 //	関連: 1-5, 2-6
 //	出典: https://bitcoin.org/bitcoin.pdf
 //	更新: 2026-09-26
+//	タグ: 誤前提・時点依存
 //
 // Lines inside a paragraph keep their line breaks, so a list written as
 // "- " lines stays a list.
@@ -296,7 +304,7 @@ func (c *Corpus) readAnswers(fsys fs.FS) error {
 			if len(s.answer) == 0 {
 				return fmt.Errorf("%s: ## %s has no answer text before %s", name, s.id, moreMarker)
 			}
-			q.Answer, q.More, q.Related, q.Sources, q.Updated = s.answer, s.more, s.related, s.sources, s.updated
+			q.Answer, q.More, q.Related, q.Sources, q.Updated, q.Tags = s.answer, s.more, s.related, s.sources, s.updated, s.tags
 		}
 	}
 	return nil
@@ -306,6 +314,7 @@ type section struct {
 	id               string
 	answer, more     []string
 	related, sources []string
+	tags             []string
 	updated          string
 	inMore           bool
 	paragraph        []string
@@ -363,6 +372,11 @@ func parseAnswers(text string) ([]*section, error) {
 		case strings.HasPrefix(trimmed, updatedPrefix):
 			cur.flush()
 			cur.updated = strings.TrimSpace(strings.TrimPrefix(trimmed, updatedPrefix))
+		case strings.HasPrefix(trimmed, tagsPrefix):
+			cur.flush()
+			for _, t := range strings.FieldsFunc(strings.TrimPrefix(trimmed, tagsPrefix), isTagSep) {
+				cur.tags = append(cur.tags, strings.TrimSpace(t))
+			}
 		default:
 			cur.paragraph = append(cur.paragraph, strings.TrimRight(line, " \t"))
 		}
@@ -375,6 +389,9 @@ func parseAnswers(text string) ([]*section, error) {
 	}
 	return out, nil
 }
+
+// isTagSep splits "誤前提・時点依存" as well as a comma list.
+func isTagSep(r rune) bool { return r == '・' || isListSep(r) }
 
 func isListSep(r rune) bool {
 	switch r {

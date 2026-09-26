@@ -83,11 +83,13 @@ func TestAskAnswers(t *testing.T) {
 	if answer["id"] != "1-7" || answer["title"] != "1 BTCは何satoshiですか？" {
 		t.Errorf("answer = %v", answer)
 	}
-	// No answer has been written yet: the page is told so rather than handed
-	// a missing field.
-	if answer["answered"] != false || len(answer["answer"].([]any)) != 0 {
+	if answer["answered"] != true || len(answer["answer"].([]any)) == 0 {
 		t.Errorf("answered = %v, answer = %v", answer["answered"], answer["answer"])
 	}
+	if tags, _ := answer["tags"].([]any); len(tags) == 0 {
+		t.Errorf("tags = %v, want the answer's tags", answer["tags"])
+	}
+
 	cats := out["categories"].([]any)
 	if len(cats) != 1 || cats[0].(map[string]any)["id"] != "basics" {
 		t.Errorf("categories = %v", cats)
@@ -162,6 +164,12 @@ func TestEntry(t *testing.T) {
 	}
 	if rec, _ := do(t, h, "GET", "/api/faq/99-1", ""); rec.Code != http.StatusNotFound {
 		t.Errorf("unknown entry = %d, want 404", rec.Code)
+	}
+	// A question the table has but nobody has answered yet: the page is told
+	// so rather than handed a missing field.
+	_, pending := do(t, h, "GET", "/api/faq/7-34", "")
+	if pending["answered"] != false || len(pending["answer"].([]any)) != 0 {
+		t.Errorf("7-34 = %v", pending)
 	}
 	if f.calls != 0 {
 		t.Error("looking an answer up called the API")

@@ -9,6 +9,19 @@ import { Show } from "@kanabun/core";
 import * as api from "./api";
 import * as s from "./styles";
 
+/**
+ * The tags worth telling a reader about, as the note shown under the answer.
+ * The rest (安定, 誤前提, 概念, …) are for whoever maintains the answers: a
+ * reader gains nothing from being told their question had a false premise.
+ */
+const notes: Record<string, string> = {
+  時点依存: "時期によって変わる情報です。",
+  研究提案: "提案・研究の段階の内容で、いまのBitcoinのルールではありません。",
+  実装依存: "ソフトウェアやそのバージョンによって変わります。",
+  法域依存: "国や地域によって答えが変わります。",
+  要一次確認: "最新の一次資料での確認をおすすめします。",
+};
+
 /** Paragraphs as written. Line breaks inside one are kept, so lists survive. */
 function Paragraphs(props: { lines: string[] }) {
   return (
@@ -31,6 +44,7 @@ export function AnswerCard(props: { entry: api.Entry; expand?: boolean; open: (i
   const more = e.more ?? [];
   const related = e.related ?? [];
   const sources = e.sources ?? [];
+  const cautions = (e.tags ?? []).map((t) => notes[t]).filter((n): n is string => n !== undefined);
   return (
     <div class={s.answer}>
       <p class="meta">
@@ -62,6 +76,14 @@ export function AnswerCard(props: { entry: api.Entry; expand?: boolean; open: (i
             </button>
           ))}
         </div>
+      </Show>
+
+      <Show when={() => cautions.length > 0}>
+        <ul class="notes">
+          {cautions.map((n) => (
+            <li>{n}</li>
+          ))}
+        </ul>
       </Show>
 
       <Show when={() => sources.length > 0 || e.updated !== undefined}>
