@@ -4,8 +4,8 @@
     "number": 1,
     "name": "基礎知識",
     "match": {
-      "what": "ビットコインの入門的な疑問と、よくある誤解や批判。何なのか、誰が作ったか、誰が管理しているか、発行上限、価値の根拠、値動き、使い道、取引所や政府との関係、犯罪利用のイメージなど、仕組みの細部を知らなくても出てくる問い。",
-      "not_for": "マイニングの計算や半減期の仕組み（mining）、UTXO や手数料の計算方法・送金の取り消し（transactions）、鍵やアドレスの暗号の話（keys）、ウォレットの操作やバックアップ（wallet）、ノードやルール変更の決まり方（nodes / upgrades）、ライトニング（lightning）、アドレス再利用や追跡の技術的な話（privacy）、量子コンピュータ（quantum）、「CEO は誰」「SHA-512 で採掘している」のような誤った前提を確かめる質問（sources）。",
+      "what": "ビットコインの入門的な疑問と、よくある誤解や批判。何なのか、誰が作ったか、誰が管理しているか、発行上限、価値の根拠、値動き、使い道、送金にどれくらい時間がかかるか、全体としてどういう仕組みで動いているか、ハッキングされたり壊れたり止められたりしないか、電力消費への批判、取引所や政府との関係、犯罪利用のイメージなど、仕組みの細部を知らなくても出てくる問い。",
+      "not_for": "マイニングの計算や半減期、ブロック生成間隔の仕組み（mining）、UTXO や手数料の計算方法・承認待ちの対処や承認数の意味・送金の取り消し（transactions）、鍵やアドレスの暗号の話（keys）、ウォレットの操作やバックアップ（wallet）、ノードやルール変更の決まり方（nodes / upgrades）、ライトニング（lightning）、アドレス再利用や追跡の技術的な話（privacy）、量子コンピュータ（quantum）、「CEO は誰」「SHA-512 で採掘している」のような誤った前提を確かめる質問（sources）。",
       "examples": [
         "仮想通貨ってそもそも何",
         "ビットコインって結局だれのもの？",
@@ -19,7 +19,7 @@
     "name": "マイニング・PoW・ブロック生成",
     "match": {
       "what": "マイニングと Proof of Work、ブロックの生成間隔、ブロック報酬と半減期、難易度調整、ハッシュレート、51%攻撃、マイニングプールと Stratum、coinbase トランザクション、ブロックの競合とチェーンの選択、マイナーによる取引の選別や検閲、ブロックの時刻。新規発行が止まったあとのマイナーの収入。",
-      "not_for": "手数料の相場や送金の承認待ちの対処（transactions）、フルノードが何を検証するか（nodes）、ルール変更の手続き（upgrades）、量子計算機と暗号（quantum）、採掘に使うハッシュ関数を取り違えた前提の確認（sources）。",
+      "not_for": "手数料の相場や送金の承認待ちの対処（transactions）、フルノードが何を検証するか（nodes）、ルール変更の手続き（upgrades）、量子計算機と暗号（quantum）、採掘に使うハッシュ関数を取り違えた前提の確認（sources）、送金にかかるおおよその時間を聞く入門的な質問（basics）。",
       "examples": [
         "採掘って何をしてるの",
         "報酬が半分になるのはいつ",
@@ -33,7 +33,7 @@
     "name": "トランザクション・UTXO・手数料",
     "match": {
       "what": "オンチェーンの送金そのもの。トランザクションの構造、UTXO とお釣り、手数料の決まり方と単位（sat/vB, vByte）、mempool、未承認の取引の扱い（RBF, CPFP, キャンセル）、承認数と確定、送金先を間違えたときの取り消し、dust、txid、二重支払い、タイムロック、リレーの方針と非標準トランザクション、OP_RETURN、まとめ送金と UTXO の整理。",
-      "not_for": "アドレスの種類や鍵の仕組み（keys）、ウォレットの機能としての coin control や PSBT（wallet）、ライトニングの手数料や支払い（lightning）、UTXO の結び付けによる追跡（privacy）、マイナーの報酬（mining）。",
+      "not_for": "アドレスの種類や鍵の仕組み（keys）、ウォレットの機能としての coin control や PSBT（wallet）、ライトニングの手数料や支払い（lightning）、UTXO の結び付けによる追跡（privacy）、マイナーの報酬（mining）、送金にかかるおおよその時間や「デジタルデータなのになぜ二重に使えないのか」のような入門的な疑問（basics）。",
       "examples": [
         "送金が全然承認されない",
         "手数料ってどうやって決まるの",
@@ -46,11 +46,11 @@
     "number": 4,
     "name": "アドレス・鍵・暗号",
     "match": {
-      "what": "秘密鍵・公開鍵・アドレスの関係、アドレスの種類と形式（Legacy, P2SH, SegWit, Taproot, Base58Check, Bech32/Bech32m）、署名方式（ECDSA, Schnorr, RSA ではないこと）、xpub、multisig の鍵、アドレスの再利用の是非、Bitcoin Script と Miniscript。",
+      "what": "秘密鍵・公開鍵・アドレスの関係、秘密鍵をなくしたときに取り戻せるか、アドレスの種類と形式（Legacy, P2SH, SegWit, Taproot, Base58Check, Bech32/Bech32m）、署名方式（ECDSA, Schnorr, RSA ではないこと）、xpub、multisig の鍵、アドレスの再利用の是非、Bitcoin Script と Miniscript。",
       "not_for": "シードフレーズやバックアップ、ハードウェアウォレットの扱い（wallet）、アドレスから個人が特定されるかという監視・追跡の話（privacy）、Taproot 導入の経緯やソフトフォークの手続き（upgrades）、量子コンピュータによる脅威と対策（quantum）。",
       "examples": [
         "秘密鍵と公開鍵ってどう違う",
-        "量子コンピュータでビットコインは破られる？",
+        "秘密鍵をなくしたら取り戻せる？",
         "bc1 で始まるアドレスは何"
       ]
     }
@@ -61,7 +61,7 @@
     "name": "ウォレット・シード・鍵管理",
     "match": {
       "what": "ウォレットの実際の使い方と鍵の管理。シードフレーズ（12/24 単語、Electrum 方式）、BIP32/39/44、パスフレーズ（25 番目の単語）、HD ウォレット、ハードウェアウォレット、ホット/コールド、watch-only、スマホの紛失や故障やアプリの削除、coin control、PSBT、descriptor、multisig のバックアップ、相続。",
-      "not_for": "鍵とアドレスの暗号学的な関係や署名方式、Miniscript（keys）、取引所が倒産した場合（basics）、送金手数料の仕組み（transactions）、アドレス再利用による追跡（privacy）、開発者に秘密鍵を復元してもらえるかという誤った前提（sources）。",
+      "not_for": "鍵とアドレスの暗号学的な関係や署名方式、Miniscript（keys）、取引所が倒産した場合（basics）、秘密鍵そのものをなくしたときに取り戻せるか（keys）、送金手数料の仕組み（transactions）、アドレス再利用による追跡（privacy）、開発者に秘密鍵を復元してもらえるかという誤った前提（sources）。",
       "examples": [
         "復元用の単語を忘れた",
         "ハードウェアウォレットって要る？",
@@ -75,7 +75,7 @@
     "name": "ノード・コンセンサス・ネットワーク",
     "match": {
       "what": "Bitcoin Core とフルノード、ノードが検証すること、pruned ノード、UTXO set、初期同期（IBD, AssumeUTXO）、SPV との違い、ノードの発見と P2P ネットワーク（DNS seed, eclipse attack, BIP324 暗号化, compact block）、チェーンの再編成、コンセンサスルールを誰が決め、誰が強制するかという役割分担。",
-      "not_for": "マイニングの仕組みや報酬（mining）、SegWit や Taproot などの個別のアップグレードとソフトフォークの有効化方法（upgrades）、仕様と実装をどう見分けるかや情報源の話、特定の団体が発行量を変えられるかという誤った前提（sources）、ノードを使うことによるプライバシー（privacy）。",
+      "not_for": "マイニングの仕組みや報酬（mining）、SegWit や Taproot などの個別のアップグレードとソフトフォークの有効化方法（upgrades）、仕様と実装をどう見分けるかや情報源の話、特定の団体が発行量を変えられるかという誤った前提（sources）、ノードを使うことによるプライバシー（privacy）、ビットコインを使うだけなら Bitcoin Core を動かす必要があるかという入門的な疑問（basics）。",
       "examples": [
         "自分でノードを立てる意味ってある？",
         "ノードはどうやって仲間を見つけるの",
@@ -89,7 +89,7 @@
     "name": "SegWit・Taproot・プロトコル変更",
     "match": {
       "what": "プロトコルのアップグレードとその手続き。SegWit（block weight, witness, malleability）、Taproot（Schnorr の採用、Tapscript, key-path / script-path）、BIP の位置付け、soft fork と hard fork、Bitcoin Cash の分岐、ソフトフォークの有効化とマイナーのシグナリング、covenant と提案中のオペコード（CTV, CSFS, OP_CAT）。",
-      "not_for": "アドレスの形式や署名方式そのものの説明（keys）、量子耐性への移行案（keys）、BIP の状態が仕様かどうかや情報源の確かめ方（sources）、ノードが何を検証するか（nodes）。",
+      "not_for": "アドレスの形式や署名方式そのものの説明（keys）、量子耐性への移行案（quantum）、BIP の状態が仕様かどうかや情報源の確かめ方（sources）、ノードが何を検証するか（nodes）。",
       "examples": [
         "ソフトフォークとハードフォークの違い",
         "タップルートで何ができるようになった",
@@ -158,8 +158,8 @@
     "number": 12,
     "name": "量子コンピュータ・耐量子性",
     "match": {
-      "what": "量子コンピュータが Bitcoin に与える影響と対策。どの暗号（ECDSA / Schnorr と SHA-256）がどの程度脅かされるか、公開鍵が露出した UTXO のリスク、Taproot と量子、サトシのコインや失われたコイン、量子耐性署名への移行、BIP360 / P2MR、QSB（Quantum Safe Bitcoin）。",
-      "not_for": "量子と関係のない鍵・アドレス・署名方式の説明（keys）、存在しない BIP 番号を前提にした質問（sources）。",
+      "what": "量子コンピュータが Bitcoin に与える影響と対策。どの暗号（ECDSA / Schnorr と SHA-256）がどの程度脅かされるか、公開鍵が露出した UTXO のリスク、Taproot と量子、サトシのコインや失われたコインが量子計算機で盗まれるリスク、量子耐性署名への移行、BIP360 / P2MR、QSB（Quantum Safe Bitcoin）。",
+      "not_for": "量子と関係のない鍵・アドレス・署名方式の説明（keys）、存在しない BIP 番号を前提にした質問（sources）、量子と関係なく、失われたコインが発行上限や価値にどう影響するか（basics）。",
       "examples": [
         "量子計算機ができたら秘密鍵は破られる？",
         "P2MR って何",
