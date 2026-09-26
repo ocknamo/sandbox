@@ -262,6 +262,15 @@ export const owl = css`
     animation: owl-hop 0.5s ease-out 1;
   }
 
+  /* Listening: the owl leans in, eyes wide on the speaker. */
+  &.listening .bird {
+    transform: translateY(-4px) scale(1.03);
+  }
+
+  &.listening .pupils {
+    transform: translateY(2px);
+  }
+
   &.suggest .bird,
   &.miss .bird {
     transform: rotate(-8deg);
@@ -321,15 +330,19 @@ export const owl = css`
   }
 `;
 
-/** The one field. No button: pausing is asking. */
+/**
+ * The one field. No submit button: pausing is asking. The only button is the
+ * microphone, sitting inside the field's right end.
+ */
 export const field = css`
+  position: relative;
   margin: 0 0 20px;
 
   input {
     font: inherit;
     font-size: 17px;
     width: 100%;
-    padding: 14px 18px;
+    padding: 14px 58px 14px 18px;
     border-radius: 999px;
     border: 1px solid var(--line);
     background: var(--card);
@@ -341,6 +354,52 @@ export const field = css`
     outline: 2px solid var(--accent);
     outline-offset: 1px;
   }
+
+  button.mic {
+    position: absolute;
+    top: 50%;
+    right: 7px;
+    transform: translateY(-50%);
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+  }
+
+  button.mic:hover {
+    color: var(--accent);
+  }
+
+  /* Listening: the button fills, and a ring pulses out of it, so it is plain
+     from across the room that the page is taking sound. */
+  button.mic.on {
+    background: var(--accent);
+    color: var(--on-accent);
+    animation: mic-pulse 1.4s ease-out infinite;
+  }
+
+  @keyframes mic-pulse {
+    0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); }
+    100% { box-shadow: 0 0 0 14px transparent; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    button.mic.on {
+      animation: none;
+    }
+  }
+`;
+
+export const voiceNote = css`
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+  margin: -10px 0 16px;
 `;
 
 /** Where the answer lands. It dims while a newer question is being read. */

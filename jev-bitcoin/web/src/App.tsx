@@ -19,6 +19,11 @@
  *
  * What the reader asked is kept in their own browser (see history.ts) and
  * listed under the answer, so they can go back to an earlier one.
+ *
+ * The microphone button asks by voice, through the browser's own speech
+ * recognition (see voice.ts). The words appear in the field as they are
+ * heard, and the question is asked as soon as the speaker stops — speech has
+ * its own natural end, so it does not wait for the typing pause.
  */
 import { Show, effect, onCleanup, signal } from "@kanabun/core";
 import * as api from "./api";
@@ -26,6 +31,7 @@ import { Owl } from "./Owl";
 import type { Mood } from "./Owl";
 import { AnswerCard, HistoryPanel, Suggestions } from "./parts";
 import { record, resolveLatest } from "./history";
+import * as voice from "./voice";
 import * as s from "./styles";
 
 /** How long the typing has to pause before the field is asked. */
@@ -41,11 +47,25 @@ const normalise = (text: string) => text.trim().replace(/\s+/g, " ");
 
 const idPattern = /^[1-9][0-9]*-[1-9][0-9]*$/;
 
+/**
+ * A microphone, drawn as markup for the same reason the owl is: kanabun
+ * creates SVG elements in the HTML namespace, where they draw nothing. The
+ * string is the page's own constant.
+ */
+const micIcon = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none"
+  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="9" y="3" width="6" height="11" rx="3" />
+  <path d="M5 11a7 7 0 0 0 14 0" />
+  <path d="M12 18v3" />
+</svg>`;
+
 export function App() {
   const draft = signal("");
   const reply = signal<api.Answer | null>(null);
   const busy = signal(false);
   const error = signal("");
+  const listening = signal(false);
+  let mic: { stop(): void } | null = null;
 
   let timer: ReturnType<typeof setTimeout> | undefined;
   let composing = false;
@@ -56,6 +76,7 @@ export function App() {
 
   const mood = (): Mood => {
     if (busy()) return "thinking";
+    if (listening()) return "listening";
     const r = reply();
     if (r === null) return error() === "" ? "idle" : "miss";
     return r.status;
@@ -128,6 +149,34 @@ export function App() {
     ask(q);
   };
 
+  /** Start listening, or stop if already listening. */
+  const toggleVoice = () => {
+    if (mic !== null) {
+      mic.stop();
+      return;
+    }
+    clearTimeout(timer);
+    error.set("");
+    listening.set(true);
+    mic = voice.listen({
+      interim: (text) => draft.set(text),
+      final: (text) => {
+        draft.set(text);
+        // Shorter than a question: leave it in the field to be finished by
+        // hand rather than asking about half a word.
+        if (length(normalise(text)) >= MIN_CHARS) {
+          lastAsked = "";
+          ask(text);
+        }
+      },
+      error: (message) => error.set(message),
+      end: () => {
+        mic = null;
+        listening.set(false);
+      },
+    });
+  };
+
   const fromHash = () => {
     const id = decodeURIComponent(location.hash.replace(/^#/, ""));
     if (idPattern.test(id)) open(id);
@@ -137,6 +186,7 @@ export function App() {
   onCleanup(() => {
     window.removeEventListener("hashchange", fromHash);
     clearTimeout(timer);
+    mic?.stop();
   });
 
   effect(() => {
@@ -161,7 +211,7 @@ export function App() {
           autocomplete="off"
           enterkeyhint="search"
           aria-label="ビットコインについての質問"
-          placeholder="例：秘密鍵をなくしたらどうなる？"
+          placeholder={() => (listening() ? "聞いています……" : "例：秘密鍵をなくしたらどうなる？")}
           maxLength={400}
           value={draft}
           ref={(el: Element) => {
@@ -170,6 +220,8 @@ export function App() {
             if (!window.matchMedia("(pointer: coarse)").matches) (el as HTMLInputElement).focus();
           }}
           onInput={(event: Event) => {
+            // Typing takes over from speaking.
+            mic?.stop();
             draft.set((event.target as HTMLInputElement).value);
             schedule();
           }}
@@ -182,7 +234,24 @@ export function App() {
             schedule();
           }}
         />
+        {voice.supported ? (
+          <button
+            type="button"
+            class={() => `mic ${listening() ? "on" : ""}`}
+            aria-label={() => (listening() ? "音声入力を止める" : "声で質問する")}
+            aria-pressed={() => (listening() ? "true" : "false")}
+            title={() => (listening() ? "音声入力を止める" : "声で質問する")}
+            onClick={toggleVoice}
+            ref={(el: Element) => (el.innerHTML = micIcon)}
+          />
+        ) : null}
       </form>
+
+      <Show when={listening}>
+        <p class={s.voiceNote}>
+          話し終えると、そのまま質問します。音声の認識はブラウザの機能で行います（Chrome などでは音声がブラウザ提供元のサーバで処理されます）。
+        </p>
+      </Show>
 
       <Show when={() => error() !== ""}>
         <p class={s.error}>{error}</p>

@@ -10,11 +10,12 @@
  */
 import * as s from "./styles";
 
-export type Mood = "idle" | "thinking" | "answer" | "suggest" | "miss" | "multiple";
+export type Mood = "idle" | "listening" | "thinking" | "answer" | "suggest" | "miss" | "multiple";
 
 /** What the owl says over its head, per mood. */
 export const lines: Record<Mood, string> = {
   idle: "ビットコインのこと、なんでも聞いてください。",
+  listening: "どうぞ、お話しください。",
   thinking: "ふむふむ……",
   answer: "お答えします。",
   suggest: "もしかして、これのことでしょうか？",
