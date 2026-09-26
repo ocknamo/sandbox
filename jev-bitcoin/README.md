@@ -6,7 +6,7 @@
 https://ocknamo.github.io/sandbox/bitcoin/ （ソースは [`web/`](web)、ビルド結果は
 [`../docs/bitcoin/`](../docs/bitcoin)）
 
-> **いまの状態：** 質問 426 問（12 カテゴリ）のうち 424 問に回答が入っています。回答は
+> **いまの状態：** 質問 432 問（12 カテゴリ）のうち 430 問に回答が入っています。回答は
 > 用意した回答案を一次資料と突き合わせて確認したもので、2026-09-26 時点の内容です。
 > 回答の書き方は [`internal/faq/data/answers/README.md`](internal/faq/data/answers/README.md)。
 
@@ -30,7 +30,7 @@ https://ocknamo.github.io/sandbox/bitcoin/ （ソースは [`web/`](web)、ビ�
 
 ### なぜカテゴリに分けるのか
 
-1. **`choice` の選択肢は 255 個まで。** 質問は 426 問あります。
+1. **`choice` の選択肢は 255 個まで。** 質問は 432 問あります。
 2. **`choice` の確率は合計 1。** 似た質問が数百並ぶと票が割れ、正解でもしきい値を越えにくくなります。
 3. **`not_for` をカテゴリ単位で書けます。** 「ライトニングの手数料」と「オンチェーンの手数料」の
    区別は、全体の一覧より棚の説明で書くほうが効きます（[`categories.json`](internal/faq/data/categories.json)）。
