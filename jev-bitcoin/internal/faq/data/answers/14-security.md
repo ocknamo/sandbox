@@ -621,3 +621,37 @@ custodial（預かり型）では事業者が鍵を持っているので、事�
 出典: https://www.cisa.gov/news-events/news/implementing-phishing-resistant-mfa
 関連: 14-74, 14-64
 タグ: 安定
+
+## 14-77
+
+広い意味では、重大なコンセンサスの互換性の事故でした。Bitcoin 0.8と古い版とでブロックが妥当かどうかの判断が分かれ、一時的に2つのチェーンに分かれました。攻撃ではなく、古い版が使っていたデータベースの意図しない制限が原因です。Bitcoin Coreは、これを最も深刻な「Critical」の例に挙げています。
+
+出典: https://github.com/bitcoin/bips/blob/master/bip-0050.mediawiki
+出典: https://bitcoincore.org/en/security-advisories/
+関連: 13-22, 13-23, 13-24
+タグ: 安定
+
+## 14-78
+
+Bitcoin Core公式サイトのSecurity Advisoriesのページが入口です。CVE番号、深刻度、影響する版、修正された版と、公開の方針を確認できます。
+
+出典: https://bitcoincore.org/en/security-advisories/
+関連: 14-33, 14-27, 14-31
+タグ: 安定
+
+## 14-79
+
+各実装のGitHubのSecurity Advisoriesと、リリースノートを確認するのが基本です。「ライトニングネットワーク全体の問題」と「特定の実装だけのバグ」は分けて考える必要があります。
+
+出典: https://github.com/lightningnetwork/lnd/security/advisories
+出典: https://github.com/ElementsProject/lightning/security/advisories
+関連: 14-35, 14-36, 15-37
+タグ: 実装依存
+
+## 14-80
+
+いいえ。ブロックチェーン上で動きを追えても、秘密鍵か、法的に差し押さえる手段がなければ資金は動かせません。Bitfinexの事件で94,000 BTC超を押収できたのは、捜査で盗まれたウォレットの秘密鍵を手に入れたからです。
+
+出典: https://www.justice.gov/opa/pr/two-arrested-alleged-conspiracy-launder-45-billion-stolen-cryptocurrency
+関連: 13-12, 10-12
+タグ: 誤前提

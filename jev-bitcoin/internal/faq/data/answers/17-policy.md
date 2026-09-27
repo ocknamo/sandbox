@@ -570,3 +570,29 @@ Bitcoinのプロトコルには、カード会社のように強制的に支払�
 出典: https://btcmap.org/
 関連: 17-68, 17-69
 タグ: 安定
+
+## 17-71
+
+かかりません。日本では、暗号資産を売ったり買ったりすること自体は、消費税の上で支払手段に類するものの譲渡として非課税です（金融商品取引法の改正の施行後は、有価証券に類するものとして引き続き非課税にする見直しが決まっています）。ただし、Bitcoinで商品を買った場合、その商品の売買には通常どおり消費税がかかります。
+
+出典: https://www.nta.go.jp/publication/pamph/pdf/virtual_currency_faq_03.pdf
+出典: https://www.mof.go.jp/tax_policy/tax_reform/outline/fy2026/20251226taikou.pdf
+関連: 17-5, 17-6, 17-63
+更新: 2026-09-27
+タグ: 法域依存・時点依存
+
+## 17-73
+
+いいえ。載っていないお店、閉店、受け付けの停止、確認が古い情報などがあります。お店の数の移り変わりを見る役には立ちますが、実際の取引量や利用者の数などと組み合わせて見る必要があります。
+
+出典: https://btcmap.org/
+関連: 17-45, 17-69, 17-70
+タグ: 時点依存
+
+## 17-75
+
+いいえ。政府がBTCを持ったり準備資産に指定したりしても、それだけでBitcoinのコンセンサスのルールは変えられません。米国のStrategic Bitcoin Reserveも、政府が持つBTCの管理の方針であって、プロトコルを決める権限ではありません。
+
+出典: https://www.whitehouse.gov/presidential-actions/2025/03/establishment-of-the-strategic-bitcoin-reserve-and-united-states-digital-asset-stockpile/
+関連: 17-22, 17-33, 17-34
+タグ: 誤前提
