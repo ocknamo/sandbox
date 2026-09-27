@@ -278,8 +278,13 @@ go run ./cmd/cli -queries testdata/queries.tsv       # -v で候補ごとの数�
 **入力は `questions.tsv` の文面から取らないでください。** モデルに見せている文をそのまま
 打ち込むテストは、何も測っていません。
 
-CI の Live ジョブが実際の API でこれを既定の two_stage で流し、結果をジョブのサマリーに出します
-（`TYPESAFE_API_KEY` が無ければスキップ）。
+実際の API で流すのはトークンを食うので、通常の CI では流しません。測りたいコミットを
+専用ブランチ `jev-bitcoin-live` にプッシュすると、[`jev-bitcoin-live.yml`](../.github/workflows/jev-bitcoin-live.yml)
+が既定の two_stage で流し、結果をジョブのサマリーに出します（`TYPESAFE_API_KEY` が無ければスキップ）。
+
+```sh
+git push -f origin HEAD:jev-bitcoin-live
+```
 
 ## 次にやること
 
