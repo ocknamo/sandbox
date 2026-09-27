@@ -13,7 +13,8 @@
 //
 // A line with no expectation is just asked. The run ends with a tally and
 // with the categories the model confused, which say where a category's
-// not_for needs work.
+// not_for needs work, and with what the run cost per query. Run it with
+// -mode two_stage to compare the two modes on the same queries.
 package main
 
 import (
@@ -60,7 +61,7 @@ type query struct {
 
 type tally struct {
 	total, hit, near, wrong int
-	tokens                  int
+	tokens, requests        int
 	confused                map[string]int
 }
 
@@ -107,6 +108,7 @@ func run(path, model string, mode router.Mode, policy router.Policy, verbose boo
 			return fmt.Errorf("%q: %w", q.input, err)
 		}
 		t.tokens += res.InputTokens
+		t.requests += res.Requests
 		verdict := judge(corpus, &t, q, res)
 		fmt.Printf("%-5s %s  (%.1fs)\n", verdict, q.input, time.Since(start).Seconds())
 		fmt.Printf("      => %s  [%s, %s, multi %.2f]%s\n", describe(res, policy), res.Kind, res.Level, res.Multi, expected(corpus, q.expect))
@@ -139,6 +141,9 @@ func run(path, model string, mode router.Mode, policy router.Policy, verbose boo
 		}
 	}
 	fmt.Printf("\ninput tokens: %d\n", t.tokens)
+	if len(qs) > 0 {
+		fmt.Printf("per query: %d input tokens, %.2f requests\n", t.tokens/len(qs), float64(t.requests)/float64(len(qs)))
+	}
 	return nil
 }
 

@@ -14,11 +14,12 @@
 //
 // In the default mode both steps travel in one request: the category choice
 // and every category's question choice side by side. Jev evaluates the
-// questions of a request in parallel, so eleven shelves cost barely more time
-// than one, and what costs money is the number of requests rather than the
-// number of questions. TwoStage splits them into two requests, asking only the
-// likely shelves the second time; it exists for a corpus too large for one
-// request's context.
+// questions of a request in parallel, so seventeen shelves cost barely more
+// time than one. They do cost tokens, though, and Jev bills input tokens:
+// every shelf is sent with every input. TwoStage splits the steps into two
+// requests and sends the second time only the shelves that could still
+// matter, which is what a corpus too large for one request's context needs
+// and what a cheaper request wants.
 package router
 
 import (
@@ -103,17 +104,11 @@ type Policy struct {
 	// separate things before it is met with "one at a time, please" instead
 	// of an answer.
 	Multi float64
-
-	// Spread and MaxCategories bound the second request in TwoStage: the
-	// likeliest categories are asked about until their probabilities add up
-	// to Spread, and never more than MaxCategories of them.
-	Spread        float64
-	MaxCategories int
 }
 
 // DefaultPolicy is a starting point, not a measurement.
 func DefaultPolicy() Policy {
-	return Policy{Match: 0.40, Margin: 0.15, Floor: 0.15, Multi: 0.60, Spread: 0.80, MaxCategories: 3}
+	return Policy{Match: 0.40, Margin: 0.15, Floor: 0.15, Multi: 0.60}
 }
 
 // Status is what the router concluded.
@@ -334,15 +329,29 @@ func (r *Result) Suggestions(p Policy) []Candidate {
 	return out
 }
 
-// likely picks the categories the second request of TwoStage asks about.
+// likely picks the categories the second request of TwoStage asks about:
+// every one whose probability reaches the policy's cut, likeliest first.
+//
+// No other shelf can change the outcome. A question's score is P(c) × P(q|c),
+// never more than P(c), so every question on an unasked shelf scores below
+// the cut. The cut is at most Floor, so such a question could be neither
+// answered (that takes Match) nor suggested. It is also at most
+// Match - Margin, so as the runner-up it could not have held back a best
+// question that scored Match or more. The status, the answer and the
+// suggestions are therefore those Single would give; only the candidates
+// below the cut, which are never shown, go missing.
+//
+// At most 1/cut shelves can reach the cut, and usually one or two do. An input
+// the model files under none reaches none of them and costs no second request.
 func likely(cat jev.Answer, p Policy) []string {
 	type pair struct {
 		id string
 		p  float64
 	}
+	cut := p.shelfCut()
 	var ps []pair
 	for id, v := range cat.Probabilities {
-		if id != faq.NoMatch && v > 0 {
+		if id != faq.NoMatch && v > 0 && v >= cut {
 			ps = append(ps, pair{id, v})
 		}
 	}
@@ -352,16 +361,17 @@ func likely(cat jev.Answer, p Policy) []string {
 		}
 		return ps[i].id < ps[j].id
 	})
-	var out []string
-	sum := 0.0
-	for _, x := range ps {
-		if len(out) >= p.MaxCategories || sum >= p.Spread {
-			break
-		}
-		out = append(out, x.id)
-		sum += x.p
+	out := make([]string, len(ps))
+	for i, x := range ps {
+		out[i] = x.id
 	}
 	return out
+}
+
+// shelfCut is the category probability below which TwoStage leaves a shelf
+// out; see likely.
+func (p Policy) shelfCut() float64 {
+	return min(p.Floor, p.Match-p.Margin)
 }
 
 // build assembles the questions once. The corpus does not change while the

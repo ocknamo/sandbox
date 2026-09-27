@@ -2,6 +2,8 @@ package router
 
 import (
 	"context"
+	"fmt"
+	"math/rand/v2"
 	"sort"
 	"strings"
 	"testing"
@@ -202,13 +204,141 @@ func TestTwoStageAsksOnlyLikelyShelves(t *testing.T) {
 	if got := strings.Join(f.requests[0], ","); got != "category,kind,level,multi" {
 		t.Errorf("first request = %s", got)
 	}
-	// 0.6 + 0.3 reaches the 0.8 spread; wallet is not asked about.
+	// wallet's 0.05 is below the floor: nothing on it could be shown.
 	if got := strings.Join(f.requests[1], ","); got != "in_keys,in_privacy" {
 		t.Errorf("second request = %s", got)
 	}
 	if res.Status != Answer || res.Best.ID != "10-6" {
 		t.Fatalf("status = %s, best = %v; want answer 10-6", res.Status, res.Best)
 	}
+}
+
+// An input filed under none leaves no shelf worth asking, and no second
+// request is sent.
+func TestTwoStageSkipsTheShelvesForNone(t *testing.T) {
+	r, f := newRouter(t, TwoStage, map[string]jev.Answer{
+		KeyCategory: choice(map[string]float64{"basics": 0.08, "none": 0.92}),
+		KeyKind:     choice(map[string]float64{KindGreeting: 0.9, KindQuestion: 0.1}),
+	})
+	res, err := r.Route(context.Background(), "こんにちは")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(f.requests) != 1 || res.Requests != 1 {
+		t.Fatalf("requests = %d, want 1", len(f.requests))
+	}
+	if res.Status != Miss || res.Kind != KindGreeting {
+		t.Errorf("status = %s, kind = %s; want miss, greeting", res.Status, res.Kind)
+	}
+}
+
+// TwoStage leaves shelves out, but never one that could change what the
+// reader sees: for the same answers from the model, it concludes what Single
+// concludes. Checked on random distributions, under the default policy and
+// under ones where Floor or Match - Margin is the tighter bound.
+func TestTwoStageConcludesAsSingle(t *testing.T) {
+	c, err := faq.Builtin()
+	if err != nil {
+		t.Fatal(err)
+	}
+	policies := []Policy{
+		DefaultPolicy(),
+		{Match: 0.40, Margin: 0.15, Floor: 0.30, Multi: 0.60},
+		{Match: 0.30, Margin: 0.25, Floor: 0.10, Multi: 0.60},
+		{Match: 0.50, Margin: 0.05, Floor: 0.05, Multi: 0.60},
+	}
+	rng := rand.New(rand.NewPCG(1, 2))
+	for i := 0; i < 3000; i++ {
+		answers := randomAnswers(rng, c)
+		p := policies[i%len(policies)]
+		single := &Router{Corpus: c, Asker: &fake{answers: answers}, Policy: p, Mode: Single}
+		two := &Router{Corpus: c, Asker: &fake{answers: answers}, Policy: p, Mode: TwoStage}
+		a, err := single.Route(context.Background(), "q")
+		if err != nil {
+			t.Fatal(err)
+		}
+		b, err := two.Route(context.Background(), "q")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got, want := conclusion(b, p), conclusion(a, p); got != want {
+			t.Fatalf("policy %+v, category %v:\ntwo_stage %s\nsingle    %s", p, answers[KeyCategory].Probabilities, got, want)
+		}
+	}
+}
+
+// With a Floor above Match - Margin, a shelf below Floor still has to be
+// asked: its question cannot be offered, but as the runner-up it keeps a
+// close call from being answered.
+func TestTwoStageAsksTheRunnerUpsShelf(t *testing.T) {
+	answers := map[string]jev.Answer{
+		KeyCategory:  choice(map[string]float64{"privacy": 0.44, "keys": 0.28, "none": 0.28}),
+		"in_privacy": choice(map[string]float64{"q10_6": 0.95, "none": 0.05}),
+		"in_keys":    choice(map[string]float64{"q4_9": 0.99, "none": 0.01}),
+	}
+	r, f := newRouter(t, TwoStage, answers)
+	r.Policy = Policy{Match: 0.40, Margin: 0.15, Floor: 0.30, Multi: 0.60}
+	res, err := r.Route(context.Background(), "アドレス使い回すと何がまずい？")
+	if err != nil {
+		t.Fatal(err)
+	}
+	// 0.418 leads 0.277 by less than the margin.
+	if res.Status != Suggest {
+		t.Fatalf("status = %s, want suggest", res.Status)
+	}
+	if got := strings.Join(f.requests[1], ","); got != "in_keys,in_privacy" {
+		t.Errorf("second request = %s", got)
+	}
+}
+
+// conclusion is what a reader is shown of a result.
+func conclusion(res *Result, p Policy) string {
+	s := string(res.Status)
+	if res.Best != nil {
+		s += " " + res.Best.ID
+	}
+	for _, c := range res.Suggestions(p) {
+		s += fmt.Sprintf(" %s=%.6f", c.Question.ID, c.Score)
+	}
+	return s
+}
+
+// randomAnswers makes up a model's answers: a category distribution that is
+// peaked or spread by turns, and on each shelf a few questions and none
+// sharing the mass.
+func randomAnswers(rng *rand.Rand, c *faq.Corpus) map[string]jev.Answer {
+	ids := []string{faq.NoMatch}
+	for _, cat := range c.Categories {
+		ids = append(ids, cat.ID)
+	}
+	answers := map[string]jev.Answer{
+		KeyCategory: choice(randomSplit(rng, ids, 1+rng.IntN(5))),
+		KeyKind:     choice(map[string]float64{KindQuestion: 1}),
+		KeyMulti:    noul(rng.Float64()),
+	}
+	for _, cat := range c.Categories {
+		keys := []string{faq.NoMatch}
+		for _, q := range cat.Questions {
+			keys = append(keys, q.Key())
+		}
+		answers[shelfPrefix+cat.ID] = choice(randomSplit(rng, keys, 1+rng.IntN(4)))
+	}
+	return answers
+}
+
+// randomSplit spreads a probability of 1 over n options drawn from keys.
+func randomSplit(rng *rand.Rand, keys []string, n int) map[string]float64 {
+	out := map[string]float64{}
+	sum := 0.0
+	w := make([]float64, n)
+	for i := range w {
+		w[i] = rng.ExpFloat64()
+		sum += w[i]
+	}
+	for i := range w {
+		out[keys[rng.IntN(len(keys))]] += w[i] / sum
+	}
+	return out
 }
 
 func TestEmptyInput(t *testing.T) {
