@@ -138,10 +138,10 @@ func TestAskCachesAndLimits(t *testing.T) {
 	limiter := NewLimiter(2, 0)
 	h, f := newServer(t, clearAnswer, limiter)
 
-	// The same question, worded with different trailing punctuation and
-	// spacing, is understood once: one routing, which is two calls in the
+	// The same question, written with different punctuation, spacing and
+	// widths, is understood once: one routing, which is two calls in the
 	// default two_stage.
-	for _, q := range []string{"1BTCは何sat?", " 1btcは何sat？ ", "1BTCは何sat"} {
+	for _, q := range []string{"1BTCは何sat?", " 1btcは何sat？ ", "1BTCは何sat", "１ ＢＴＣ、は何ｓａｔ。"} {
 		if rec, out := do(t, h, "POST", "/api/ask", `{"question": "`+q+`"}`); rec.Code != 200 || out["status"] != "answer" {
 			t.Fatalf("%q: %d %v", q, rec.Code, out)
 		}
@@ -159,6 +159,38 @@ func TestAskCachesAndLimits(t *testing.T) {
 	// ...but a remembered one is still answered, since it costs nothing.
 	if rec, _ := do(t, h, "POST", "/api/ask", `{"question": "1BTCは何sat"}`); rec.Code != 200 {
 		t.Errorf("cached question = %d, want 200", rec.Code)
+	}
+}
+
+func TestCacheKey(t *testing.T) {
+	same := [][]string{
+		{"ビットコインとは何ですか？", "ビットコイン とは 何ですか", "ビットコイン、とは何ですか。", "「ビットコイン」とは何ですか!?", "　ビットコインとは何ですか　"},
+		{"１ＢＴＣは何ｓａｔ？", "1 BTC は何sat?", "1btcは何sat"},
+		{"ライトニング・ネットワークとは", "ライトニングネットワークとは"},
+		{"What is Bitcoin?", "whatisbitcoin"},
+		{"1.5BTCは何sat", "１．５ＢＴＣは何sat"},
+	}
+	for _, group := range same {
+		for _, q := range group[1:] {
+			if got, want := cacheKey(q), cacheKey(group[0]); got != want {
+				t.Errorf("cacheKey(%q) = %q, want %q as for %q", q, got, want, group[0])
+			}
+		}
+	}
+
+	// Folding too much answers one question with another's answer, so what
+	// can change the meaning is kept.
+	differ := [][2]string{
+		{"1.5BTCは何sat", "15BTCは何sat"},
+		{"1,000satは", "1000satは"},
+		{"手数料は1%", "手数料は1"},
+		{"ハードフォークとは", "ハドフォクとは"},
+		{"？？", "！！"},
+	}
+	for _, p := range differ {
+		if cacheKey(p[0]) == cacheKey(p[1]) {
+			t.Errorf("cacheKey(%q) = cacheKey(%q) = %q", p[0], p[1], cacheKey(p[0]))
+		}
 	}
 }
 
