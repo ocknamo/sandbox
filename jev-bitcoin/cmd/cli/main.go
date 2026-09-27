@@ -13,8 +13,8 @@
 //
 // A line with no expectation is just asked. The run ends with a tally and
 // with the categories the model confused, which say where a category's
-// not_for needs work, and with what the run cost per query. Run it with
-// -mode two_stage to compare the two modes on the same queries.
+// not_for needs work, and with what the run cost per query. It routes as the
+// service does, in two_stage; run it with -mode single to compare.
 package main
 
 import (
@@ -38,7 +38,7 @@ func main() {
 	var (
 		queries = flag.String("queries", "", "file of \"input<TAB>expected\" lines (default: read stdin)")
 		model   = flag.String("model", jev.DefaultModel, "model identifier")
-		mode    = flag.String("mode", string(router.Single), "single or two_stage")
+		mode    = flag.String("mode", string(router.TwoStage), "two_stage or single")
 		match   = flag.Float64("match", d.Match, "the best question needs this combined score to be answered")
 		margin  = flag.Float64("margin", d.Margin, "and must lead the runner-up by this much")
 		floor   = flag.Float64("floor", d.Floor, "a question is suggested at or above this score")

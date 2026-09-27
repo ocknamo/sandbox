@@ -12,14 +12,14 @@
 // every shelf through its own probability keeps a question that straddles two
 // of them reachable from both.
 //
-// In the default mode both steps travel in one request: the category choice
-// and every category's question choice side by side. Jev evaluates the
-// questions of a request in parallel, so seventeen shelves cost barely more
-// time than one. They do cost tokens, though, and Jev bills input tokens:
-// every shelf is sent with every input. TwoStage splits the steps into two
-// requests and sends the second time only the shelves that could still
-// matter, which is what a corpus too large for one request's context needs
-// and what a cheaper request wants.
+// By default the steps are two requests. The first asks for the category, and
+// the second only for the shelves that could still change the outcome, which
+// are usually one or two of the seventeen. Jev bills input tokens, and the
+// shelves are most of them. Single asks everything in one request instead:
+// Jev evaluates the questions of a request in parallel, so seventeen shelves
+// cost barely more time than one, but every shelf is then sent with every
+// input, at more than three times the tokens and with the whole corpus in one
+// request's context.
 package router
 
 import (
@@ -75,7 +75,8 @@ const (
 	// Single asks everything in one request.
 	Single Mode = "single"
 	// TwoStage asks for the category first, then for the questions of the
-	// likely categories only.
+	// likely categories only. It is the default: a Router whose Mode is empty
+	// routes this way.
 	TwoStage Mode = "two_stage"
 )
 
@@ -192,7 +193,19 @@ func (r *Router) Route(ctx context.Context, input string) (*Result, error) {
 	var answers map[string]jev.Answer
 
 	switch r.Mode {
-	case TwoStage:
+	case Single:
+		qs := make(map[string]jev.Question, len(r.head)+len(r.shelves))
+		for k, v := range r.head {
+			qs[k] = v
+		}
+		for k, v := range r.shelves {
+			qs[k] = v
+		}
+		var err error
+		if answers, err = r.ask(ctx, res, input, qs); err != nil {
+			return nil, err
+		}
+	default:
 		first, err := r.ask(ctx, res, input, r.head)
 		if err != nil {
 			return nil, err
@@ -210,18 +223,6 @@ func (r *Router) Route(ctx context.Context, input string) (*Result, error) {
 			for k, v := range second {
 				answers[k] = v
 			}
-		}
-	default:
-		qs := make(map[string]jev.Question, len(r.head)+len(r.shelves))
-		for k, v := range r.head {
-			qs[k] = v
-		}
-		for k, v := range r.shelves {
-			qs[k] = v
-		}
-		var err error
-		if answers, err = r.ask(ctx, res, input, qs); err != nil {
-			return nil, err
 		}
 	}
 

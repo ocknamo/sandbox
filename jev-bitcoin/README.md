@@ -35,9 +35,9 @@ https://ocknamo.github.io/sandbox/bitcoin/ （ソースは [`web/`](web)、ビ�
 3. **`not_for` をカテゴリ単位で書けます。** 「ライトニングの手数料」と「オンチェーンの手数料」の
    区別は、全体の一覧より棚の説明で書くほうが効きます（[`categories.json`](internal/faq/data/categories.json)）。
 
-### 1 リクエストに畳む
+### single：1 リクエストに畳む
 
-論理的には「カテゴリを選ぶ → その中で質問を選ぶ」の 2 段ですが、**往復は 1 回**です。
+論理的には「カテゴリを選ぶ → その中で質問を選ぶ」の 2 段です。`ROUTER_MODE=single` では**往復は 1 回**で、
 1 リクエストの中に
 
 | キー | 型 | 内容 |
@@ -52,7 +52,7 @@ https://ocknamo.github.io/sandbox/bitcoin/ （ソースは [`web/`](web)、ビ�
 ただし **Jev は入力トークンで課金**するので、棚はすべての入力に毎回付いて回ります。
 1 リクエストはおよそ 110 KB で、CI の実測は **1 問あたり 47,000 トークン**（137 問で 6,438,171）。
 コンテキストの上限（64k トークン）には収まっていますが、1 問増えるごとにおよそ 45 トークン増えるので、
-single のまま足せるのはあと 300 問ほどです。
+single のまま足せるのはあと 300 問ほどです。**既定は下の two_stage** で、single は比較用に残しています。
 
 スコアは Go 側で合成します（[`internal/router`](internal/router/router.go)）。
 
@@ -68,9 +68,9 @@ score(q) = P(category = c) × P(q | c)
 各棚の `choice` には必ず `none` を入れ、**棚の中で `none` に負けた質問は、棚の確率が
 いくら高くても答えにしません**。関係のない入力がその棚で一番ましな質問に流れ込むのを防ぐためです。
 
-### two_stage：2 往復に分けて、要る棚だけ聞く
+### two_stage（既定）：2 往復に分けて、要る棚だけ聞く
 
-`ROUTER_MODE=two_stage` では、1 回目でカテゴリ・`kind`・`level`・`multi` だけを聞き、
+two_stage では、1 回目でカテゴリ・`kind`・`level`・`multi` だけを聞き、
 2 回目で **P(c) が `min(Floor, Match − Margin)`（既定 0.15）以上の棚だけ**を聞きます。合成式も判定も同じです。
 
 **これで判定は single と変わりません。** 質問の点は P(c) × P(q|c) なので、聞かなかった棚の質問は
@@ -197,7 +197,7 @@ Bun の版は `.bun-version`（1.4.2）で固定しています。
 
 | エンドポイント | 役割 |
 | --- | --- |
-| `POST /api/ask` | `{"question": "…"}` を分類して結果を返す。Jev を 1 回（two_stage なら 2 回）呼ぶ |
+| `POST /api/ask` | `{"question": "…"}` を分類して結果を返す。Jev を 2 回（`none` に振られた入力は 1 回、single なら 1 回）呼ぶ |
 | `GET /api/faq/{id}` | 番号で答えを返す。Jev を呼ばない |
 | `GET /health` | デプロイパイプラインが叩く |
 
@@ -219,7 +219,7 @@ Bun の版は `.bun-version`（1.4.2）で固定しています。
 
 **状態はサーバに持ちません。** 1 問 1 答で完結します。
 
-**レート制限とキャッシュ。** 1 質問 = 有料 API 1 リクエストで、ページは入力が止まるたびに
+**レート制限とキャッシュ。** 1 質問 = 有料 API 2 リクエスト（入力トークンでおよそ 13k）で、ページは入力が止まるたびに
 送るので、1 人が 1 問書くあいだに数回飛ぶことがあります。IP ごとのトークンバケット
 （既定：連続 30 回、毎分 30 回）と、入力 → 結果の LRU キャッシュ（1024 件）を入れています。
 キャッシュに当たった質問は制限を消費しません。
@@ -256,7 +256,7 @@ go run ./cmd/server           # http://localhost:8080
 | --- | --- | --- |
 | `TYPESAFE_API_KEY` | （必須） | 無いと起動しない |
 | `JEV_MODEL` | `jev-latest` | モデル識別子 |
-| `ROUTER_MODE` | `single` | `two_stage` で 2 往復に分ける |
+| `ROUTER_MODE` | `two_stage` | `single` で 1 往復にまとめる（入力トークンは 3 倍以上） |
 | `MATCH_THRESHOLD` / `MARGIN_THRESHOLD` / `FLOOR_THRESHOLD` | 0.40 / 0.15 / 0.15 | しきい値 |
 | `MULTI_THRESHOLD` | 0.60 | 一度に複数の質問をしているとみなす `noul` |
 | `ASK_BURST` / `ASK_PER_MINUTE` | 30 / 30 | IP ごとのレート制限 |
@@ -268,7 +268,7 @@ go run ./cmd/server           # http://localhost:8080
 このボットの成否は、**実際に打たれる日本語が、狙った質問に当たるか**の一点です。
 
 ```sh
-go run ./cmd/cli -queries testdata/queries.tsv       # -v で候補ごとの数字、-mode two_stage で比較
+go run ./cmd/cli -queries testdata/queries.tsv       # -v で候補ごとの数字、-mode single で比較
 ```
 
 `queries.tsv` は `入力<TAB>期待`。期待は質問番号、`none`（何にも当たらないのが正解）、
@@ -278,7 +278,7 @@ go run ./cmd/cli -queries testdata/queries.tsv       # -v で候補ごとの数�
 **入力は `questions.tsv` の文面から取らないでください。** モデルに見せている文をそのまま
 打ち込むテストは、何も測っていません。
 
-CI の Live ジョブが実際の API でこれを流し、結果をジョブのサマリーに出します
+CI の Live ジョブが実際の API でこれを既定の two_stage で流し、結果をジョブのサマリーに出します
 （`TYPESAFE_API_KEY` が無ければスキップ）。
 
 ## 次にやること

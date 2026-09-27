@@ -112,8 +112,8 @@ jobs:
     name: Live queries
     needs: test
     runs-on: ubuntu-latest
-    # One request per line of the query file, then up to two in two_stage.
-    timeout-minutes: 20
+    # Up to two requests per line of the query file.
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: jev-bitcoin
@@ -149,6 +149,8 @@ jobs:
       # a reader would type lands on the question they meant. The run is not
       # failed on it, because the number is the thing being measured and a
       # threshold would only hide it. A failing call does fail the step.
+      # It runs in two_stage, as the service does; single costs more than three
+      # times the tokens and is compared by hand with -mode single.
       - name: Ask the query file
         if: steps.key.outputs.present == 'true'
         env:
@@ -164,21 +166,3 @@ jobs:
             tee -a "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
 
-      # The same queries in two requests each, asking the second time only the
-      # shelves that could still matter. It should conclude as single does at
-      # well under half the input tokens; the two tallies side by side are how
-      # that claim is checked against the real model.
-      - name: Ask the query file (two_stage)
-        if: steps.key.outputs.present == 'true'
-        env:
-          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
-        run: |
-          set -o pipefail
-          {
-            echo '### Live queries (two_stage)'
-            echo
-            echo '```text'
-          } >> "$GITHUB_STEP_SUMMARY"
-          go run ./cmd/cli -mode two_stage -queries testdata/queries.tsv 2>&1 |
-            tee -a "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
