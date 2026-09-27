@@ -139,14 +139,15 @@ func TestAskCachesAndLimits(t *testing.T) {
 	h, f := newServer(t, clearAnswer, limiter)
 
 	// The same question, worded with different trailing punctuation and
-	// spacing, is understood once.
+	// spacing, is understood once: one routing, which is two calls in the
+	// default two_stage.
 	for _, q := range []string{"1BTCは何sat?", " 1btcは何sat？ ", "1BTCは何sat"} {
 		if rec, out := do(t, h, "POST", "/api/ask", `{"question": "`+q+`"}`); rec.Code != 200 || out["status"] != "answer" {
 			t.Fatalf("%q: %d %v", q, rec.Code, out)
 		}
 	}
-	if f.calls != 1 {
-		t.Fatalf("API calls = %d, want 1", f.calls)
+	if f.calls != 2 {
+		t.Fatalf("API calls = %d, want 2", f.calls)
 	}
 
 	// A second, new question uses the last token; a third is refused.

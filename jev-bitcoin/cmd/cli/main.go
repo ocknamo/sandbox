@@ -13,7 +13,8 @@
 //
 // A line with no expectation is just asked. The run ends with a tally and
 // with the categories the model confused, which say where a category's
-// not_for needs work.
+// not_for needs work, and with what the run cost per query. It routes as the
+// service does, in two_stage; run it with -mode single to compare.
 package main
 
 import (
@@ -37,7 +38,7 @@ func main() {
 	var (
 		queries = flag.String("queries", "", "file of \"input<TAB>expected\" lines (default: read stdin)")
 		model   = flag.String("model", jev.DefaultModel, "model identifier")
-		mode    = flag.String("mode", string(router.Single), "single or two_stage")
+		mode    = flag.String("mode", string(router.TwoStage), "two_stage or single")
 		match   = flag.Float64("match", d.Match, "the best question needs this combined score to be answered")
 		margin  = flag.Float64("margin", d.Margin, "and must lead the runner-up by this much")
 		floor   = flag.Float64("floor", d.Floor, "a question is suggested at or above this score")
@@ -60,7 +61,7 @@ type query struct {
 
 type tally struct {
 	total, hit, near, wrong int
-	tokens                  int
+	tokens, requests        int
 	confused                map[string]int
 }
 
@@ -107,7 +108,8 @@ func run(path, model string, mode router.Mode, policy router.Policy, verbose boo
 			return fmt.Errorf("%q: %w", q.input, err)
 		}
 		t.tokens += res.InputTokens
-		verdict := judge(corpus, &t, q, res)
+		t.requests += res.Requests
+		verdict := judge(corpus, &t, q, res, policy)
 		fmt.Printf("%-5s %s  (%.1fs)\n", verdict, q.input, time.Since(start).Seconds())
 		fmt.Printf("      => %s  [%s, %s, multi %.2f]%s\n", describe(res, policy), res.Kind, res.Level, res.Multi, expected(corpus, q.expect))
 		if verbose {
@@ -139,11 +141,16 @@ func run(path, model string, mode router.Mode, policy router.Policy, verbose boo
 		}
 	}
 	fmt.Printf("\ninput tokens: %d\n", t.tokens)
+	if len(qs) > 0 {
+		fmt.Printf("per query: %d input tokens, %.2f requests\n", t.tokens/len(qs), float64(t.requests)/float64(len(qs)))
+	}
 	return nil
 }
 
-// judge scores one routing against its expectation.
-func judge(corpus *faq.Corpus, t *tally, q query, res *router.Result) string {
+// judge scores one routing against its expectation. A near miss is one the
+// reader was offered as "もしかして"; a candidate below the floor is never
+// shown, and two_stage does not even look for it.
+func judge(corpus *faq.Corpus, t *tally, q query, res *router.Result, policy router.Policy) string {
 	if q.expect == "" {
 		return "-"
 	}
@@ -158,7 +165,7 @@ func judge(corpus *faq.Corpus, t *tally, q query, res *router.Result) string {
 		ok = res.Status != router.Answer && res.Kind == strings.TrimPrefix(q.expect, "kind:")
 	default:
 		ok = res.Status == router.Answer && res.Best.ID == q.expect
-		for _, c := range res.Candidates {
+		for _, c := range res.Suggestions(policy) {
 			if c.Question.ID == q.expect && res.Status == router.Suggest {
 				near = true
 			}

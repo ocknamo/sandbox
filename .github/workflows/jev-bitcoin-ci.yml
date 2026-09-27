@@ -112,7 +112,7 @@ jobs:
     name: Live queries
     needs: test
     runs-on: ubuntu-latest
-    # One request per line of the query file.
+    # Up to two requests per line of the query file.
     timeout-minutes: 15
     defaults:
       run:
@@ -149,6 +149,8 @@ jobs:
       # a reader would type lands on the question they meant. The run is not
       # failed on it, because the number is the thing being measured and a
       # threshold would only hide it. A failing call does fail the step.
+      # It runs in two_stage, as the service does; single costs more than three
+      # times the tokens and is compared by hand with -mode single.
       - name: Ask the query file
         if: steps.key.outputs.present == 'true'
         env:
@@ -163,3 +165,4 @@ jobs:
           go run ./cmd/cli -queries testdata/queries.tsv 2>&1 |
             tee -a "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
+
