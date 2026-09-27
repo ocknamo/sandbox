@@ -1,0 +1,87 @@
+name: jev-bitcoin Live
+
+# Every run sends the whole query file to the real Jev API, and Jev bills by
+# input token (about 47,000 per query in two_stage), so this does not run on
+# ordinary pushes or pull requests. To run it, push the commit to be measured
+# to the jev-bitcoin-live branch:
+#
+#   git push -f origin HEAD:jev-bitcoin-live
+#
+# There is deliberately no paths filter: whatever lands on that branch is a
+# request to measure it, even when the diff against the branch's previous tip
+# does not touch jev-bitcoin/. workflow_dispatch also works once this file is
+# on the default branch.
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - jev-bitcoin-live
+
+# A newer push supersedes the one still running; finishing the older run would
+# only spend tokens on a commit nobody asked about any more.
+concurrency:
+  group: jev-bitcoin-live
+  cancel-in-progress: true
+
+jobs:
+  live:
+    name: Live queries
+    runs-on: ubuntu-latest
+    # Up to two requests per line of the query file.
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: jev-bitcoin
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version: '1.24'
+          cache: false
+
+      # The ordinary CI is not a prerequisite of this workflow, so a commit
+      # that does not build or pass its tests is stopped here, before it
+      # spends anything on the API.
+      - name: go test
+        run: go test ./...
+
+      # The secrets context is not available in a job-level or step-level `if`,
+      # so whether the key exists has to become a step output first. A missing
+      # key skips the call rather than failing.
+      - name: Look for the API key
+        id: key
+        env:
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+        run: |
+          if [ -n "$TYPESAFE_API_KEY" ]; then
+            echo 'present=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'present=false' >> "$GITHUB_OUTPUT"
+            {
+              echo '### Live queries skipped'
+              echo
+              echo 'No `TYPESAFE_API_KEY` secret is available to this run.'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # The tally at the end is what this job exists for: whether the Japanese
+      # a reader would type lands on the question they meant. The run is not
+      # failed on it, because the number is the thing being measured and a
+      # threshold would only hide it. A failing call does fail the step.
+      # It runs in two_stage, as the service does; single costs more than three
+      # times the tokens and is compared by hand with -mode single.
+      - name: Ask the query file
+        if: steps.key.outputs.present == 'true'
+        env:
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+        run: |
+          set -o pipefail
+          {
+            echo '### Live queries'
+            echo
+            echo '```text'
+          } >> "$GITHUB_STEP_SUMMARY"
+          go run ./cmd/cli -queries testdata/queries.tsv 2>&1 |
+            tee -a "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

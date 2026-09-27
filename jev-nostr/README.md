@@ -121,18 +121,21 @@ timeline: 2 of 5 posts
 
 1. リポジトリの Settings → Secrets and variables → Actions で
    `TYPESAFE_API_KEY` を登録する
-2. `jev-nostr-cli/` 以下に push する
+2. 確かめたいコミットを専用ブランチ `jev-nostr-live` に push する
 
-`.github/workflows/jev-nostr-cli-ci.yml` が 2 つのジョブを実行します。
+```sh
+git push -f origin HEAD:jev-nostr-live
+```
 
-- **Build and test** — `go vet` / `gofmt` / `go test -race`。ネットワークには触れません。
-- **Live Jev call** — サンプル投稿を実際の API に送り、結果を**ジョブのサマリーに表示**します。
-  Secret が未登録の場合は失敗させず、その旨をサマリーに書いてスキップします
-  （fork からの PR には Secret が渡らないため）。
+実際の API はトークンを食うので、ジョブは 2 つのワークフローに分けてあります。
 
-Cloud Run のサービスと違い、このワークフローは main 以外のブランチへの push でも動きます。
-`workflow_dispatch` はワークフローファイルがデフォルトブランチに入るまで UI に出てこないので、
-作業ブランチの段階で実際の応答を見るにはこれが必要です。
+- **Build and test**（[`jev-nostr-ci.yml`](../.github/workflows/jev-nostr-ci.yml)）—
+  `go vet` / `gofmt` / `go test -race`。ネットワークには触れず、`jev-nostr/` 以下への
+  どのブランチの push でも動きます。
+- **Live Jev call**（[`jev-nostr-live.yml`](../.github/workflows/jev-nostr-live.yml)）—
+  サンプル投稿を実際の API に送り、結果を**ジョブのサマリーに表示**します。
+  `jev-nostr-live` ブランチへの push でだけ動きます。
+  Secret が未登録の場合は失敗させず、その旨をサマリーに書いてスキップします。
 
 ## スコアリング API と Web ページ
 

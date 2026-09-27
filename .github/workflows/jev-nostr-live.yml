@@ -1,0 +1,104 @@
+name: jev-nostr Live
+
+# Every run sends the two post fixtures to the real Jev API, which bills by
+# input token, so this does not run on ordinary pushes or pull requests. To
+# run it, push the commit to be measured to the jev-nostr-live branch:
+#
+#   git push -f origin HEAD:jev-nostr-live
+#
+# There is deliberately no paths filter: whatever lands on that branch is a
+# request to measure it, even when the diff against the branch's previous tip
+# does not touch jev-nostr/. workflow_dispatch also works once this file is on
+# the default branch.
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - jev-nostr-live
+
+# A newer push supersedes the one still running; finishing the older run would
+# only spend tokens on a commit nobody asked about any more.
+concurrency:
+  group: jev-nostr-live
+  cancel-in-progress: true
+
+jobs:
+  live:
+    name: Live Jev call
+    runs-on: ubuntu-latest
+    # A handful of sequential requests against an external API.
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: jev-nostr
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version: '1.24'
+          cache: false
+
+      # The ordinary CI is not a prerequisite of this workflow, so a commit
+      # that does not build or pass its tests is stopped here, before it
+      # spends anything on the API.
+      - name: go test
+        run: go test ./...
+
+      # The secrets context is not available in a job-level or step-level `if`,
+      # so whether the key exists has to become a step output first. A missing
+      # key skips the call rather than failing.
+      - name: Look for the API key
+        id: key
+        env:
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+        run: |
+          if [ -n "$TYPESAFE_API_KEY" ]; then
+            echo 'present=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'present=false' >> "$GITHUB_OUTPUT"
+            {
+              echo '### Live Jev call skipped'
+              echo
+              echo 'The `TYPESAFE_API_KEY` secret is not set for this repository.'
+              echo 'Add it under Settings → Secrets and variables → Actions.'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # Two fixtures. The real posts are what the timeline has to get right;
+      # the synthetic ones carry the spam the real sample happens not to
+      # contain, which is the only way to see the promotional veto fire
+      # against real answers rather than against a test double.
+      - name: Send the real posts to Jev
+        if: steps.key.outputs.present == 'true'
+        env:
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+        run: |
+          set -o pipefail
+          go run ./cmd/cli -posts testdata/posts.json -raw 2>&1 | tee "$RUNNER_TEMP/jev.log"
+
+      - name: Send the synthetic posts to Jev
+        if: steps.key.outputs.present == 'true'
+        env:
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+        run: |
+          set -o pipefail
+          go run ./cmd/cli -posts testdata/synthetic.json 2>&1 | tee "$RUNNER_TEMP/jev-synthetic.log"
+
+      # Runs even when the call failed, so an auth or validation error lands in
+      # the run summary instead of only in the step log.
+      - name: Publish the response
+        if: always() && steps.key.outputs.present == 'true'
+        run: |
+          {
+            echo '### Real posts'
+            echo
+            echo '```text'
+            cat "$RUNNER_TEMP/jev.log" 2>/dev/null || echo '(no output captured)'
+            echo '```'
+            echo '### Synthetic posts'
+            echo
+            echo '```text'
+            cat "$RUNNER_TEMP/jev-synthetic.log" 2>/dev/null || echo '(no output captured)'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
