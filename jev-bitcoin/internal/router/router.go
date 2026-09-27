@@ -14,9 +14,9 @@
 //
 // By default the steps are two requests. The first asks for the category, and
 // the second only for the shelves that could still change the outcome, which
-// are usually one or two of the seventeen. Jev bills input tokens, and the
+// are usually one or two of the twenty. Jev bills input tokens, and the
 // shelves are most of them. Single asks everything in one request instead:
-// Jev evaluates the questions of a request in parallel, so seventeen shelves
+// Jev evaluates the questions of a request in parallel, so twenty shelves
 // cost barely more time than one, but every shelf is then sent with every
 // input, at more than three times the tokens and with the whole corpus in one
 // request's context.
@@ -414,18 +414,22 @@ func categoryQuestion(c *faq.Corpus) jev.Question {
 		options[cat.ID] = jev.Option{What: cat.Match.What, NotFor: cat.Match.NotFor, Examples: cat.Match.Examples}
 	}
 	options[faq.NoMatch] = jev.Option{
-		What: "The input is not a question about Bitcoin at all: a greeting, " +
-			"small talk, another subject, another cryptocurrency on its own, " +
-			"or text that asks nothing.",
+		What: "The input is not a question about Bitcoin, nor about the money, " +
+			"banking, payments, cryptography or distributed systems that Bitcoin " +
+			"builds on: a greeting, small talk, another subject, another " +
+			"cryptocurrency on its own, or text that asks nothing.",
 		NotFor: "Any question about Bitcoin, however casually or vaguely it " +
-			"is worded, including ones that compare Bitcoin with something else.",
+			"is worded, including ones that compare Bitcoin with something else, " +
+			"and any general question about money, credit, banks, payments, " +
+			"inflation, cryptography, ownership or decentralized networks.",
 		Examples: []string{"こんにちは", "今日の天気は？", "イーサリアムのガス代の仕組み"},
 	}
 	return jev.ChoiceOptions(
 		"A user typed a question into a Bitcoin Q&A service. Which topic of "+
 			"the service's FAQ does it belong to? Judge by what the user wants "+
-			"to know, not by which words appear. Choose 'none' only if it is "+
-			"not a question about Bitcoin.",
+			"to know, not by which words appear. The FAQ also covers money, "+
+			"banking and the technology Bitcoin builds on, even when Bitcoin is "+
+			"not named. Choose 'none' only if it is about none of these.",
 		options)
 }
 
@@ -455,11 +459,13 @@ func kindQuestion() jev.Question {
 			"it, whether or not the service can answer it?",
 		map[string]string{
 			KindQuestion: "A question, or a request to explain something, about how Bitcoin works, " +
-				"its history, its use, or its technology. Includes skeptical or critical questions.",
+				"its history, its use, or its technology, or about the money, banking, payments, " +
+				"cryptography and distributed systems it builds on. Includes skeptical or critical questions.",
 			KindGreeting: "A greeting, thanks, or small talk addressed to the service, with no question in it.",
 			KindAdvice: "A request for financial advice or a prediction: whether to buy or sell, " +
 				"what the price will be, which coin will go up, how much to invest.",
-			KindOffTopic: "A question about something other than Bitcoin, including other cryptocurrencies on their own.",
+			KindOffTopic: "A question about something other than Bitcoin and the money and technology " +
+				"behind it, including other cryptocurrencies on their own.",
 			KindNonsense: "Text that asks nothing and says nothing: gibberish, a stray word, a keyboard mash.",
 		})
 }
