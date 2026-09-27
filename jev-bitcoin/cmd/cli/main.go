@@ -109,7 +109,7 @@ func run(path, model string, mode router.Mode, policy router.Policy, verbose boo
 		}
 		t.tokens += res.InputTokens
 		t.requests += res.Requests
-		verdict := judge(corpus, &t, q, res)
+		verdict := judge(corpus, &t, q, res, policy)
 		fmt.Printf("%-5s %s  (%.1fs)\n", verdict, q.input, time.Since(start).Seconds())
 		fmt.Printf("      => %s  [%s, %s, multi %.2f]%s\n", describe(res, policy), res.Kind, res.Level, res.Multi, expected(corpus, q.expect))
 		if verbose {
@@ -147,8 +147,10 @@ func run(path, model string, mode router.Mode, policy router.Policy, verbose boo
 	return nil
 }
 
-// judge scores one routing against its expectation.
-func judge(corpus *faq.Corpus, t *tally, q query, res *router.Result) string {
+// judge scores one routing against its expectation. A near miss is one the
+// reader was offered as "もしかして"; a candidate below the floor is never
+// shown, and two_stage does not even look for it.
+func judge(corpus *faq.Corpus, t *tally, q query, res *router.Result, policy router.Policy) string {
 	if q.expect == "" {
 		return "-"
 	}
@@ -163,7 +165,7 @@ func judge(corpus *faq.Corpus, t *tally, q query, res *router.Result) string {
 		ok = res.Status != router.Answer && res.Kind == strings.TrimPrefix(q.expect, "kind:")
 	default:
 		ok = res.Status == router.Answer && res.Best.ID == q.expect
-		for _, c := range res.Candidates {
+		for _, c := range res.Suggestions(policy) {
 			if c.Question.ID == q.expect && res.Status == router.Suggest {
 				near = true
 			}
