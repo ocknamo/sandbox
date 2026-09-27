@@ -11,11 +11,11 @@ func TestBuiltinLoads(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Builtin: %v", err)
 	}
-	if got := len(c.Categories); got != 16 {
-		t.Errorf("categories = %d, want 16", got)
+	if got := len(c.Categories); got != 17 {
+		t.Errorf("categories = %d, want 17", got)
 	}
-	if got := c.Len(); got != 745 {
-		t.Errorf("questions = %d, want 745", got)
+	if got := c.Len(); got != 814 {
+		t.Errorf("questions = %d, want 814", got)
 	}
 	q := c.Question("1-1")
 	if q == nil || q.Category.ID != "basics" || q.Title != "ビットコインとは何ですか？" {

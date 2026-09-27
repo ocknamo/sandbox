@@ -5,7 +5,7 @@
     "name": "基礎知識",
     "match": {
       "what": "ビットコインの入門的な疑問と、よくある誤解や批判。何なのか、誰が作ったか、誰が管理しているか、発行上限、価値の根拠、値動き、使い道、送金にどれくらい時間がかかるか、全体としてどういう仕組みで動いているか、ハッキングされたり壊れたり止められたりしないか、電力消費への批判、取引所や政府との関係、犯罪利用のイメージなど、仕組みの細部を知らなくても出てくる問い。",
-      "not_for": "マイニングの計算や半減期、ブロック生成間隔の仕組み（mining）、UTXO や手数料の計算方法・承認待ちの対処や承認数の意味・送金の取り消し（transactions）、鍵やアドレスの暗号の話（keys）、ウォレットの操作やバックアップ（wallet）、ノードやルール変更の決まり方（nodes / upgrades）、ライトニング（lightning）、アドレス再利用や追跡の技術的な話（privacy）、量子コンピュータ（quantum）、「CEO は誰」「SHA-512 で採掘している」のような誤った前提を確かめる質問（sources）、ビットコインの誕生の経緯や日付、過去の取引所の破綻や事件の個別の出来事、Satoshi が退いた経緯（history）、特定の脆弱性や過去の流出事件の中身、「ハッキング」と報じられた事件の見分け方（security）、取引所の残高の中身、販売所と取引所、スプレッドや手数料、Proof of Reserves、ETF、国内の交換業者の個別の説明など、取引所・決済・金融サービスの具体的な話（services）。",
+      "not_for": "マイニングの計算や半減期、ブロック生成間隔の仕組み（mining）、UTXO や手数料の計算方法・承認待ちの対処や承認数の意味・送金の取り消し（transactions）、鍵やアドレスの暗号の話（keys）、ウォレットの操作やバックアップ（wallet）、ノードやルール変更の決まり方（nodes / upgrades）、ライトニング（lightning）、アドレス再利用や追跡の技術的な話（privacy）、量子コンピュータ（quantum）、「CEO は誰」「SHA-512 で採掘している」のような誤った前提を確かめる質問（sources）、ビットコインの誕生の経緯や日付、過去の取引所の破綻や事件の個別の出来事、Satoshi が退いた経緯（history）、特定の脆弱性や過去の流出事件の中身、「ハッキング」と報じられた事件の見分け方（security）、取引所の残高の中身、販売所と取引所、スプレッドや手数料、Proof of Reserves、ETF、国内の交換業者の個別の説明など、取引所・決済・金融サービスの具体的な話（services）、日本の法律上の扱いや税金、各国の規制と政策、エルサルバドルや米国の Bitcoin 準備、お店での支払いの導入や返金など具体的な制度と普及の話（policy）。",
       "examples": [
         "仮想通貨ってそもそも何",
         "ビットコインって結局だれのもの？",
@@ -131,7 +131,7 @@
     "name": "プライバシー・匿名性・オンチェーン分析",
     "match": {
       "what": "プライバシーと追跡。ビットコインが匿名かどうか、取引や残高が誰に見えるか、アドレスから個人が特定されるか、アドレス再利用とプライバシー、common-input-ownership heuristic、お釣りの特定、チェーン分析会社、取引所と KYC、CoinJoin、Payjoin、Silent Payments、coin control とプライバシー、自前ノードや Tor、compact block filter、ライトニングの匿名性。ライトニングの中継ノードに何が見えるか。",
-      "not_for": "アドレスや鍵の形式そのもの（keys）、ウォレットのバックアップ（wallet）、ライトニングのルーティングの仕組み一般（lightning）、Bitcoin Core の Private Broadcast で IP アドレスが漏れた不具合（security）、Wasabi Wallet や Samourai Wallet・Whirlpool など特定の製品の現状（products）、取引所の送付時のトラベルルール（services）、特定の製品名（カタカナ表記を含む）が出て、その製品での使われ方を聞く質問（products）。",
+      "not_for": "アドレスや鍵の形式そのもの（keys）、ウォレットのバックアップ（wallet）、ライトニングのルーティングの仕組み一般（lightning）、Bitcoin Core の Private Broadcast で IP アドレスが漏れた不具合（security）、Wasabi Wallet や Samourai Wallet・Whirlpool など特定の製品の現状（products）、取引所の送付時のトラベルルール（services）、特定の製品名（カタカナ表記を含む）が出て、その製品での使われ方を聞く質問（products）、KYC や Travel Rule が法律上どう求められるか（policy）。",
       "examples": [
         "送金したら相手に全財産ばれる？",
         "ミキシングって何",
@@ -173,7 +173,7 @@
     "name": "歴史・事件・市場",
     "match": {
       "what": "Bitcoin の歴史と過去の出来事。誕生の経緯と日付（bitcoin.org の登録、ホワイトペーパーの公開、Genesis Block とその新聞の見出し、v0.1 の公開、Hal Finney への最初の送金、最初の価格、faucet、Pizza Day）、先行する技術と思想（cypherpunk、DigiCash、b-money、Bit Gold、Hashcash、RPOW、タイムスタンプの研究）、Satoshi の最後の投稿やメールと退場、Gavin Andresen と alert key、BitcoinTalk と Bitcoin Foundation、Bitcoin Core という名前の由来。過去のバグと分裂（2010 年の value overflow、2013 年の chain split と double spend）、Blocksize War（XT / Classic / Unlimited、UASF と BIP148、SegWit2x、Bitcoin Cash の分岐の経緯）、Taproot の有効化と Speedy Trial の経緯、中国のマイニング規制、Ordinals と Runes の登場、米国の現物 ETF 承認の経緯。取引所や事業者の事件と破綻（Mt. Gox、BTC-e、Bitfinex、Silk Road、FTX と Alameda、Celsius、BlockFi、Terra/Luna）と、盗まれたコインの追跡や回収。",
-      "not_for": "Satoshi の正体や誰が発明したか、取引所が倒産したら預けたコインはどうなるかという一般論（basics）、soft fork と hard fork の仕組み、SegWit や Taproot の中身、Bitcoin Cash の分岐が soft fork か hard fork か（upgrades）、半減期の仕組みや次の半減期（mining）、double spend や承認数の仕組み（transactions）、ホワイトペーパーが今の仕様書かどうか、Bitcoin Foundation が発行量を変えられるかという誤った前提（sources）、今の価格や今後の値動きの予想、Coincheck・Zaif・BITPoint・Liquid・DMM Bitcoin・Binance・Bitstamp・QuadrigaCX・Atomic Wallet など流出や窃取の事件の中身、2011 年の Mt. Gox の事件、ソフトウェアや機器の脆弱性（security）、Proof of Reserves や預けて利息を得るサービスのリスク、ETF の仕組みなど、今のサービスの仕組み（services）。",
+      "not_for": "Satoshi の正体や誰が発明したか、取引所が倒産したら預けたコインはどうなるかという一般論（basics）、soft fork と hard fork の仕組み、SegWit や Taproot の中身、Bitcoin Cash の分岐が soft fork か hard fork か（upgrades）、半減期の仕組みや次の半減期（mining）、double spend や承認数の仕組み（transactions）、ホワイトペーパーが今の仕様書かどうか、Bitcoin Foundation が発行量を変えられるかという誤った前提（sources）、今の価格や今後の値動きの予想、Coincheck・Zaif・BITPoint・Liquid・DMM Bitcoin・Binance・Bitstamp・QuadrigaCX・Atomic Wallet など流出や窃取の事件の中身、2011 年の Mt. Gox の事件、ソフトウェアや機器の脆弱性（security）、Proof of Reserves や預けて利息を得るサービスのリスク、ETF の仕組みなど、今のサービスの仕組み（services）、いまの規制や政策、エルサルバドルの 2025 年の法改正、米国の Strategic Bitcoin Reserve、ETF 承認の日付や理由の法的な説明（policy）。",
       "examples": [
         "ピザの日って何",
         "マウントゴックスって結局何があったの",
@@ -201,7 +201,7 @@
     "name": "ウォレット・ノード製品・実装",
     "match": {
       "what": "特定の製品・アプリ・ソフトウェアの名前が出る質問。ハードウェアウォレット（Trezor の各モデルと Bitcoin-only firmware と Shamir Backup、COLDCARD、SeedSigner、Blockstream Jade、BitBox02、Foundation Passport、Ledger、Keystone、TAPSIGNER と SATSCARD）とその比較。ウォレットアプリ（Sparrow、Electrum、BlueWallet、Phoenix、Breez、Zeus、Muun、Wallet of Satoshi の預かり型と自己管理型、Blink、Aqua、Blockstream Green / Blockstream App、Nunchuk、Specter Desktop、Wasabi、Samourai と Whirlpool）。Electrum サーバ（Electrs、ElectrumX、Fulcrum）、Bitcoin Knots、ライトニングの実装（LND、Core Lightning、Eclair、LDK）とノード管理画面（ThunderHub、RTL）、ノードの製品（Umbrel、Start9 / StartOS、RaspiBlitz、myNode）、BTCPay Server、自前の mempool.space。製品名はカタカナで書かれることも多い（トレザー、コールドカード、シードサイナー、ジェイド、ビットボックス、パスポート、レジャー、キーストーン、タップサイナー、スパロウ、エレクトラム、ブルーウォレット、フェニックス、ブリーズ、ゼウス、ムーン、ウォレットオブサトシ、ブリンク、アクア、ナンチャク、スペクター、ワサビ、サムライ、アンブレル、スタート9、ラズブリッツ、マイノード、ノッツ、サンダーハブ）。製品名が出てきて、その製品での使われ方や仕様を聞いているなら、splicing やサーバへの接続のような一般的な仕組みの話を含んでいてもこの棚。",
-      "not_for": "特定の製品に限らないウォレットの使い方やシードのバックアップ、hot と cold、PSBT や descriptor の意味（wallet）、フルノード一般や Bitcoin Core の役割（nodes）、ライトニングの仕組み一般（lightning）、CoinJoin の仕組み一般（privacy）、Spark や Liquid というプロトコルそのもの（l2）、製品で起きた事故・脆弱性・詐欺（security）、BitPay や Strike・Cash App などの決済・金融サービス、BTCPay Server と事業者型の決済サービスの違い（services）。",
+      "not_for": "特定の製品に限らないウォレットの使い方やシードのバックアップ、hot と cold、PSBT や descriptor の意味（wallet）、フルノード一般や Bitcoin Core の役割（nodes）、ライトニングの仕組み一般（lightning）、CoinJoin の仕組み一般（privacy）、Spark や Liquid というプロトコルそのもの（l2）、製品で起きた事故・脆弱性・詐欺（security）、BitPay や Strike・Cash App などの決済・金融サービス、BTCPay Server と事業者型の決済サービスの違い（services）、お店が Bitcoin 決済を導入する方法一般や、BTC Map などでのお店の探し方（policy）。",
       "examples": [
         "ウォレットオブサトシって自分で鍵持てるの？",
         "SeedSignerって何がいいの",
@@ -215,11 +215,25 @@
     "name": "取引所・決済・金融サービス",
     "match": {
       "what": "取引所や決済・金融サービスの仕組みと、日本の暗号資産交換業者。取引所の残高は取引所の帳簿の数字でブロックチェーン上の UTXO ではないこと、取引所の中の売買、出金して初めて自己管理になること、broker（販売所）と注文板（取引所）、手数料とスプレッド、出金手数料とまとめ送金、入金の承認数、取引所からのライトニング出金、預かり型のライトニングウォレット、Strike、Cash App、暗号資産のデビットカードと Visa / Mastercard、カード会社の倒産、支払いと税金。お店向けの決済（merchant processor、BitPay と BTCPay Server、LSP、Boltz のような swap サービス）。Proof of Reserves と Proof of Liabilities、Merkle tree とゼロ知識証明、顧客資産の貸し出し（rehypothecation）、利息を得るサービスや Bitcoin 担保ローンのリスク。現物 ETF / ETP と直接保有の違い、出金できるか、カストディアン、取引時間、先物 ETF との違い、OTC、Bisq や RoboSats などの P2P 取引。日本の登録業者（bitFlyer、bitbank、Coincheck、GMO コイン、SBI VC トレード、BITPOINT、BitTrade、BTCBOX、楽天ウォレット、Binance Japan、OKJ、Mercoin、CoinTrade）、金融庁の登録一覧と、登録は推奨ではないこと、販売所と取引所、手数料・スプレッド・出庫手数料・最低額の比べ方、自己管理ウォレットへの送付やライトニングでの出金。社名やサービス名はカタカナや略称で書かれることも多い（ビットフライヤー、ビットバンク、コインチェック、ジーエムオーコイン、ビットポイント、ビットトレード、楽天、バイナンス、メルカリ / メルコイン、ストライク、キャッシュアップ、ボルツ）。",
-      "not_for": "「取引所が倒産したら全部なくなる？」「取引所の口座は必要？」のような入門的な疑問（basics）、Mt. Gox・FTX・Celsius・BlockFi など過去の破綻の経緯や米国の ETF 承認の経緯（history）、取引所からの流出事件（security）、BTCPay Server や特定のウォレットアプリそのものの説明（products）、ライトニングや LSP・submarine swap の仕組み一般（lightning）、KYC と追跡（privacy）、どの取引所で買うべきかや今買うべきかという投資の助言。",
+      "not_for": "「取引所が倒産したら全部なくなる？」「取引所の口座は必要？」のような入門的な疑問（basics）、Mt. Gox・FTX・Celsius・BlockFi など過去の破綻の経緯や米国の ETF 承認の経緯（history）、取引所からの流出事件（security）、BTCPay Server や特定のウォレットアプリそのものの説明（products）、ライトニングや LSP・submarine swap の仕組み一般（lightning）、KYC と追跡（privacy）、どの取引所で買うべきかや今買うべきかという投資の助言、日本の法律上の位置付け、税金の制度とその改正、Travel Rule や KYC の規制、お店が Bitcoin 決済を導入する方法や店頭での値決め・返金（policy）。",
       "examples": [
         "取引所の残高ってブロックチェーンに載ってるの？",
         "販売所と取引所ってどっちが得？",
         "ビットコインETFを買ったら自分のウォレットに出せる？"
+      ]
+    }
+  },
+  {
+    "id": "policy",
+    "number": 17,
+    "name": "規制・政策・普及動向",
+    "match": {
+      "what": "法律・税金・規制・国の政策と、お店での利用の広がり。日本での Bitcoin の法律上の扱い（資金決済法の暗号資産、法定通貨ではないが同意があれば支払いに使える、交換業者の登録と分別管理、金融商品取引法への移管）、売却益や買い物にかかる税金と、20% の分離課税などの見直し、日本の現物 ETF。Travel Rule、FATF と VASP、KYC はプロトコルのルールではないこと、EU の MiCA、米国での commodity か security か、現物 ETF の承認の日付と Grayscale の裁判、米国の Strategic Bitcoin Reserve、押収した BTC の扱い、エルサルバドルの Bitcoin 法と 2025 年の改正、Chivo、IMF、国の保管方法、企業の Bitcoin treasury と Strategy、企業会計の時価評価、銀行の預かり、マイニングの禁止や電力の規制、禁止しても消せない理由、「合法か」の答え方。お店での利用：使えるお店と BTC Map、オンチェーンとライトニング、店頭での待ち時間、お店の導入方法とノードの要否、BTCPay Server、inbound liquidity、円への換金、値決めとレートの固定、過不足の支払い、返品と返金、chargeback がないこと、カード決済との違い、決済代行、お店の税務、合法性、ネットショップ、ギフトカード、お店の数と普及の測り方。",
+      "not_for": "「政府に禁止されたら使えなくなる？」「承認を待つならお店では使えない？」のような入門的な疑問（basics）、取引所の残高や手数料・スプレッド、国内の交換業者の個別の説明、暗号資産カード、ETF と直接保有の違い（services）、米国の ETF 承認に至る経緯の歴史や中国のマイニング規制の出来事（history）、BTCPay Server や Wallet of Satoshi など製品そのものの説明（products）、ライトニングの仕組み一般（lightning）、今買うべきかなどの投資の助言。",
+      "examples": [
+        "ビットコインの利益って税金どれくらい？",
+        "エルサルバドルってまだ法定通貨なの？",
+        "お店でビットコイン払いを始めるには"
       ]
     }
   }
