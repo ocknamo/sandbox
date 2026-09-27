@@ -591,3 +591,91 @@
 14-73	セキュリティ事故・脆弱性	walletのsupport担当者がseed phraseを聞いてくることはありますか？
 14-74	セキュリティ事故・脆弱性	SIM swapによってBitcoinを盗まれることはありますか？
 14-75	セキュリティ事故・脆弱性	2FAを使っていても取引所からBitcoinを盗まれることはありますか？
+15-1	ウォレット・ノード製品・実装	Trezorとは何ですか？
+15-2	ウォレット・ノード製品・実装	Trezor Model One、Model T、Safeシリーズは何が違いますか？
+15-3	ウォレット・ノード製品・実装	TrezorのBitcoin-only firmwareとは何ですか？
+15-4	ウォレット・ノード製品・実装	TrezorのShamir Backupとは何ですか？
+15-5	ウォレット・ノード製品・実装	新しいTrezor SafeシリーズがSecure Elementを使っているのはなぜですか？
+15-6	ウォレット・ノード製品・実装	COLDCARDとは何ですか？
+15-7	ウォレット・ノード製品・実装	COLDCARDは完全にair-gappedで使えますか？
+15-8	ウォレット・ノード製品・実装	COLDCARDのmicroSD/QR/NFC/USBによる署名方法はどう違いますか？
+15-9	ウォレット・ノード製品・実装	SeedSignerとは何ですか？
+15-10	ウォレット・ノード製品・実装	SeedSignerがstatelessなのはどういう意味ですか？
+15-11	ウォレット・ノード製品・実装	SeedSignerに秘密鍵が保存されないなら、どうやってトランザクションへ署名するのですか？
+15-12	ウォレット・ノード製品・実装	SeedSignerにRaspberry Pi Zero 1.3がよく使われるのはなぜですか？
+15-13	ウォレット・ノード製品・実装	SeedSignerを紛失してもBitcoinを失わないのはなぜですか？
+15-14	ウォレット・ノード製品・実装	Blockstream Jadeとは何ですか？
+15-15	ウォレット・ノード製品・実装	Jadeのセキュリティモデルは一般的なSecure Element型hardware walletと何が違いますか？
+15-16	ウォレット・ノード製品・実装	BitBox02のBitcoin-only editionとは何ですか？
+15-17	ウォレット・ノード製品・実装	BitBox02のmicroSD backupは暗号化されていますか？
+15-18	ウォレット・ノード製品・実装	Foundation Passportとはどのようなhardware walletですか？
+15-19	ウォレット・ノード製品・実装	Coldcard、SeedSigner、Trezor、Jade、BitBox02はセキュリティモデルがどう違いますか？
+15-20	ウォレット・ノード製品・実装	Sparrow Walletとは何ですか？
+15-21	ウォレット・ノード製品・実装	Sparrow Wallet自身に秘密鍵を保存せずhardware walletだけで使えますか？
+15-22	ウォレット・ノード製品・実装	Sparrowをpublic Electrum serverへ接続するとどんなプライバシー情報が漏れますか？
+15-23	ウォレット・ノード製品・実装	Sparrowを自分のBitcoin Coreへ接続するメリットは何ですか？
+15-24	ウォレット・ノード製品・実装	Electrumとは何ですか？
+15-25	ウォレット・ノード製品・実装	Electrum walletとElectrum serverは何が違いますか？
+15-26	ウォレット・ノード製品・実装	Electrs、ElectrumX、Fulcrumは何が違いますか？
+15-27	ウォレット・ノード製品・実装	BlueWalletとは何ですか？
+15-28	ウォレット・ノード製品・実装	Phoenix、Breez、Zeus、MuunはLightningの扱い方がどう違いますか？
+15-29	ウォレット・ノード製品・実装	Umbrelとは何ですか？
+15-30	ウォレット・ノード製品・実装	Umbrelをインストールすれば自動的にBitcoinフルノードになるのですか？
+15-31	ウォレット・ノード製品・実装	Umbrel上のBitcoin NodeとLightning Nodeはどういう関係ですか？
+15-32	ウォレット・ノード製品・実装	Umbrelを停止・故障すると、自分のBitcoinは失われますか？
+15-33	ウォレット・ノード製品・実装	Start9/StartOSとUmbrelは何が違いますか？
+15-34	ウォレット・ノード製品・実装	RaspiBlitzとは何ですか？
+15-35	ウォレット・ノード製品・実装	Bitcoin CoreとBitcoin Knotsは何が違いますか？
+15-36	ウォレット・ノード製品・実装	Bitcoin KnotsはBitcoinとは別の暗号資産なのですか？
+15-37	ウォレット・ノード製品・実装	LND、Core Lightning、Eclair、LDKは何が違いますか？
+15-38	ウォレット・ノード製品・実装	BTCPay Serverとは何ですか？
+15-39	ウォレット・ノード製品・実装	BTCPay ServerはBitcoinを預かるcustodial payment processorですか？
+15-40	ウォレット・ノード製品・実装	mempool.spaceを自分のノード上で動かすことはできますか？
+15-41	ウォレット・ノード製品・実装	Wallet of Satoshiとは何ですか？
+15-42	ウォレット・ノード製品・実装	Wallet of Satoshiはcustodial walletですか？
+15-43	ウォレット・ノード製品・実装	Wallet of SatoshiのClassic版とself-custody版は何が違いますか？
+15-44	ウォレット・ノード製品・実装	Wallet of Satoshiのself-custody版は通常のLightning walletと何が違いますか？
+15-45	ウォレット・ノード製品・実装	Wallet of Satoshiのself-custody版で使われているSparkとは何ですか？
+15-46	ウォレット・ノード製品・実装	Wallet of Satoshiのself-custody版の12単語を普通のBIP39 walletへ入れれば復元できますか？
+15-47	ウォレット・ノード製品・実装	Wallet of Satoshiでは自分でLightning channelを開く必要がありますか？
+15-48	ウォレット・ノード製品・実装	Wallet of Satoshiには店舗向けPOS機能がありますか？
+15-49	ウォレット・ノード製品・実装	Phoenix Walletとは何ですか？
+15-50	ウォレット・ノード製品・実装	Phoenixはself-custodyですか？
+15-51	ウォレット・ノード製品・実装	Phoenixではユーザー自身がLightning channelを管理するのですか？
+15-52	ウォレット・ノード製品・実装	Phoenixのsplicingはどのように使われていますか？
+15-53	ウォレット・ノード製品・実装	Breezとは何ですか？
+15-54	ウォレット・ノード製品・実装	Breez WalletとBreez SDKは何が違いますか？
+15-55	ウォレット・ノード製品・実装	Zeus Walletとは何ですか？
+15-56	ウォレット・ノード製品・実装	Zeusは自分のLightning nodeへ接続して使えますか？
+15-57	ウォレット・ノード製品・実装	Muun Walletとは何ですか？
+15-58	ウォレット・ノード製品・実装	MuunはLightning channelを通常のLightning walletと同じ方法で使っていますか？
+15-59	ウォレット・ノード製品・実装	Muunが一般的なseed phraseを採用していないのはなぜですか？
+15-61	ウォレット・ノード製品・実装	BlueWalletは現在もcustodial Lightning walletを内蔵していますか？
+15-62	ウォレット・ノード製品・実装	BlueWalletを自分のLNDHubへ接続できますか？
+15-63	ウォレット・ノード製品・実装	Blinkとは何ですか？
+15-64	ウォレット・ノード製品・実装	Aqua Walletとは何ですか？
+15-65	ウォレット・ノード製品・実装	Aqua WalletはBitcoin mainchainとLiquidをどう使い分けていますか？
+15-66	ウォレット・ノード製品・実装	Blockstream Greenとは何ですか？
+15-67	ウォレット・ノード製品・実装	Blockstream GreenはBitcoinとLiquidの両方を扱えますか？
+15-68	ウォレット・ノード製品・実装	Nunchukとは何ですか？
+15-69	ウォレット・ノード製品・実装	Nunchukがmultisigを重視しているのはなぜですか？
+15-70	ウォレット・ノード製品・実装	Nunchukのinheritance機能はどのような仕組みですか？
+15-71	ウォレット・ノード製品・実装	Specter Desktopとは何ですか？
+15-72	ウォレット・ノード製品・実装	Specter DesktopはBitcoin Coreとどのように連携しますか？
+15-73	ウォレット・ノード製品・実装	Wasabi Walletとは何ですか？
+15-74	ウォレット・ノード製品・実装	Wasabi WalletのCoinJoinはどのような仕組みですか？
+15-75	ウォレット・ノード製品・実装	Wasabi WalletのCoinJoinは現在どのような形で提供されていますか？
+15-76	ウォレット・ノード製品・実装	Samourai Walletとは何でしたか？
+15-77	ウォレット・ノード製品・実装	Samourai Walletはなぜサービス停止したのですか？
+15-78	ウォレット・ノード製品・実装	Whirlpoolとは何ですか？
+15-79	ウォレット・ノード製品・実装	Ledgerとはどんなhardware walletですか？
+15-80	ウォレット・ノード製品・実装	LedgerとTrezorでは設計思想がどう違いますか？
+15-81	ウォレット・ノード製品・実装	Keystoneとはどんなhardware walletですか？
+15-83	ウォレット・ノード製品・実装	TAPSIGNERとは何ですか？
+15-84	ウォレット・ノード製品・実装	SATSCARDとは何ですか？
+15-85	ウォレット・ノード製品・実装	TAPSIGNERは通常のhardware walletと何が違いますか？
+15-86	ウォレット・ノード製品・実装	myNodeとは何ですか？
+15-87	ウォレット・ノード製品・実装	myNode、Umbrel、Start9、RaspiBlitzは何が違いますか？
+15-88	ウォレット・ノード製品・実装	ThunderHubとは何ですか？
+15-89	ウォレット・ノード製品・実装	RTL（Ride The Lightning）とは何ですか？
+15-90	ウォレット・ノード製品・実装	ThunderHubやRTLはLightning walletなのですか、それともnode管理ツールなのですか？

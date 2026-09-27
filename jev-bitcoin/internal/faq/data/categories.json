@@ -61,7 +61,7 @@
     "name": "ウォレット・シード・鍵管理",
     "match": {
       "what": "ウォレットの実際の使い方と鍵の管理。シードフレーズ（12/24 単語、Electrum 方式）、BIP32/39/44、パスフレーズ（25 番目の単語）、HD ウォレット、ハードウェアウォレット、ホット/コールド、watch-only、スマホの紛失や故障やアプリの削除、coin control、PSBT、descriptor、multisig のバックアップ、相続。",
-      "not_for": "鍵とアドレスの暗号学的な関係や署名方式、Miniscript（keys）、取引所が倒産した場合（basics）、秘密鍵そのものをなくしたときに取り戻せるか（keys）、送金手数料の仕組み（transactions）、アドレス再利用による追跡（privacy）、開発者に秘密鍵を復元してもらえるかという誤った前提（sources）、特定の製品で起きた乱数の不具合や物理攻撃、偽物の端末、フィッシングや詐欺の手口などの事故と脆弱性（security）。",
+      "not_for": "鍵とアドレスの暗号学的な関係や署名方式、Miniscript（keys）、取引所が倒産した場合（basics）、秘密鍵そのものをなくしたときに取り戻せるか（keys）、送金手数料の仕組み（transactions）、アドレス再利用による追跡（privacy）、開発者に秘密鍵を復元してもらえるかという誤った前提（sources）、特定の製品で起きた乱数の不具合や物理攻撃、偽物の端末、フィッシングや詐欺の手口などの事故と脆弱性（security）、Trezor・COLDCARD・SeedSigner・Jade・Sparrow・Electrum など特定の製品やアプリの説明と比較（products）。",
       "examples": [
         "復元用の単語を忘れた",
         "ハードウェアウォレットって要る？",
@@ -75,7 +75,7 @@
     "name": "ノード・コンセンサス・ネットワーク",
     "match": {
       "what": "Bitcoin Core とフルノード、ノードが検証すること、pruned ノード、UTXO set、初期同期（IBD, AssumeUTXO）、SPV との違い、ノードの発見と P2P ネットワーク（DNS seed, eclipse attack, BIP324 暗号化, compact block）、チェーンの再編成、コンセンサスルールを誰が決め、誰が強制するかという役割分担。",
-      "not_for": "マイニングの仕組みや報酬（mining）、SegWit や Taproot などの個別のアップグレードとソフトフォークの有効化方法（upgrades）、仕様と実装をどう見分けるかや情報源の話、特定の団体が発行量を変えられるかという誤った前提（sources）、ノードを使うことによるプライバシー（privacy）、ビットコインを使うだけなら Bitcoin Core を動かす必要があるかという入門的な疑問（basics）、Bitcoin Core の CVE や脆弱性の公開の手順（security）。",
+      "not_for": "マイニングの仕組みや報酬（mining）、SegWit や Taproot などの個別のアップグレードとソフトフォークの有効化方法（upgrades）、仕様と実装をどう見分けるかや情報源の話、特定の団体が発行量を変えられるかという誤った前提（sources）、ノードを使うことによるプライバシー（privacy）、ビットコインを使うだけなら Bitcoin Core を動かす必要があるかという入門的な疑問（basics）、Bitcoin Core の CVE や脆弱性の公開の手順（security）、Bitcoin Knots・Umbrel・Start9・RaspiBlitz・myNode など特定のノードのソフトウェアや製品（products）。",
       "examples": [
         "自分でノードを立てる意味ってある？",
         "ノードはどうやって仲間を見つけるの",
@@ -103,7 +103,7 @@
     "name": "Lightning Network",
     "match": {
       "what": "Lightning Network。チャネルの開閉（force close / cooperative close）、容量と流動性（inbound / outbound）、ルーティングと中継ノード、HTLC と invoice と preimage、BOLT11 / BOLT12 / Lightning Address、支払いの失敗、watchtower、submarine swap と Loop、LSP、trampoline、gossip、splicing、multipath / AMP、route blinding、onion message、定期支払い。",
-      "not_for": "オンチェーンの送金手数料（transactions）、ライトニング以外の L2（l2）、ライトニングの匿名性や中継ノードに何が見えるか（privacy）、BOLT という仕様書の位置付けや「すべて記録されるから安全」のような誤った前提の確認（sources）、LND や Core Lightning など実装の脆弱性、replacement cycling のような攻撃（security）。",
+      "not_for": "オンチェーンの送金手数料（transactions）、ライトニング以外の L2（l2）、ライトニングの匿名性や中継ノードに何が見えるか（privacy）、BOLT という仕様書の位置付けや「すべて記録されるから安全」のような誤った前提の確認（sources）、LND や Core Lightning など実装の脆弱性、replacement cycling のような攻撃（security）、Phoenix・Wallet of Satoshi・Zeus・Breez・Muun など特定のウォレットやアプリ、LND・Core Lightning・Eclair・LDK の違い、ThunderHub や RTL（products）。",
       "examples": [
         "ライトニングで受け取れないのはなぜ",
         "チャネルを閉じたらお金はどうなる",
@@ -131,7 +131,7 @@
     "name": "プライバシー・匿名性・オンチェーン分析",
     "match": {
       "what": "プライバシーと追跡。ビットコインが匿名かどうか、取引や残高が誰に見えるか、アドレスから個人が特定されるか、アドレス再利用とプライバシー、common-input-ownership heuristic、お釣りの特定、チェーン分析会社、取引所と KYC、CoinJoin、Payjoin、Silent Payments、coin control とプライバシー、自前ノードや Tor、compact block filter、ライトニングの匿名性。ライトニングの中継ノードに何が見えるか。",
-      "not_for": "アドレスや鍵の形式そのもの（keys）、ウォレットのバックアップ（wallet）、ライトニングのルーティングの仕組み一般（lightning）、Bitcoin Core の Private Broadcast で IP アドレスが漏れた不具合（security）。",
+      "not_for": "アドレスや鍵の形式そのもの（keys）、ウォレットのバックアップ（wallet）、ライトニングのルーティングの仕組み一般（lightning）、Bitcoin Core の Private Broadcast で IP アドレスが漏れた不具合（security）、Wasabi Wallet や Samourai Wallet・Whirlpool など特定の製品の現状（products）。",
       "examples": [
         "送金したら相手に全財産ばれる？",
         "ミキシングって何",
@@ -145,7 +145,7 @@
     "name": "Bitcoin L2・周辺プロトコル",
     "match": {
       "what": "ライトニング以外のレイヤー2とサイドチェーン、およびその比較。L2 の定義、Statechain、Ark と VTXO、Spark と FROST、Liquid と L-BTC と federation、サイドチェーンの信頼前提、BitVM、rollup、カストディ・信頼・退出の比べ方。",
-      "not_for": "Lightning Network そのものの機能（lightning）、Ethereum など他のチェーンの話（none）。",
+      "not_for": "Lightning Network そのものの機能（lightning）、Ethereum など他のチェーンの話（none）、Wallet of Satoshi・Blink・Aqua・Blockstream Green など Spark や Liquid を使う特定のウォレットの説明（products）。",
       "examples": [
         "ライトニング以外の L2 って何がある",
         "Liquid は安全？",
@@ -187,11 +187,25 @@
     "name": "セキュリティ事故・脆弱性",
     "match": {
       "what": "ウォレットや取引所、ソフトウェアで実際に起きた事故と脆弱性、よくある攻撃の手口。弱い乱数によるシードの問題（2026 年の COLDCARD、Milk Sad と Libbitcoin の bx seed、Trust Wallet、Mersenne Twister、時刻を種にした乱数、2013 年の Android SecureRandom、ECDSA の nonce の再利用）と、アップデートしても古いシードは直らないこと。ハードウェアウォレットへの物理攻撃と Secure Element、passphrase による守り、偽物や改造品、最初からシードが書かれた端末、第三者の販売者から買うリスク。サプライチェーン攻撃（Ledger Connect Kit、Copay と event-stream）と Ledger の顧客情報の流出、Electrum の偽アップデート。Bitcoin Core の CVE（CVE-2018-17144 のインフレ、UPnP の RCE、CVE-2024-52911、31.0 の Private Broadcast の IP 漏れ）と脆弱性の公開手順。LND や Core Lightning の脆弱性、replacement cycling。取引所の流出事件（Coincheck の NEM、Zaif、BITPoint、Liquid/QUOINE、DMM Bitcoin と TraderTraitor、Binance、Bitstamp、2011 年の Mt. Gox）、QuadrigaCX、Atomic Wallet、コールドウォレットでも盗まれる理由、exchange hack と wallet hack の違い。クリップボードの書き換え、偽アプリや偽サイト、サポートを装う詐欺、SIM swap、2 段階認証の突破。",
-      "not_for": "「ビットコインはハッキングされる？」「暗号を破って盗める？」のような入門的な疑問（basics）、シードフレーズや passphrase・ハードウェアウォレット・hot と cold の一般的な使い方やバックアップ（wallet）、Mt. Gox の破綻・Bitfinex・Silk Road・FTX・Celsius など歴史上の事件と破綻の経緯（history）、量子コンピュータによる脅威（quantum）、51% 攻撃（mining）。",
+      "not_for": "「ビットコインはハッキングされる？」「暗号を破って盗める？」のような入門的な疑問（basics）、シードフレーズや passphrase・ハードウェアウォレット・hot と cold の一般的な使い方やバックアップ（wallet）、Mt. Gox の破綻・Bitfinex・Silk Road・FTX・Celsius など歴史上の事件と破綻の経緯（history）、量子コンピュータによる脅威（quantum）、51% 攻撃（mining）、製品そのものの機能や設計の説明（products）。",
       "examples": [
         "コールドカードの乱数の件って結局どうすればいい",
         "DMMビットコインの流出って誰がやったの",
         "ハードウェアウォレットをアマゾンで買うのは危ない？"
+      ]
+    }
+  },
+  {
+    "id": "products",
+    "number": 15,
+    "name": "ウォレット・ノード製品・実装",
+    "match": {
+      "what": "特定の製品・アプリ・ソフトウェアの名前が出る質問。ハードウェアウォレット（Trezor の各モデルと Bitcoin-only firmware と Shamir Backup、COLDCARD、SeedSigner、Blockstream Jade、BitBox02、Foundation Passport、Ledger、Keystone、TAPSIGNER と SATSCARD）とその比較。ウォレットアプリ（Sparrow、Electrum、BlueWallet、Phoenix、Breez、Zeus、Muun、Wallet of Satoshi の預かり型と自己管理型、Blink、Aqua、Blockstream Green / Blockstream App、Nunchuk、Specter Desktop、Wasabi、Samourai と Whirlpool）。Electrum サーバ（Electrs、ElectrumX、Fulcrum）、Bitcoin Knots、ライトニングの実装（LND、Core Lightning、Eclair、LDK）とノード管理画面（ThunderHub、RTL）、ノードの製品（Umbrel、Start9 / StartOS、RaspiBlitz、myNode）、BTCPay Server、自前の mempool.space。",
+      "not_for": "特定の製品に限らないウォレットの使い方やシードのバックアップ、hot と cold、PSBT や descriptor の意味（wallet）、フルノード一般や Bitcoin Core の役割（nodes）、ライトニングの仕組み一般（lightning）、CoinJoin の仕組み一般（privacy）、Spark や Liquid というプロトコルそのもの（l2）、製品で起きた事故・脆弱性・詐欺（security）。",
+      "examples": [
+        "ウォレットオブサトシって自分で鍵持てるの？",
+        "SeedSignerって何がいいの",
+        "UmbrelとStart9どっちがいい"
       ]
     }
   }
