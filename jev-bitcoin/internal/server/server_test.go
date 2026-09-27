@@ -135,7 +135,7 @@ func TestAskSeveralQuestions(t *testing.T) {
 }
 
 func TestAskCachesAndLimits(t *testing.T) {
-	limiter := NewLimiter(2, 0)
+	limiter := NewLimiter(2, 30*time.Minute)
 	h, f := newServer(t, clearAnswer, limiter)
 
 	// The same question, written with different punctuation, spacing and
@@ -150,15 +150,34 @@ func TestAskCachesAndLimits(t *testing.T) {
 		t.Fatalf("API calls = %d, want 2", f.calls)
 	}
 
-	// A second, new question uses the last token; a third is refused.
+	// A second, new question uses the last of the allowance; a third is
+	// refused, and says how long to wait.
 	do(t, h, "POST", "/api/ask", `{"question": "発行上限は？"}`)
-	rec, _ := do(t, h, "POST", "/api/ask", `{"question": "半減期は？"}`)
+	rec, out := do(t, h, "POST", "/api/ask", `{"question": "半減期は？"}`)
 	if rec.Code != http.StatusTooManyRequests {
 		t.Errorf("third new question = %d, want 429", rec.Code)
 	}
-	// ...but a remembered one is still answered, since it costs nothing.
-	if rec, _ := do(t, h, "POST", "/api/ask", `{"question": "1BTCは何sat"}`); rec.Code != 200 {
-		t.Errorf("cached question = %d, want 200", rec.Code)
+	if got := rec.Header().Get("Retry-After"); got != "1800" {
+		t.Errorf("Retry-After = %q, want 1800", got)
+	}
+	if msg, _ := out["message"].(string); !strings.Contains(msg, "30分に2回") || !strings.Contains(msg, "あと30分") {
+		t.Errorf("message = %q", msg)
+	}
+	// ...and while refused, even a remembered one is refused.
+	if rec, _ := do(t, h, "POST", "/api/ask", `{"question": "1BTCは何sat"}`); rec.Code != http.StatusTooManyRequests {
+		t.Errorf("cached question while blocked = %d, want 429", rec.Code)
+	}
+}
+
+func TestAskCachedDoesNotCount(t *testing.T) {
+	h, f := newServer(t, clearAnswer, NewLimiter(1, 30*time.Minute))
+	for range 3 {
+		if rec, _ := do(t, h, "POST", "/api/ask", `{"question": "1BTCは何sat"}`); rec.Code != 200 {
+			t.Fatalf("remembered question = %d, want 200", rec.Code)
+		}
+	}
+	if f.calls != 2 {
+		t.Errorf("API calls = %d, want 2", f.calls)
 	}
 }
 
@@ -237,18 +256,50 @@ func TestEntry(t *testing.T) {
 	}
 }
 
-func TestLimiterRefills(t *testing.T) {
+func TestLimiterWindowAndLockout(t *testing.T) {
 	now := time.Unix(0, 0)
-	l := NewLimiter(1, 6) // one every ten seconds
+	l := NewLimiter(3, 30*time.Minute)
 	l.now = func() time.Time { return now }
-	if !l.Allow("a") || l.Allow("a") {
-		t.Fatal("burst of one should allow exactly one")
+
+	for i := range 3 {
+		if wait := l.Allow("a"); wait != 0 {
+			t.Fatalf("question %d refused", i+1)
+		}
+		now = now.Add(time.Minute)
 	}
-	if !l.Allow("b") {
-		t.Error("clients share a bucket")
+	if l.Allow("b") != 0 {
+		t.Error("clients share an allowance")
 	}
-	now = now.Add(10 * time.Second)
-	if !l.Allow("a") {
-		t.Error("the bucket did not refill")
+
+	// The fourth inside the window is refused, and locks the client out for
+	// a whole window from then.
+	if wait := l.Allow("a"); wait != 30*time.Minute {
+		t.Fatalf("fourth question: wait = %v, want 30m", wait)
+	}
+	now = now.Add(29 * time.Minute)
+	if l.Blocked("a") != time.Minute || l.Allow("a") != time.Minute {
+		t.Error("the lockout did not hold for the whole window")
+	}
+	now = now.Add(time.Minute)
+	if l.Blocked("a") != 0 || l.Allow("a") != 0 {
+		t.Error("the lockout did not end")
+	}
+}
+
+func TestLimiterSlides(t *testing.T) {
+	now := time.Unix(0, 0)
+	l := NewLimiter(2, 30*time.Minute)
+	l.now = func() time.Time { return now }
+	l.Allow("a")
+	now = now.Add(20 * time.Minute)
+	l.Allow("a")
+	// The first question leaves the window after thirty minutes, freeing
+	// one place, not two.
+	now = now.Add(10*time.Minute + time.Second)
+	if l.Allow("a") != 0 {
+		t.Fatal("the oldest question did not age out")
+	}
+	if l.Allow("a") == 0 {
+		t.Error("more than the limit inside one window")
 	}
 }

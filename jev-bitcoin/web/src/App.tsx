@@ -14,6 +14,9 @@
  *
  * Enter still asks at once, for anybody who expects it to.
  *
+ * A field shorter than that is never asked. If the typing pauses on it, the
+ * page says how long a question needs to be rather than sitting silent.
+ *
  * `#1-7` shows that question's answer, which is what the link on an answer
  * points at. Looking an answer up by its number never calls the model.
  *
@@ -65,6 +68,8 @@ export function App() {
   const busy = signal(false);
   const error = signal("");
   const listening = signal(false);
+  /** The field paused shorter than a question. */
+  const tooShort = signal(false);
   let mic: { stop(): void } | null = null;
 
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -111,9 +116,12 @@ export function App() {
 
   const schedule = () => {
     clearTimeout(timer);
+    tooShort.set(false);
     if (composing) return;
     const text = draft.peek();
-    if (length(normalise(text)) >= MIN_CHARS) timer = setTimeout(() => ask(text), PAUSE_MS);
+    const n = length(normalise(text));
+    if (n >= MIN_CHARS) timer = setTimeout(() => ask(text), PAUSE_MS);
+    else if (n > 0) timer = setTimeout(() => tooShort.set(true), PAUSE_MS);
   };
 
   /**
@@ -167,6 +175,8 @@ export function App() {
         if (length(normalise(text)) >= MIN_CHARS) {
           lastAsked = "";
           ask(text);
+        } else {
+          tooShort.set(true);
         }
       },
       error: (message) => error.set(message),
@@ -203,7 +213,9 @@ export function App() {
         onSubmit={(event: Event) => {
           event.preventDefault();
           clearTimeout(timer);
-          ask(draft.peek());
+          const text = draft.peek();
+          tooShort.set(length(normalise(text)) < MIN_CHARS);
+          ask(text);
         }}
       >
         <input
@@ -228,6 +240,7 @@ export function App() {
           onCompositionstart={() => {
             composing = true;
             clearTimeout(timer);
+            tooShort.set(false);
           }}
           onCompositionend={() => {
             composing = false;
@@ -251,6 +264,10 @@ export function App() {
         <p class={s.voiceNote}>
           話し終えると、そのまま質問します。音声の認識はブラウザの機能で行います（Chrome などでは音声がブラウザ提供元のサーバで処理されます）。
         </p>
+      </Show>
+
+      <Show when={tooShort}>
+        <p class={s.hint}>{MIN_CHARS}文字以上入力してください</p>
       </Show>
 
       <Show when={() => error() !== ""}>

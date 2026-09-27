@@ -18,9 +18,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -213,13 +215,20 @@ func (h *handlers) ask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// A client over the limit is refused everything until the wait is over,
+	// even what would come from memory.
+	ip := clientIP(r)
+	if wait := h.opts.Limiter.Blocked(ip); wait > 0 {
+		h.tooMany(w, wait)
+		return
+	}
+
 	// A question somebody asked a minute ago is answered from memory, and
 	// does not count against the limit: it costs nothing.
 	res, cached := h.opts.Cache.Get(input)
 	if !cached {
-		if !h.opts.Limiter.Allow(clientIP(r)) {
-			w.Header().Set("Retry-After", "60")
-			writeError(w, http.StatusTooManyRequests, "質問が続いています。少し時間をおいてからもう一度どうぞ。")
+		if wait := h.opts.Limiter.Allow(ip); wait > 0 {
+			h.tooMany(w, wait)
 			return
 		}
 		ctx, cancel := context.WithTimeout(r.Context(), upstreamTimeout)
@@ -248,6 +257,16 @@ func (h *handlers) ask(w http.ResponseWriter, r *http.Request) {
 		resp.Debug = debugOf(res, cached)
 	}
 	writeJSON(w, http.StatusOK, resp)
+}
+
+// tooMany refuses a client over the limit, saying how long to wait.
+func (h *handlers) tooMany(w http.ResponseWriter, wait time.Duration) {
+	l := h.opts.Limiter
+	minutes := int((wait + time.Minute - 1) / time.Minute)
+	w.Header().Set("Retry-After", strconv.Itoa(int((wait+time.Second-1)/time.Second)))
+	writeError(w, http.StatusTooManyRequests,
+		fmt.Sprintf("質問の回数が上限（%d分に%d回）を超えました。あと%d分ほどたってから、もう一度どうぞ。",
+			int(l.Window/time.Minute), l.Max, minutes))
 }
 
 func (h *handlers) respond(res *router.Result) askResponse {

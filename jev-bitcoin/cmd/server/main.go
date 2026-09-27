@@ -80,13 +80,10 @@ func main() {
 		}
 	}
 
-	// The page asks by itself whenever typing pauses, so one reader writing
-	// one question can send several. The limit is set for that, not for one
-	// request per question.
-	burst, perMinute := 30.0, 30.0
-	if !setFloat(logger, "ASK_BURST", &burst, 1, 1000) || !setFloat(logger, "ASK_PER_MINUTE", &perMinute, 0, 1000) {
-		os.Exit(1)
-	}
+	// Thirty new questions per client in any thirty minutes; the one after
+	// that locks the client out for thirty minutes more. Questions answered
+	// from the cache do not count.
+	const askLimit, askWindow = 30, 30 * time.Minute
 
 	// Cloud Run injects PORT and requires the container to listen on it.
 	port := os.Getenv("PORT")
@@ -100,7 +97,7 @@ func main() {
 			Corpus:  corpus,
 			Router:  &router.Router{Corpus: corpus, Asker: client, Policy: policy, Mode: mode},
 			Logger:  logger,
-			Limiter: server.NewLimiter(burst, perMinute),
+			Limiter: server.NewLimiter(askLimit, askWindow),
 			Cache:   server.NewCache(1024),
 			Debug:   os.Getenv("QA_DEBUG") == "1",
 		}),

@@ -10,68 +10,102 @@ import (
 	"github.com/ocknamo/sandbox/jev-bitcoin/internal/router"
 )
 
-// Limiter is a token bucket per client. Every question is a paid API request,
-// and Cloud Run's concurrency setting bounds how many run at once, not how
-// many one person can send in a minute.
+// Limiter counts each client's questions over a sliding window. Every
+// question is a paid API request, and Cloud Run's concurrency setting bounds
+// how many run at once, not how many one person can send in half an hour.
+//
+// A client may ask Max questions in any Window. The one after that is refused,
+// and so is everything else the client sends for a further Window: a loop
+// that keeps going does not get a question through each time one ages out.
 //
 // It lives in the instance's memory. With several instances a client gets
-// that many buckets, which is still a limit; what it prevents is a loop
+// that many allowances, which is still a limit; what it prevents is a loop
 // hammering the endpoint, not a determined adversary.
 type Limiter struct {
-	// Burst is how many questions a client can ask back to back, and PerMinute
-	// how fast the bucket refills.
-	Burst     float64
-	PerMinute float64
+	Max    int
+	Window time.Duration
 
 	mu      sync.Mutex
-	buckets map[string]*bucket
+	clients map[string]*usage
 	now     func() time.Time
 }
 
-type bucket struct {
-	tokens float64
-	at     time.Time
+type usage struct {
+	// asked are the times of the questions still inside the window, oldest
+	// first.
+	asked []time.Time
+	// until is when a refused client may ask again.
+	until time.Time
 }
 
-// NewLimiter returns a limiter that allows burst questions at once and
-// perMinute a minute after that.
-func NewLimiter(burst, perMinute float64) *Limiter {
-	return &Limiter{Burst: burst, PerMinute: perMinute, buckets: map[string]*bucket{}, now: time.Now}
+// NewLimiter returns a limiter that allows max questions per window.
+func NewLimiter(max int, window time.Duration) *Limiter {
+	return &Limiter{Max: max, Window: window, clients: map[string]*usage{}, now: time.Now}
 }
 
-// Allow takes one token from the client's bucket, if there is one. A nil
-// Limiter allows everything.
-func (l *Limiter) Allow(client string) bool {
+// Blocked is how much longer a client is refused for, or zero if it is not.
+// It counts nothing. A nil Limiter blocks nobody.
+func (l *Limiter) Blocked(client string) time.Duration {
 	if l == nil {
-		return true
+		return 0
+	}
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if u := l.clients[client]; u != nil {
+		return max(0, u.until.Sub(l.now()))
+	}
+	return 0
+}
+
+// Allow counts one question for a client. It returns zero if the question may
+// go ahead, and otherwise how long the client is refused for. A nil Limiter
+// allows everything.
+func (l *Limiter) Allow(client string) time.Duration {
+	if l == nil {
+		return 0
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
 	now := l.now()
-	b := l.buckets[client]
-	if b == nil {
-		// A full bucket is the same as no bucket, so buckets are forgotten
-		// once they refill; this keeps the map from growing without bound.
-		if len(l.buckets) > 10000 {
+	u := l.clients[client]
+	if u == nil {
+		// Clients with nothing left in the window are the same as new ones,
+		// so they are forgotten; this keeps the map from growing without
+		// bound.
+		if len(l.clients) > 10000 {
 			l.sweep(now)
 		}
-		b = &bucket{tokens: l.Burst, at: now}
-		l.buckets[client] = b
+		u = &usage{}
+		l.clients[client] = u
 	}
-	b.tokens = min(l.Burst, b.tokens+now.Sub(b.at).Minutes()*l.PerMinute)
-	b.at = now
-	if b.tokens < 1 {
-		return false
+	if wait := u.until.Sub(now); wait > 0 {
+		return wait
 	}
-	b.tokens--
-	return true
+	u.asked = recent(u.asked, now.Add(-l.Window))
+	if len(u.asked) >= l.Max {
+		u.asked = nil
+		u.until = now.Add(l.Window)
+		return l.Window
+	}
+	u.asked = append(u.asked, now)
+	return 0
+}
+
+// recent drops the times at or before since.
+func recent(times []time.Time, since time.Time) []time.Time {
+	i := 0
+	for i < len(times) && !times[i].After(since) {
+		i++
+	}
+	return times[i:]
 }
 
 func (l *Limiter) sweep(now time.Time) {
-	for k, b := range l.buckets {
-		if b.tokens+now.Sub(b.at).Minutes()*l.PerMinute >= l.Burst {
-			delete(l.buckets, k)
+	since := now.Add(-l.Window)
+	for k, u := range l.clients {
+		if !u.until.After(now) && len(recent(u.asked, since)) == 0 {
+			delete(l.clients, k)
 		}
 	}
 }
