@@ -327,6 +327,14 @@ walkthrough は、何も測っていません。
 
 `-v` を付けると、そのターンに何が選択肢として出ていたかも表示されます。
 
+実際の API はトークンを食うので、通常の CI では流しません。測りたいコミットを専用ブランチ
+`jev-mystery-live` に push すると、[`jev-mystery-live.yml`](../.github/workflows/jev-mystery-live.yml)
+がこの walkthrough を流し、結果をジョブのサマリーに出します（`TYPESAFE_API_KEY` が無ければスキップ）。
+
+```sh
+git push -f origin HEAD:jev-mystery-live
+```
+
 ## 事件を書く
 
 `internal/scenario/data/*.json` に置くと、**ファイル名がそのまま事件の ID とページのハッシュ**
@@ -446,4 +454,4 @@ walkthrough は、何も測っていません。
   この事件に置き換えました。エンジンは事件をいくつでも持てるので、増やすぶんには
   `internal/scenario/data/` に JSON を置くだけです。
 - **日本語での当たり方が未測定です。** 質問文は英語、選択肢の説明とプレイヤーの入力は
-  日本語という組み合わせで書いてあります。上の CLI を CI から回すのが、それを測る唯一の手です。
+  日本語という組み合わせで書いてあります。上の CLI を `jev-mystery-live` で回すのが、それを測る唯一の手です。
