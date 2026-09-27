@@ -129,8 +129,8 @@ func cacheKey(input string) string {
 // halfWidth maps the full-width forms of ASCII, which a Japanese IME types as
 // readily as ASCII itself, to ASCII.
 func halfWidth(r rune) rune {
-	if r >= '！' && r <= '～' { // ！ through ～
-		return r - ('！' - '!')
+	if r >= '\uff01' && r <= '\uff5e' { // ！ through ～
+		return r - ('\uff01' - '!')
 	}
 	return r
 }
