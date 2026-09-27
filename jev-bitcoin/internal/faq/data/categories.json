@@ -5,7 +5,7 @@
     "name": "基礎知識",
     "match": {
       "what": "ビットコインの入門的な疑問と、よくある誤解や批判。何なのか、誰が作ったか、誰が管理しているか、発行上限、価値の根拠、値動き、使い道、送金にどれくらい時間がかかるか、全体としてどういう仕組みで動いているか、ハッキングされたり壊れたり止められたりしないか、電力消費への批判、取引所や政府との関係、犯罪利用のイメージなど、仕組みの細部を知らなくても出てくる問い。",
-      "not_for": "マイニングの計算や半減期、ブロック生成間隔の仕組み（mining）、UTXO や手数料の計算方法・承認待ちの対処や承認数の意味・送金の取り消し（transactions）、鍵やアドレスの暗号の話（keys）、ウォレットの操作やバックアップ（wallet）、ノードやルール変更の決まり方（nodes / upgrades）、ライトニング（lightning）、アドレス再利用や追跡の技術的な話（privacy）、量子コンピュータ（quantum）、「CEO は誰」「SHA-512 で採掘している」のような誤った前提を確かめる質問（sources）、ビットコインの誕生の経緯や日付、過去の取引所の破綻や事件の個別の出来事、Satoshi が退いた経緯（history）。",
+      "not_for": "マイニングの計算や半減期、ブロック生成間隔の仕組み（mining）、UTXO や手数料の計算方法・承認待ちの対処や承認数の意味・送金の取り消し（transactions）、鍵やアドレスの暗号の話（keys）、ウォレットの操作やバックアップ（wallet）、ノードやルール変更の決まり方（nodes / upgrades）、ライトニング（lightning）、アドレス再利用や追跡の技術的な話（privacy）、量子コンピュータ（quantum）、「CEO は誰」「SHA-512 で採掘している」のような誤った前提を確かめる質問（sources）、ビットコインの誕生の経緯や日付、過去の取引所の破綻や事件の個別の出来事、Satoshi が退いた経緯（history）、特定の脆弱性や過去の流出事件の中身、「ハッキング」と報じられた事件の見分け方（security）。",
       "examples": [
         "仮想通貨ってそもそも何",
         "ビットコインって結局だれのもの？",
@@ -61,7 +61,7 @@
     "name": "ウォレット・シード・鍵管理",
     "match": {
       "what": "ウォレットの実際の使い方と鍵の管理。シードフレーズ（12/24 単語、Electrum 方式）、BIP32/39/44、パスフレーズ（25 番目の単語）、HD ウォレット、ハードウェアウォレット、ホット/コールド、watch-only、スマホの紛失や故障やアプリの削除、coin control、PSBT、descriptor、multisig のバックアップ、相続。",
-      "not_for": "鍵とアドレスの暗号学的な関係や署名方式、Miniscript（keys）、取引所が倒産した場合（basics）、秘密鍵そのものをなくしたときに取り戻せるか（keys）、送金手数料の仕組み（transactions）、アドレス再利用による追跡（privacy）、開発者に秘密鍵を復元してもらえるかという誤った前提（sources）。",
+      "not_for": "鍵とアドレスの暗号学的な関係や署名方式、Miniscript（keys）、取引所が倒産した場合（basics）、秘密鍵そのものをなくしたときに取り戻せるか（keys）、送金手数料の仕組み（transactions）、アドレス再利用による追跡（privacy）、開発者に秘密鍵を復元してもらえるかという誤った前提（sources）、特定の製品で起きた乱数の不具合や物理攻撃、偽物の端末、フィッシングや詐欺の手口などの事故と脆弱性（security）。",
       "examples": [
         "復元用の単語を忘れた",
         "ハードウェアウォレットって要る？",
@@ -75,7 +75,7 @@
     "name": "ノード・コンセンサス・ネットワーク",
     "match": {
       "what": "Bitcoin Core とフルノード、ノードが検証すること、pruned ノード、UTXO set、初期同期（IBD, AssumeUTXO）、SPV との違い、ノードの発見と P2P ネットワーク（DNS seed, eclipse attack, BIP324 暗号化, compact block）、チェーンの再編成、コンセンサスルールを誰が決め、誰が強制するかという役割分担。",
-      "not_for": "マイニングの仕組みや報酬（mining）、SegWit や Taproot などの個別のアップグレードとソフトフォークの有効化方法（upgrades）、仕様と実装をどう見分けるかや情報源の話、特定の団体が発行量を変えられるかという誤った前提（sources）、ノードを使うことによるプライバシー（privacy）、ビットコインを使うだけなら Bitcoin Core を動かす必要があるかという入門的な疑問（basics）。",
+      "not_for": "マイニングの仕組みや報酬（mining）、SegWit や Taproot などの個別のアップグレードとソフトフォークの有効化方法（upgrades）、仕様と実装をどう見分けるかや情報源の話、特定の団体が発行量を変えられるかという誤った前提（sources）、ノードを使うことによるプライバシー（privacy）、ビットコインを使うだけなら Bitcoin Core を動かす必要があるかという入門的な疑問（basics）、Bitcoin Core の CVE や脆弱性の公開の手順（security）。",
       "examples": [
         "自分でノードを立てる意味ってある？",
         "ノードはどうやって仲間を見つけるの",
@@ -103,7 +103,7 @@
     "name": "Lightning Network",
     "match": {
       "what": "Lightning Network。チャネルの開閉（force close / cooperative close）、容量と流動性（inbound / outbound）、ルーティングと中継ノード、HTLC と invoice と preimage、BOLT11 / BOLT12 / Lightning Address、支払いの失敗、watchtower、submarine swap と Loop、LSP、trampoline、gossip、splicing、multipath / AMP、route blinding、onion message、定期支払い。",
-      "not_for": "オンチェーンの送金手数料（transactions）、ライトニング以外の L2（l2）、ライトニングの匿名性や中継ノードに何が見えるか（privacy）、BOLT という仕様書の位置付けや「すべて記録されるから安全」のような誤った前提の確認（sources）。",
+      "not_for": "オンチェーンの送金手数料（transactions）、ライトニング以外の L2（l2）、ライトニングの匿名性や中継ノードに何が見えるか（privacy）、BOLT という仕様書の位置付けや「すべて記録されるから安全」のような誤った前提の確認（sources）、LND や Core Lightning など実装の脆弱性、replacement cycling のような攻撃（security）。",
       "examples": [
         "ライトニングで受け取れないのはなぜ",
         "チャネルを閉じたらお金はどうなる",
@@ -131,7 +131,7 @@
     "name": "プライバシー・匿名性・オンチェーン分析",
     "match": {
       "what": "プライバシーと追跡。ビットコインが匿名かどうか、取引や残高が誰に見えるか、アドレスから個人が特定されるか、アドレス再利用とプライバシー、common-input-ownership heuristic、お釣りの特定、チェーン分析会社、取引所と KYC、CoinJoin、Payjoin、Silent Payments、coin control とプライバシー、自前ノードや Tor、compact block filter、ライトニングの匿名性。ライトニングの中継ノードに何が見えるか。",
-      "not_for": "アドレスや鍵の形式そのもの（keys）、ウォレットのバックアップ（wallet）、ライトニングのルーティングの仕組み一般（lightning）。",
+      "not_for": "アドレスや鍵の形式そのもの（keys）、ウォレットのバックアップ（wallet）、ライトニングのルーティングの仕組み一般（lightning）、Bitcoin Core の Private Broadcast で IP アドレスが漏れた不具合（security）。",
       "examples": [
         "送金したら相手に全財産ばれる？",
         "ミキシングって何",
@@ -173,11 +173,25 @@
     "name": "歴史・事件・市場",
     "match": {
       "what": "Bitcoin の歴史と過去の出来事。誕生の経緯と日付（bitcoin.org の登録、ホワイトペーパーの公開、Genesis Block とその新聞の見出し、v0.1 の公開、Hal Finney への最初の送金、最初の価格、faucet、Pizza Day）、先行する技術と思想（cypherpunk、DigiCash、b-money、Bit Gold、Hashcash、RPOW、タイムスタンプの研究）、Satoshi の最後の投稿やメールと退場、Gavin Andresen と alert key、BitcoinTalk と Bitcoin Foundation、Bitcoin Core という名前の由来。過去のバグと分裂（2010 年の value overflow、2013 年の chain split と double spend）、Blocksize War（XT / Classic / Unlimited、UASF と BIP148、SegWit2x、Bitcoin Cash の分岐の経緯）、Taproot の有効化と Speedy Trial の経緯、中国のマイニング規制、Ordinals と Runes の登場、米国の現物 ETF 承認の経緯。取引所や事業者の事件と破綻（Mt. Gox、BTC-e、Bitfinex、Silk Road、FTX と Alameda、Celsius、BlockFi、Terra/Luna）と、盗まれたコインの追跡や回収。",
-      "not_for": "Satoshi の正体や誰が発明したか、取引所が倒産したら預けたコインはどうなるかという一般論（basics）、soft fork と hard fork の仕組み、SegWit や Taproot の中身、Bitcoin Cash の分岐が soft fork か hard fork か（upgrades）、半減期の仕組みや次の半減期（mining）、double spend や承認数の仕組み（transactions）、ホワイトペーパーが今の仕様書かどうか、Bitcoin Foundation が発行量を変えられるかという誤った前提（sources）、今の価格や今後の値動きの予想。",
+      "not_for": "Satoshi の正体や誰が発明したか、取引所が倒産したら預けたコインはどうなるかという一般論（basics）、soft fork と hard fork の仕組み、SegWit や Taproot の中身、Bitcoin Cash の分岐が soft fork か hard fork か（upgrades）、半減期の仕組みや次の半減期（mining）、double spend や承認数の仕組み（transactions）、ホワイトペーパーが今の仕様書かどうか、Bitcoin Foundation が発行量を変えられるかという誤った前提（sources）、今の価格や今後の値動きの予想、Coincheck・Zaif・BITPoint・Liquid・DMM Bitcoin・Binance・Bitstamp・QuadrigaCX・Atomic Wallet など流出や窃取の事件の中身、2011 年の Mt. Gox の事件、ソフトウェアや機器の脆弱性（security）。",
       "examples": [
         "ピザの日って何",
         "マウントゴックスって結局何があったの",
         "ビットコインキャッシュはなんで分かれたの"
+      ]
+    }
+  },
+  {
+    "id": "security",
+    "number": 14,
+    "name": "セキュリティ事故・脆弱性",
+    "match": {
+      "what": "ウォレットや取引所、ソフトウェアで実際に起きた事故と脆弱性、よくある攻撃の手口。弱い乱数によるシードの問題（2026 年の COLDCARD、Milk Sad と Libbitcoin の bx seed、Trust Wallet、Mersenne Twister、時刻を種にした乱数、2013 年の Android SecureRandom、ECDSA の nonce の再利用）と、アップデートしても古いシードは直らないこと。ハードウェアウォレットへの物理攻撃と Secure Element、passphrase による守り、偽物や改造品、最初からシードが書かれた端末、第三者の販売者から買うリスク。サプライチェーン攻撃（Ledger Connect Kit、Copay と event-stream）と Ledger の顧客情報の流出、Electrum の偽アップデート。Bitcoin Core の CVE（CVE-2018-17144 のインフレ、UPnP の RCE、CVE-2024-52911、31.0 の Private Broadcast の IP 漏れ）と脆弱性の公開手順。LND や Core Lightning の脆弱性、replacement cycling。取引所の流出事件（Coincheck の NEM、Zaif、BITPoint、Liquid/QUOINE、DMM Bitcoin と TraderTraitor、Binance、Bitstamp、2011 年の Mt. Gox）、QuadrigaCX、Atomic Wallet、コールドウォレットでも盗まれる理由、exchange hack と wallet hack の違い。クリップボードの書き換え、偽アプリや偽サイト、サポートを装う詐欺、SIM swap、2 段階認証の突破。",
+      "not_for": "「ビットコインはハッキングされる？」「暗号を破って盗める？」のような入門的な疑問（basics）、シードフレーズや passphrase・ハードウェアウォレット・hot と cold の一般的な使い方やバックアップ（wallet）、Mt. Gox の破綻・Bitfinex・Silk Road・FTX・Celsius など歴史上の事件と破綻の経緯（history）、量子コンピュータによる脅威（quantum）、51% 攻撃（mining）。",
+      "examples": [
+        "コールドカードの乱数の件って結局どうすればいい",
+        "DMMビットコインの流出って誰がやったの",
+        "ハードウェアウォレットをアマゾンで買うのは危ない？"
       ]
     }
   }
