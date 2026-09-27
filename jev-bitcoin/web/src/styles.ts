@@ -402,6 +402,14 @@ export const voiceNote = css`
   margin: -10px 0 16px;
 `;
 
+/** Said when the field paused shorter than a question. */
+export const hint = css`
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  margin: -8px 0 16px;
+`;
+
 /** Where the answer lands. It dims while a newer question is being read. */
 export const reply = css`
   transition: opacity 0.2s ease;
