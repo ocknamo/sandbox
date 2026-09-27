@@ -23,6 +23,11 @@
  * What the reader asked is kept in their own browser (see history.ts) and
  * listed under the answer, so they can go back to an earlier one.
  *
+ * Under an answer, the reader can share their question and it (see
+ * share.tsx). The question shared is the one they typed, even when the answer
+ * was reached through "もしかして" or the history; an answer opened by its
+ * number alone is shared under its prepared question.
+ *
  * The microphone button asks by voice, through the browser's own speech
  * recognition (see voice.ts). The words appear in the field as they are
  * heard, and the question is asked as soon as the speaker stops — speech has
@@ -33,6 +38,7 @@ import * as api from "./api";
 import { Owl } from "./Owl";
 import type { Mood } from "./Owl";
 import { AnswerCard, HistoryPanel, Suggestions } from "./parts";
+import { Share } from "./share";
 import { record, resolveLatest } from "./history";
 import * as voice from "./voice";
 import * as s from "./styles";
@@ -65,6 +71,8 @@ const micIcon = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="tr
 export function App() {
   const draft = signal("");
   const reply = signal<api.Answer | null>(null);
+  /** What the reader typed that led to `reply`, if anything did. */
+  const asked = signal<string | null>(null);
   const busy = signal(false);
   const error = signal("");
   const listening = signal(false);
@@ -87,13 +95,18 @@ export function App() {
     return r.status;
   };
 
-  const run = async (work: () => Promise<api.Answer>, then?: (r: api.Answer) => void) => {
+  const run = async (
+    work: () => Promise<api.Answer>,
+    question: string | null,
+    then?: (r: api.Answer) => void,
+  ) => {
     const mine = ++latest;
     busy.set(true);
     error.set("");
     try {
       const r = await work();
       if (mine === latest) {
+        asked.set(question);
         reply.set(r);
         then?.(r);
       }
@@ -110,6 +123,7 @@ export function App() {
     lastAsked = q;
     void run(
       () => api.ask(q),
+      q,
       (r) => record(q, r.status, r.answer?.id, r.answer?.title),
     );
   };
@@ -129,27 +143,28 @@ export function App() {
    * the history. `pick` marks the reader choosing among suggestions, which
    * is what the question they just asked turned out to mean.
    */
-  const show = (id: string, pick: boolean) => {
+  const show = (id: string, question: string | null, pick: boolean) => {
     clearTimeout(timer);
     void run(
       async () => {
         const entry = await api.entry(id);
         return { status: "answer", answer: entry, categories: [] } satisfies api.Answer;
       },
+      question,
       (r) => {
         if (pick && r.answer !== undefined) resolveLatest(r.answer.id, r.answer.title);
       },
     );
   };
-  const open = (id: string) => show(id, false);
-  const pick = (id: string) => show(id, true);
+  const open = (id: string) => show(id, null, false);
+  const pick = (id: string) => show(id, lastAsked === "" ? null : lastAsked, true);
 
   /** An earlier question from the history, asked again or reopened. */
   const again = (q: string, id?: string) => {
     draft.set(q);
     if (id !== undefined) {
       lastAsked = normalise(q);
-      open(id);
+      show(id, lastAsked, false);
       return;
     }
     lastAsked = "";
@@ -283,6 +298,7 @@ export function App() {
               {r.answer !== undefined ? (
                 <div class={s.card}>
                   <AnswerCard entry={r.answer} expand={r.expand} open={open} />
+                  {r.answer.answered ? <Share question={asked.peek() ?? r.answer.title} entry={r.answer} /> : null}
                 </div>
               ) : null}
               {(r.message ?? []).length > 0 && r.status !== "suggest" ? (

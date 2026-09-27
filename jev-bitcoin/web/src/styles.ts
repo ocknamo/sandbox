@@ -187,6 +187,52 @@ export const suggestions = css`
 `;
 
 /**
+ * The question and answer as they will be posted, shown before they are, so
+ * the reader sees their own words the way others will.
+ */
+export const share = css`
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
+
+  summary {
+    cursor: pointer;
+    color: var(--accent);
+    font-size: 13.5px;
+  }
+
+  pre {
+    font-family: inherit;
+    font-size: 13px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    color: var(--muted);
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin: 8px 0 10px;
+  }
+
+  .buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  button,
+  a.button {
+    font-size: 13px;
+    padding: 4px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--accent);
+    text-decoration: none;
+    cursor: pointer;
+  }
+`;
+
+/**
  * The owl, large, with what it is saying above its head. The moods are classes
  * on the wrapper; the drawing itself never changes, only how it moves.
  */
