@@ -298,7 +298,7 @@ export function App() {
               {r.answer !== undefined ? (
                 <div class={s.card}>
                   <AnswerCard entry={r.answer} expand={r.expand} open={open} />
-                  {r.answer.answered ? <Share question={asked.peek() ?? r.answer.title} entry={r.answer} /> : null}
+                  <Share question={asked.peek() ?? r.answer.title} entry={r.answer} />
                 </div>
               ) : null}
               {(r.message ?? []).length > 0 && r.status !== "suggest" ? (
@@ -306,6 +306,9 @@ export function App() {
                   {(r.message ?? []).map((line) => (
                     <p>{line}</p>
                   ))}
+                  {r.answer === undefined && r.status === "miss" && asked.peek() !== null ? (
+                    <Share question={asked.peek() ?? ""} />
+                  ) : null}
                 </div>
               ) : null}
               {(r.suggestions ?? []).length > 0 ? <Suggestions

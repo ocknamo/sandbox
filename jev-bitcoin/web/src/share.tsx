@@ -40,8 +40,14 @@ function lead(e: api.Entry): string {
   return clip(first, ANSWER_CHARS);
 }
 
-export function shareText(question: string, e: api.Entry): string {
-  return [`Q. ${clip(question, QUESTION_CHARS)}`, `A. ${lead(e)}`, TAG].join("\n");
+/**
+ * With no answer to quote (nothing matched, or the answer is not written
+ * yet) the question goes out on its own: someone following the tag may know,
+ * and the question is worth seeing even unanswered.
+ */
+export function shareText(question: string, e?: api.Entry): string {
+  const a = e !== undefined && e.answered ? lead(e) : "まだ答えが見つかりませんでした";
+  return [`Q. ${clip(question, QUESTION_CHARS)}`, `A. ${a}`, TAG].join("\n");
 }
 
 /**
@@ -49,10 +55,10 @@ export function shareText(question: string, e: api.Entry): string {
  * service somebody was testing against, and a friend following the link
  * wants the real one.
  */
-export function shareURL(id: string): string {
+export function shareURL(id?: string): string {
   const url = new URL(location.href);
   url.searchParams.delete("api");
-  url.hash = id;
+  url.hash = id ?? "";
   return url.toString();
 }
 
@@ -61,14 +67,16 @@ export function shareURL(id: string): string {
  * plain copy to the clipboard, which works everywhere and is what a desktop
  * browser is left with.
  */
-export function Share(props: { question: string; entry: api.Entry }) {
+export function Share(props: { question: string; entry?: api.Entry }) {
+  const answered = props.entry?.answered === true;
   const text = shareText(props.question, props.entry);
-  const url = shareURL(props.entry.id);
+  // An unwritten answer's page says only that; the site itself is the better link.
+  const url = shareURL(answered ? props.entry?.id : undefined);
   const copied = signal(false);
   const canShare = typeof navigator.share === "function";
 
   const share = () => {
-    navigator.share({ title: props.entry.title, text, url }).catch(() => {
+    navigator.share({ title: props.entry?.title ?? props.question, text, url }).catch(() => {
       // Closing the share sheet rejects, and that is not an error to report.
     });
   };
@@ -95,7 +103,7 @@ export function Share(props: { question: string; entry: api.Entry }) {
 
   return (
     <details class={st.share}>
-      <summary>この質問と答えを共有する</summary>
+      <summary>{answered ? "この質問と答えを共有する" : "この質問を共有する"}</summary>
       <pre>{`${text}\n${url}`}</pre>
       <div class="buttons">
         {canShare ? (
