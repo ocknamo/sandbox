@@ -107,6 +107,8 @@ func NewCache(size int) *Cache {
 // one question with another's answer, while one that is too strict only costs
 // a request. So punctuation between two digits stays ("1.5" is not "15"), and
 // so do '%' and symbols such as '$' and '+'.
+//
+// Past that it folds words only by name, in sameWords.
 func cacheKey(input string) string {
 	rs := []rune(input)
 	for i, r := range rs {
@@ -123,8 +125,13 @@ func cacheKey(input string) string {
 		// Nothing but punctuation: too little to call two inputs the same.
 		return input
 	}
-	return b.String()
+	return sameWords.Replace(b.String())
 }
+
+// sameWords spells alike the words asked often enough, in either script, to
+// be worth naming. Case is already folded, so "Bitcoin" and "BITCOIN" need no
+// entry of their own.
+var sameWords = strings.NewReplacer("ビットコイン", "bitcoin")
 
 // halfWidth maps the full-width forms of ASCII, which a Japanese IME types as
 // readily as ASCII itself, to ASCII.

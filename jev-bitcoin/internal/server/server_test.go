@@ -168,6 +168,7 @@ func TestCacheKey(t *testing.T) {
 		{"１ＢＴＣは何ｓａｔ？", "1 BTC は何sat?", "1btcは何sat"},
 		{"ライトニング・ネットワークとは", "ライトニングネットワークとは"},
 		{"What is Bitcoin?", "whatisbitcoin"},
+		{"ビットコインの発行上限は？", "Bitcoinの発行上限は？", "bitcoinの発行上限は", "BITCOIN の発行上限は", "Ｂｉｔｃｏｉｎの発行上限は", "ビット・コインの発行上限は"},
 		{"1.5BTCは何sat", "１．５ＢＴＣは何sat"},
 	}
 	for _, group := range same {
