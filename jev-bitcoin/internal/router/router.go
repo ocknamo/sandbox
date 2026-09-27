@@ -460,12 +460,17 @@ func kindQuestion() jev.Question {
 		map[string]string{
 			KindQuestion: "A question, or a request to explain something, about how Bitcoin works, " +
 				"its history, its use, or its technology, or about the money, banking, payments, " +
-				"cryptography and distributed systems it builds on. Includes skeptical or critical questions.",
+				"cryptography and distributed systems it builds on. Includes skeptical or critical questions, " +
+				"and general questions that never mention Bitcoin, such as how barter or credit worked, " +
+				"what happens to deposits when a bank fails, who sets exchange rates, or what a hash is.",
 			KindGreeting: "A greeting, thanks, or small talk addressed to the service, with no question in it.",
 			KindAdvice: "A request for financial advice or a prediction: whether to buy or sell, " +
-				"what the price will be, which coin will go up, how much to invest.",
+				"what the price will be, which coin will go up, how much to invest, or where an " +
+				"exchange rate, interest rate, or market is heading and when a trend will end.",
 			KindOffTopic: "A question about something other than Bitcoin and the money and technology " +
-				"behind it, including other cryptocurrencies on their own.",
+				"behind it, including other cryptocurrencies on their own. Not a general question about " +
+				"money, credit, banks, payments, inflation, exchange rates, cryptography, or networks: " +
+				"those are questions.",
 			KindNonsense: "Text that asks nothing and says nothing: gibberish, a stray word, a keyboard mash.",
 		})
 }
