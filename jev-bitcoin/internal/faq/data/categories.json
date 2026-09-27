@@ -61,7 +61,7 @@
     "name": "ウォレット・シード・鍵管理",
     "match": {
       "what": "ウォレットの実際の使い方と鍵の管理。シードフレーズ（12/24 単語、Electrum 方式）、BIP32/39/44、パスフレーズ（25 番目の単語）、HD ウォレット、ハードウェアウォレット、ホット/コールド、watch-only、スマホの紛失や故障やアプリの削除、coin control、PSBT、descriptor、multisig のバックアップ、相続。",
-      "not_for": "鍵とアドレスの暗号学的な関係や署名方式、Miniscript（keys）、取引所が倒産した場合（basics）、秘密鍵そのものをなくしたときに取り戻せるか（keys）、送金手数料の仕組み（transactions）、アドレス再利用による追跡（privacy）、開発者に秘密鍵を復元してもらえるかという誤った前提（sources）、特定の製品で起きた乱数の不具合や物理攻撃、偽物の端末、フィッシングや詐欺の手口などの事故と脆弱性（security）、Trezor・COLDCARD・SeedSigner・Jade・Sparrow・Electrum など特定の製品やアプリの説明と比較（products）。",
+      "not_for": "鍵とアドレスの暗号学的な関係や署名方式、Miniscript（keys）、取引所が倒産した場合（basics）、秘密鍵そのものをなくしたときに取り戻せるか（keys）、送金手数料の仕組み（transactions）、アドレス再利用による追跡（privacy）、開発者に秘密鍵を復元してもらえるかという誤った前提（sources）、特定の製品で起きた乱数の不具合や物理攻撃、偽物の端末、フィッシングや詐欺の手口などの事故と脆弱性（security）、Trezor・COLDCARD・SeedSigner・Jade・Sparrow・Electrum など特定の製品やアプリの説明と比較（products）、特定の製品名（カタカナ表記を含む）が出て、その製品での使われ方を聞く質問（products）。",
       "examples": [
         "復元用の単語を忘れた",
         "ハードウェアウォレットって要る？",
@@ -103,7 +103,7 @@
     "name": "Lightning Network",
     "match": {
       "what": "Lightning Network。チャネルの開閉（force close / cooperative close）、容量と流動性（inbound / outbound）、ルーティングと中継ノード、HTLC と invoice と preimage、BOLT11 / BOLT12 / Lightning Address、支払いの失敗、watchtower、submarine swap と Loop、LSP、trampoline、gossip、splicing、multipath / AMP、route blinding、onion message、定期支払い。",
-      "not_for": "オンチェーンの送金手数料（transactions）、ライトニング以外の L2（l2）、ライトニングの匿名性や中継ノードに何が見えるか（privacy）、BOLT という仕様書の位置付けや「すべて記録されるから安全」のような誤った前提の確認（sources）、LND や Core Lightning など実装の脆弱性、replacement cycling のような攻撃（security）、Phoenix・Wallet of Satoshi・Zeus・Breez・Muun など特定のウォレットやアプリ、LND・Core Lightning・Eclair・LDK の違い、ThunderHub や RTL（products）、取引所からのライトニング出金、お店がライトニングの支払いを受ける方法、Boltz などの交換サービス（services）。",
+      "not_for": "オンチェーンの送金手数料（transactions）、ライトニング以外の L2（l2）、ライトニングの匿名性や中継ノードに何が見えるか（privacy）、BOLT という仕様書の位置付けや「すべて記録されるから安全」のような誤った前提の確認（sources）、LND や Core Lightning など実装の脆弱性、replacement cycling のような攻撃（security）、Phoenix・Wallet of Satoshi・Zeus・Breez・Muun など特定のウォレットやアプリ、LND・Core Lightning・Eclair・LDK の違い、ThunderHub や RTL（products）、取引所からのライトニング出金、お店がライトニングの支払いを受ける方法、Boltz などの交換サービス（services）、特定の製品名（カタカナ表記を含む）が出て、その製品での使われ方を聞く質問（products）。",
       "examples": [
         "ライトニングで受け取れないのはなぜ",
         "チャネルを閉じたらお金はどうなる",
@@ -131,7 +131,7 @@
     "name": "プライバシー・匿名性・オンチェーン分析",
     "match": {
       "what": "プライバシーと追跡。ビットコインが匿名かどうか、取引や残高が誰に見えるか、アドレスから個人が特定されるか、アドレス再利用とプライバシー、common-input-ownership heuristic、お釣りの特定、チェーン分析会社、取引所と KYC、CoinJoin、Payjoin、Silent Payments、coin control とプライバシー、自前ノードや Tor、compact block filter、ライトニングの匿名性。ライトニングの中継ノードに何が見えるか。",
-      "not_for": "アドレスや鍵の形式そのもの（keys）、ウォレットのバックアップ（wallet）、ライトニングのルーティングの仕組み一般（lightning）、Bitcoin Core の Private Broadcast で IP アドレスが漏れた不具合（security）、Wasabi Wallet や Samourai Wallet・Whirlpool など特定の製品の現状（products）、取引所の送付時のトラベルルール（services）。",
+      "not_for": "アドレスや鍵の形式そのもの（keys）、ウォレットのバックアップ（wallet）、ライトニングのルーティングの仕組み一般（lightning）、Bitcoin Core の Private Broadcast で IP アドレスが漏れた不具合（security）、Wasabi Wallet や Samourai Wallet・Whirlpool など特定の製品の現状（products）、取引所の送付時のトラベルルール（services）、特定の製品名（カタカナ表記を含む）が出て、その製品での使われ方を聞く質問（products）。",
       "examples": [
         "送金したら相手に全財産ばれる？",
         "ミキシングって何",
@@ -200,7 +200,7 @@
     "number": 15,
     "name": "ウォレット・ノード製品・実装",
     "match": {
-      "what": "特定の製品・アプリ・ソフトウェアの名前が出る質問。ハードウェアウォレット（Trezor の各モデルと Bitcoin-only firmware と Shamir Backup、COLDCARD、SeedSigner、Blockstream Jade、BitBox02、Foundation Passport、Ledger、Keystone、TAPSIGNER と SATSCARD）とその比較。ウォレットアプリ（Sparrow、Electrum、BlueWallet、Phoenix、Breez、Zeus、Muun、Wallet of Satoshi の預かり型と自己管理型、Blink、Aqua、Blockstream Green / Blockstream App、Nunchuk、Specter Desktop、Wasabi、Samourai と Whirlpool）。Electrum サーバ（Electrs、ElectrumX、Fulcrum）、Bitcoin Knots、ライトニングの実装（LND、Core Lightning、Eclair、LDK）とノード管理画面（ThunderHub、RTL）、ノードの製品（Umbrel、Start9 / StartOS、RaspiBlitz、myNode）、BTCPay Server、自前の mempool.space。",
+      "what": "特定の製品・アプリ・ソフトウェアの名前が出る質問。ハードウェアウォレット（Trezor の各モデルと Bitcoin-only firmware と Shamir Backup、COLDCARD、SeedSigner、Blockstream Jade、BitBox02、Foundation Passport、Ledger、Keystone、TAPSIGNER と SATSCARD）とその比較。ウォレットアプリ（Sparrow、Electrum、BlueWallet、Phoenix、Breez、Zeus、Muun、Wallet of Satoshi の預かり型と自己管理型、Blink、Aqua、Blockstream Green / Blockstream App、Nunchuk、Specter Desktop、Wasabi、Samourai と Whirlpool）。Electrum サーバ（Electrs、ElectrumX、Fulcrum）、Bitcoin Knots、ライトニングの実装（LND、Core Lightning、Eclair、LDK）とノード管理画面（ThunderHub、RTL）、ノードの製品（Umbrel、Start9 / StartOS、RaspiBlitz、myNode）、BTCPay Server、自前の mempool.space。製品名はカタカナで書かれることも多い（トレザー、コールドカード、シードサイナー、ジェイド、ビットボックス、パスポート、レジャー、キーストーン、タップサイナー、スパロウ、エレクトラム、ブルーウォレット、フェニックス、ブリーズ、ゼウス、ムーン、ウォレットオブサトシ、ブリンク、アクア、ナンチャク、スペクター、ワサビ、サムライ、アンブレル、スタート9、ラズブリッツ、マイノード、ノッツ、サンダーハブ）。製品名が出てきて、その製品での使われ方や仕様を聞いているなら、splicing やサーバへの接続のような一般的な仕組みの話を含んでいてもこの棚。",
       "not_for": "特定の製品に限らないウォレットの使い方やシードのバックアップ、hot と cold、PSBT や descriptor の意味（wallet）、フルノード一般や Bitcoin Core の役割（nodes）、ライトニングの仕組み一般（lightning）、CoinJoin の仕組み一般（privacy）、Spark や Liquid というプロトコルそのもの（l2）、製品で起きた事故・脆弱性・詐欺（security）、BitPay や Strike・Cash App などの決済・金融サービス、BTCPay Server と事業者型の決済サービスの違い（services）。",
       "examples": [
         "ウォレットオブサトシって自分で鍵持てるの？",
@@ -214,7 +214,7 @@
     "number": 16,
     "name": "取引所・決済・金融サービス",
     "match": {
-      "what": "取引所や決済・金融サービスの仕組みと、日本の暗号資産交換業者。取引所の残高は取引所の帳簿の数字でブロックチェーン上の UTXO ではないこと、取引所の中の売買、出金して初めて自己管理になること、broker（販売所）と注文板（取引所）、手数料とスプレッド、出金手数料とまとめ送金、入金の承認数、取引所からのライトニング出金、預かり型のライトニングウォレット、Strike、Cash App、暗号資産のデビットカードと Visa / Mastercard、カード会社の倒産、支払いと税金。お店向けの決済（merchant processor、BitPay と BTCPay Server、LSP、Boltz のような swap サービス）。Proof of Reserves と Proof of Liabilities、Merkle tree とゼロ知識証明、顧客資産の貸し出し（rehypothecation）、利息を得るサービスや Bitcoin 担保ローンのリスク。現物 ETF / ETP と直接保有の違い、出金できるか、カストディアン、取引時間、先物 ETF との違い、OTC、Bisq や RoboSats などの P2P 取引。日本の登録業者（bitFlyer、bitbank、Coincheck、GMO コイン、SBI VC トレード、BITPOINT、BitTrade、BTCBOX、楽天ウォレット、Binance Japan、OKJ、Mercoin、CoinTrade）、金融庁の登録一覧と、登録は推奨ではないこと、販売所と取引所、手数料・スプレッド・出庫手数料・最低額の比べ方、自己管理ウォレットへの送付やライトニングでの出金。",
+      "what": "取引所や決済・金融サービスの仕組みと、日本の暗号資産交換業者。取引所の残高は取引所の帳簿の数字でブロックチェーン上の UTXO ではないこと、取引所の中の売買、出金して初めて自己管理になること、broker（販売所）と注文板（取引所）、手数料とスプレッド、出金手数料とまとめ送金、入金の承認数、取引所からのライトニング出金、預かり型のライトニングウォレット、Strike、Cash App、暗号資産のデビットカードと Visa / Mastercard、カード会社の倒産、支払いと税金。お店向けの決済（merchant processor、BitPay と BTCPay Server、LSP、Boltz のような swap サービス）。Proof of Reserves と Proof of Liabilities、Merkle tree とゼロ知識証明、顧客資産の貸し出し（rehypothecation）、利息を得るサービスや Bitcoin 担保ローンのリスク。現物 ETF / ETP と直接保有の違い、出金できるか、カストディアン、取引時間、先物 ETF との違い、OTC、Bisq や RoboSats などの P2P 取引。日本の登録業者（bitFlyer、bitbank、Coincheck、GMO コイン、SBI VC トレード、BITPOINT、BitTrade、BTCBOX、楽天ウォレット、Binance Japan、OKJ、Mercoin、CoinTrade）、金融庁の登録一覧と、登録は推奨ではないこと、販売所と取引所、手数料・スプレッド・出庫手数料・最低額の比べ方、自己管理ウォレットへの送付やライトニングでの出金。社名やサービス名はカタカナや略称で書かれることも多い（ビットフライヤー、ビットバンク、コインチェック、ジーエムオーコイン、ビットポイント、ビットトレード、楽天、バイナンス、メルカリ / メルコイン、ストライク、キャッシュアップ、ボルツ）。",
       "not_for": "「取引所が倒産したら全部なくなる？」「取引所の口座は必要？」のような入門的な疑問（basics）、Mt. Gox・FTX・Celsius・BlockFi など過去の破綻の経緯や米国の ETF 承認の経緯（history）、取引所からの流出事件（security）、BTCPay Server や特定のウォレットアプリそのものの説明（products）、ライトニングや LSP・submarine swap の仕組み一般（lightning）、KYC と追跡（privacy）、どの取引所で買うべきかや今買うべきかという投資の助言。",
       "examples": [
         "取引所の残高ってブロックチェーンに載ってるの？",
