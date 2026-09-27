@@ -128,10 +128,24 @@ func cacheKey(input string) string {
 	return sameWords.Replace(b.String())
 }
 
-// sameWords spells alike the words asked often enough, in either script, to
-// be worth naming. Case is already folded, so "Bitcoin" and "BITCOIN" need no
+// sameWords spells alike the terms asked often enough in more than one way —
+// in katakana or Latin letters, with or without a closing long vowel — to be
+// worth naming. Case is already folded, so "Bitcoin" and "BITCOIN" need no
 // entry of their own.
-var sameWords = strings.NewReplacer("ビットコイン", "bitcoin")
+//
+// An entry matches anywhere in the key, spaces already gone, so a short Latin
+// one would break other words: "ln" is in "fullnode", "tx" in "utxo".
+var sameWords = strings.NewReplacer(
+	"ビットコイン", "bitcoin",
+	"btc", "bitcoin",
+	"ライトニング", "lightning",
+	"ネットワーク", "network",
+	"サトシ", "satoshi",
+	"ナカモト", "nakamoto",
+	"サーバー", "サーバ",
+	"コンピューター", "コンピュータ",
+	"ユーザー", "ユーザ",
+)
 
 // halfWidth maps the full-width forms of ASCII, which a Japanese IME types as
 // readily as ASCII itself, to ASCII.
