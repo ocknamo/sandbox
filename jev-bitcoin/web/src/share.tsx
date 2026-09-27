@@ -57,15 +57,15 @@ export function shareURL(id: string): string {
 }
 
 /**
- * Three ways out: the device's own share sheet where there is one, a post
- * on X, and a plain copy to the clipboard, which works everywhere.
+ * Two ways out: the device's own share sheet where there is one, and a
+ * plain copy to the clipboard, which works everywhere and is what a desktop
+ * browser is left with.
  */
 export function Share(props: { question: string; entry: api.Entry }) {
   const text = shareText(props.question, props.entry);
   const url = shareURL(props.entry.id);
   const copied = signal(false);
   const canShare = typeof navigator.share === "function";
-  const intent = `https://x.com/intent/post?${new URLSearchParams({ text, url })}`;
 
   const share = () => {
     navigator.share({ title: props.entry.title, text, url }).catch(() => {
@@ -103,9 +103,6 @@ export function Share(props: { question: string; entry: api.Entry }) {
             共有する
           </button>
         ) : null}
-        <a class="button" href={intent} target="_blank" rel="noopener noreferrer">
-          X でポスト
-        </a>
         <button type="button" onClick={() => void copy()}>
           {() => (copied() ? "コピーしました" : "コピー")}
         </button>

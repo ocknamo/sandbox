@@ -219,15 +219,13 @@ export const share = css`
     gap: 8px;
   }
 
-  button,
-  a.button {
+  button {
     font-size: 13px;
     padding: 4px 14px;
     border-radius: 999px;
     border: 1px solid var(--line);
     background: transparent;
     color: var(--accent);
-    text-decoration: none;
     cursor: pointer;
   }
 `;

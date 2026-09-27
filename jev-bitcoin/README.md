@@ -183,7 +183,7 @@ Web Speech API（`SpeechRecognition`、Chrome などでは `webkitSpeechRecognit
   履歴が残らないだけで他は同じように動きます
 
 **自分の質問と答えを SNS に共有できます。** 答えの下の「この質問と答えを共有する」を開くと、
-投稿される文面をそのまま見せたうえで、「共有する」（Web Share API、対応端末のみ）・「X でポスト」・「コピー」を出します
+投稿される文面をそのまま見せたうえで、「共有する」（Web Share API、対応端末のみ）と「コピー」を出します
 （[`web/src/share.tsx`](web/src/share.tsx)）。
 
 - 文面は「Q. 自分が打った質問」「A. 答えの冒頭（最初の一文、長ければ 60 文字で切る）」「#jevbitcoin」とリンクです。
