@@ -16,10 +16,25 @@
 
 どちらも同じものを指しますが、書き分ける習慣があります。大文字の「Bitcoin」は仕組みやネットワーク全体、小文字の「bitcoin」はお金の単位（いくら持っているか）を指すことが多いです。
 
+「BTC」は、お金の単位としてのビットコインを表す略号です。円の「JPY」や米ドルの「USD」と同じように、「0.5 BTC」のように金額と一緒に使います。ただしJPYやUSDと違って国際規格で決められたものではなく、世界中で広く使われている慣習的な書き方です。
+
 <!-- more -->
 
-これはルールで決まっているわけではなく、あくまで表記上の慣行です。どちらの意味かは文脈で判断します。
+大文字と小文字の書き分けも、ルールで決まっているわけではなく表記上の慣行です。どちらの意味かは文脈で判断します。
 
+「BTC」は取引所やウォレットで事実上の標準になっていて、代表的なソフトウェアのBitcoin Coreも金額の単位を「BTC」と表示します。一方、JPYやUSDは通貨コードの国際規格ISO 4217で定められたコードで、国の通貨なら頭の2文字がその国を表します（JPは日本、USは米国）。「BT」はブータンを表し、ブータンの通貨のコードはBTNです。BTCはISO 4217に登録されていません。
+
+国に属さないものには「X」で始まるコードを使う（金はXAU）という決まりにならって、「XBT」と書く取引所もあります（Krakenなど）。ただしXBTもISO 4217に登録されたコードではありません。
+
+暗号資産そのものを見分けるための国際規格としてはISO 24165（デジタルトークン識別子、DTI）があり、ビットコインには「4H95J0R2X」が割り当てられています。「BTC」という名前は別のトークンにも使われることがあるので、厳密に区別したい場面ではこの識別子で見分けます。
+
+関連: 1-7
+出典: https://www.iso.org/iso-4217-currency-codes.html
+出典: https://www.six-group.com/dam/download/financial-information/data-center/iso-currrency/lists/list-one.xml
+出典: https://github.com/bitcoin/bitcoin/blob/master/src/policy/feerate.h
+出典: https://api.kraken.com/0/public/Assets?asset=XBT
+出典: https://dtif.org/wp-content/uploads/2023/09/DTIF-Response_OSFI-crypto-asset-guidelines-consultation.pdf
+更新: 2026-09-27
 タグ: 安定
 
 ## 1-3

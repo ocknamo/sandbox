@@ -5,6 +5,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode"
 
 	"github.com/ocknamo/sandbox/jev-bitcoin/internal/router"
 )
@@ -99,11 +100,64 @@ func NewCache(size int) *Cache {
 	return &Cache{size: size, order: list.New(), items: map[string]*list.Element{}}
 }
 
-// cacheKey folds the differences that do not change a question: case,
-// runs of spaces, and the punctuation at the end.
+// cacheKey folds the differences that do not change a question: full- and
+// half-width forms, case, and spaces and punctuation wherever they are.
+//
+// When in doubt it keeps a character, because a key that is too loose answers
+// one question with another's answer, while one that is too strict only costs
+// a request. So punctuation between two digits stays ("1.5" is not "15"), and
+// so do '%' and symbols such as '$' and '+'.
+//
+// Past that it folds words only by name, in sameWords.
 func cacheKey(input string) string {
-	s := strings.ToLower(strings.Join(strings.Fields(input), " "))
-	return strings.TrimRight(s, "?？!！。. ")
+	rs := []rune(input)
+	for i, r := range rs {
+		rs[i] = unicode.ToLower(halfWidth(r))
+	}
+	var b strings.Builder
+	for i, r := range rs {
+		if unicode.IsSpace(r) || (unicode.IsPunct(r) && r != '%' && !betweenDigits(rs, i)) {
+			continue
+		}
+		b.WriteRune(r)
+	}
+	if b.Len() == 0 {
+		// Nothing but punctuation: too little to call two inputs the same.
+		return input
+	}
+	return sameWords.Replace(b.String())
+}
+
+// sameWords spells alike the terms asked often enough in more than one way —
+// in katakana or Latin letters, with or without a closing long vowel — to be
+// worth naming. Case is already folded, so "Bitcoin" and "BITCOIN" need no
+// entry of their own.
+//
+// An entry matches anywhere in the key, spaces already gone, so a short Latin
+// one would break other words: "ln" is in "fullnode", "tx" in "utxo".
+var sameWords = strings.NewReplacer(
+	"ビットコイン", "bitcoin",
+	"btc", "bitcoin",
+	"ライトニング", "lightning",
+	"ネットワーク", "network",
+	"サトシ", "satoshi",
+	"ナカモト", "nakamoto",
+	"サーバー", "サーバ",
+	"コンピューター", "コンピュータ",
+	"ユーザー", "ユーザ",
+)
+
+// halfWidth maps the full-width forms of ASCII, which a Japanese IME types as
+// readily as ASCII itself, to ASCII.
+func halfWidth(r rune) rune {
+	if r >= '\uff01' && r <= '\uff5e' { // ！ through ～
+		return r - ('\uff01' - '!')
+	}
+	return r
+}
+
+func betweenDigits(rs []rune, i int) bool {
+	return i > 0 && i < len(rs)-1 && unicode.IsDigit(rs[i-1]) && unicode.IsDigit(rs[i+1])
 }
 
 // Get returns the routing remembered for an input. A nil Cache remembers
