@@ -1,3 +1,3 @@
 module github.com/ocknamo/sandbox/go-cloudrun-bird
 
-go 1.24
+go 1.27.3

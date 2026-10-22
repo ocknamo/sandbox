@@ -37,7 +37,7 @@ jobs:
 
       - uses: actions/setup-go@v7
         with:
-          go-version: '1.24'
+          go-version-file: jev-bitcoin/go.mod
           cache: false
 
       # The ordinary CI is not a prerequisite of this workflow, so a commit
