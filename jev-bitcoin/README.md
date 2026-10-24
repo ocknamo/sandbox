@@ -222,7 +222,7 @@ bun run build    # ../../docs/bitcoin/ を作り直す
 ```
 
 jev-mystery と同じく、**ビルド結果をコミット**し、CI で再ビルドして差分が出ないことを確かめます。
-Bun の版は `.bun-version`（1.4.2）で固定しています。
+Bun の版は `.bun-version`（1.4.4）で固定しています。
 
 ### kanabun で踏んだこと
 
