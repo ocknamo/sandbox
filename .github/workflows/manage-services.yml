@@ -22,7 +22,14 @@ on:
         description: Target service
         required: true
         type: choice
-        options: [all, go-cloudrun-app, go-cloudrun-echo, go-cloudrun-bird]
+        options:
+          - all
+          - go-cloudrun-app
+          - go-cloudrun-echo
+          - go-cloudrun-bird
+          - jev-nostr-api
+          - jev-mystery-api
+          - jev-bitcoin-api
         default: all
       confirm:
         description: 'delete only: retype the service name to confirm'
@@ -44,10 +51,19 @@ concurrency:
 jobs:
   manage:
     runs-on: ubuntu-latest
-    # Worst case is two services each waiting out the full 10-minute IAM
-    # propagation window, plus auth and setup.
-    timeout-minutes: 30
+    # Worst case is every service under `all` (six) waiting out the full
+    # 10-minute IAM propagation window in turn, plus auth and setup.
+    timeout-minutes: 70
     steps:
+      # The deployer service account trusts runs from main only (see
+      # go-cloudrun-app/scripts/setup-gcp.sh), so from any other branch auth
+      # would fail with a bare permission error. Say why before getting there.
+      - name: Require main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Run this workflow from main, not $GITHUB_REF."
+          exit 1
+
       - name: Resolve targets and guard destructive input
         id: plan
         # Inputs go through env, never interpolated into the script: `confirm` is
@@ -58,7 +74,7 @@ jobs:
           CONFIRM: ${{ inputs.confirm }}
         run: |
           case "$SERVICE" in
-            all) services="go-cloudrun-app go-cloudrun-echo go-cloudrun-bird" ;;
+            all) services="go-cloudrun-app go-cloudrun-echo go-cloudrun-bird jev-nostr-api jev-mystery-api jev-bitcoin-api" ;;
             *)   services="$SERVICE" ;;
           esac
 
