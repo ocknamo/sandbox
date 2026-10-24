@@ -126,7 +126,3 @@ GCP 側の作業は不要です。デプロイ用サービスアカウントは�
   （[`docs/jev.html`](docs/jev.html)）。リレーから流れてくる投稿を Jev に判定させ、
   しきい値・言語・トピックのフィルタをブラウザ側で適用します（日本語 / 英語表示）。詳細は
   [`jev-nostr/README.md`](jev-nostr/README.md)。
-
-## その他
-
-- [`svelte-voice-api`](svelte-voice-api) — Svelte + Web Speech API の実験。
