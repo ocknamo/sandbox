@@ -20,6 +20,7 @@ POOL="${POOL:-github}"
 PROVIDER="${PROVIDER:-github}"
 DEPLOY_SA_NAME="${DEPLOY_SA_NAME:-github-deployer}"
 RUNTIME_SA_NAME="${RUNTIME_SA_NAME:-go-cloudrun-app-run}"
+DEPLOY_REF="${DEPLOY_REF:-refs/heads/main}"
 
 GITHUB_OWNER="${GITHUB_REPO%%/*}"
 DEPLOY_SA="${DEPLOY_SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
@@ -65,22 +66,59 @@ gcloud iam workload-identity-pools describe "$POOL" --location=global >/dev/null
   gcloud iam workload-identity-pools create "$POOL" \
     --location=global --display-name="GitHub Actions"
 
-gcloud iam workload-identity-pools providers describe "$PROVIDER" \
-  --location=global --workload-identity-pool="$POOL" >/dev/null 2>&1 || \
+# repository_ref joins the repository and the git ref that started the run
+# (e.g. ocknamo/sandbox/refs/heads/main), so one principalSet can name a single
+# branch of a single repository.
+REPO_REF_ATTR="attribute.repository_ref"
+REPO_REF_EXPR="assertion.repository + '/' + assertion.ref"
+
+if gcloud iam workload-identity-pools providers describe "$PROVIDER" \
+    --location=global --workload-identity-pool="$POOL" >/dev/null 2>&1; then
+  # The provider may serve other repositories as well, and update-oidc replaces
+  # the whole mapping, so add repository_ref to whatever is already there. The
+  # "^;^" prefix makes ; the separator, since a CEL expression may hold commas
+  # (and || for or); CEL itself has no use for ;.
+  mapping="$(gcloud iam workload-identity-pools providers describe "$PROVIDER" \
+      --location=global --workload-identity-pool="$POOL" --format=json \
+    | python3 -c 'import json, sys
+m = json.load(sys.stdin).get("attributeMapping", {})
+m[sys.argv[1]] = sys.argv[2]
+if any(";" in k + v for k, v in m.items()):
+    sys.exit("An existing attribute mapping contains \";\"; add " + sys.argv[1] + " by hand.")
+print("^;^" + ";".join(k + "=" + v for k, v in m.items()))' "$REPO_REF_ATTR" "$REPO_REF_EXPR")"
+  gcloud iam workload-identity-pools providers update-oidc "$PROVIDER" \
+    --location=global --workload-identity-pool="$POOL" \
+    --attribute-mapping="$mapping" >/dev/null
+else
   gcloud iam workload-identity-pools providers create-oidc "$PROVIDER" \
     --location=global \
     --workload-identity-pool="$POOL" \
     --display-name="GitHub OIDC" \
     --issuer-uri="https://token.actions.githubusercontent.com" \
-    --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository,attribute.repository_owner=assertion.repository_owner" \
+    --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository,attribute.repository_owner=assertion.repository_owner,${REPO_REF_ATTR}=${REPO_REF_EXPR}" \
     --attribute-condition="assertion.repository_owner == '${GITHUB_OWNER}'"
+fi
 
-# Only this one repository may impersonate the deployer service account.
-echo "==> Allowing ${GITHUB_REPO} to impersonate $DEPLOY_SA"
+# Only runs from this repository's $DEPLOY_REF may impersonate the deployer
+# service account. The restriction sits on this binding rather than in the
+# provider's condition, so other repositories sharing the pool are unaffected.
+POOL_PRINCIPALS="principalSet://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${POOL}"
+echo "==> Allowing ${GITHUB_REPO} at ${DEPLOY_REF} to impersonate $DEPLOY_SA"
 gcloud iam service-accounts add-iam-policy-binding "$DEPLOY_SA" \
   --role=roles/iam.workloadIdentityUser \
-  --member="principalSet://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${POOL}/attribute.repository/${GITHUB_REPO}" \
+  --member="${POOL_PRINCIPALS}/${REPO_REF_ATTR}/${GITHUB_REPO}/${DEPLOY_REF}" \
   --condition=None >/dev/null
+
+# Earlier versions of this script trusted every branch of the repository.
+# Drop that binding now that the narrower one is in place.
+OLD_MEMBER="${POOL_PRINCIPALS}/attribute.repository/${GITHUB_REPO}"
+if gcloud iam service-accounts get-iam-policy "$DEPLOY_SA" \
+    --flatten="bindings[].members" --format="value(bindings.members)" | grep -qxF "$OLD_MEMBER"; then
+  echo "==> Removing the binding that trusted every branch of ${GITHUB_REPO}"
+  gcloud iam service-accounts remove-iam-policy-binding "$DEPLOY_SA" \
+    --role=roles/iam.workloadIdentityUser \
+    --member="$OLD_MEMBER" --condition=None >/dev/null
+fi
 
 WIF_PROVIDER="projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${POOL}/providers/${PROVIDER}"
 
@@ -99,5 +137,8 @@ Setup complete. Now add these as GitHub *repository variables*
 
 Then run the "Deploy to Cloud Run" workflow (Actions tab >
 Run workflow), or merge a change under go-cloudrun-app/.
+
+Only runs from ${DEPLOY_REF} of ${GITHUB_REPO} can act as the
+deployer. IAM changes can take several minutes to apply.
 ============================================================
 EOF

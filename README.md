@@ -31,7 +31,9 @@ Cloud Run に対して行われます（サービスアカウントキーは不�
 ### サービスの停止と再開
 
 Actions タブから **Manage Cloud Run services** を実行します。アクションと対象
-サービスを指定するだけで、ローカルのツールは不要です。
+サービスを指定するだけで、ローカルのツールは不要です。対象は冒頭の表の 6 サービスで、
+`all` を選ぶと全部に適用されます。実行できるのは main ブランチからだけです。
+「Use workflow from」でほかのブランチを選ぶと、最初のステップで止まります。
 
 | アクション | 効果 |
 | --- | --- |
@@ -67,7 +69,7 @@ GitHub のデフォルトの 6 時間に頼らず、すべてのジョブで `ti
 | --- | --- | --- |
 | `go-cloudrun-ci.yml` / `test` | 15 分 | マトリクス 1 件あたり 1 分未満 |
 | `deploy-service.yml` / `deploy` | 20 分 | 約 2 分 |
-| `manage-services.yml` / `manage` | 30 分 | 数秒（IAM の反映待ちが発生する場合を除く） |
+| `manage-services.yml` / `manage` | 70 分 | 数秒（IAM の反映待ちが発生する場合を除く） |
 
 デプロイの呼び出し側ワークフローには独自の上限を設定できません（再利用可能な
 ワークフローを呼び出すジョブに `timeout-minutes` を指定すると GitHub が拒否する
@@ -81,6 +83,8 @@ GitHub のデフォルトの 6 時間に頼らず、すべてのジョブで `ti
 2. `deploy-<service>.yml` の呼び出し用ワークフローをコピーし、2 つの `paths` の
    エントリと `service` / `directory` の入力値を変更します。
 3. `go-cloudrun-ci.yml` のマトリクスにディレクトリを追加します。
+4. `manage-services.yml` の `service` の選択肢と、`all` のときの一覧に Cloud Run の
+   サービス名を追加します。
 
 GCP 側の作業は不要です。デプロイ用サービスアカウントはプロジェクトレベルで
 `roles/run.admin` を持ち、すべてのイメージは 1 つの Artifact Registry リポジトリを
@@ -92,6 +96,15 @@ GCP 側の作業は不要です。デプロイ用サービスアカウントは�
 プロジェクトの初期セットアップは
 [`go-cloudrun-app/scripts/setup-gcp.sh`](go-cloudrun-app/scripts/setup-gcp.sh)
 にあります。
+
+デプロイ用サービスアカウントになれるのは、このリポジトリの main ブランチからの実行
+だけです。Workload Identity Federation のプロバイダに、リポジトリ名と ref をつないだ
+`attribute.repository_ref` を割り当て、サービスアカウントの
+`roles/iam.workloadIdentityUser` をその値が `ocknamo/sandbox/refs/heads/main` の
+実行だけに与えています。ほかのブランチから実行したワークフローは認証で失敗します。
+この制限はプロバイダの条件ではなくサービスアカウント側にあるので、同じプールを使う
+ほかのリポジトリには影響しません。既存のプロジェクトにはスクリプトを再実行すると
+反映され、全ブランチを信頼していた以前のバインディングは削除されます。
 
 ## GitHub Pages
 
