@@ -11,7 +11,9 @@ import { css } from "@kanabun/core";
 export const shell = css`
   max-width: 960px;
   margin: 0 auto;
-  padding: 32px 20px 56px;
+  /* Room at the bottom for the notebook in the corner, so the last of the
+     page can always be scrolled out from under it. */
+  padding: 32px 20px calc(104px + env(safe-area-inset-bottom));
 
   .titlebar {
     display: flex;
@@ -515,4 +517,293 @@ export const waiting = css`
   font-size: 13px;
   font-family: var(--ui);
   font-style: italic;
+`;
+
+/**
+ * Names to put into the accusation without typing them. A name spelt wrong is
+ * an accusation that misses, and that should be a matter of reasoning, not of
+ * remembering which characters someone's name is written with.
+ */
+export const names = css`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  font-family: var(--ui);
+  font-size: 12px;
+  color: var(--muted);
+
+  button {
+    font-size: 13px;
+    padding: 2px 12px;
+    border-radius: 999px;
+  }
+`;
+
+/**
+ * The notebook: a button in the corner, and the book it opens.
+ *
+ * The button stays put while the page scrolls under it, which is the whole
+ * point of it. Beside a wide page the book opens over the corner and leaves the
+ * rest of the page usable; on a phone it is a sheet over the page, with a
+ * backdrop that closes it.
+ */
+export const notebook = css`
+  .fab {
+    position: fixed;
+    right: max(16px, env(safe-area-inset-right));
+    bottom: max(16px, env(safe-area-inset-bottom));
+    z-index: 30;
+    width: 72px;
+    height: 72px;
+    padding: 4px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.35));
+    transition: transform 120ms ease-out, opacity 120ms ease-out;
+  }
+
+  .fab:hover {
+    transform: translateY(-2px);
+  }
+
+  .fab:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .fab img {
+    display: block;
+    width: 64px;
+    height: 64px;
+  }
+
+  .fab.gone {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 22px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--warn);
+    color: #fff;
+    font: 600 12px/22px var(--ui);
+    text-align: center;
+  }
+
+  .backdrop {
+    display: none;
+  }
+
+  .book {
+    position: fixed;
+    right: max(16px, env(safe-area-inset-right));
+    bottom: calc(max(16px, env(safe-area-inset-bottom)) + 84px);
+    z-index: 31;
+    width: 380px;
+    max-height: min(70vh, 640px);
+    display: flex;
+    flex-direction: column;
+    padding: 7px;
+    border-radius: 14px;
+    background: var(--leather);
+    /* The stitching around the cover. */
+    outline: 1.5px dashed var(--stitch);
+    outline-offset: -4px;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+    color: var(--ink);
+    font-size: 14px;
+  }
+
+  .book:focus {
+    outline: 1.5px dashed var(--stitch);
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2px 6px 6px 10px;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 14px;
+    letter-spacing: 0.3em;
+    color: var(--stitch);
+    font-family: var(--ui);
+  }
+
+  .close {
+    padding: 0 10px;
+    border: none;
+    background: transparent;
+    color: var(--stitch);
+    font-size: 20px;
+    line-height: 1.4;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    padding: 0 6px;
+  }
+
+  .tab {
+    flex: 1 1 0;
+    padding: 5px 4px;
+    border: none;
+    border-radius: 8px 8px 0 0;
+    background: var(--paper-edge);
+    color: var(--ink-muted);
+    font-size: 13px;
+  }
+
+  .tab.on {
+    background: var(--paper);
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .page {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 12px 14px 14px;
+    border-radius: 8px;
+    background: var(--paper);
+    /* The red rule across the top of the page. */
+    box-shadow: inset 0 3px 0 var(--rule);
+  }
+
+  .list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--paper-edge);
+  }
+
+  .row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .body {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .name {
+    font-size: 14.5px;
+    line-height: 1.5;
+  }
+
+  .desc {
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--ink-muted);
+  }
+
+  .here,
+  .new {
+    margin-left: 8px;
+    padding: 0 7px;
+    border-radius: 999px;
+    font: 11px/18px var(--ui);
+    vertical-align: 1px;
+  }
+
+  .here {
+    border: 1px solid var(--accent);
+    color: var(--accent);
+  }
+
+  .new {
+    background: var(--warn);
+    color: #fff;
+  }
+
+  .jot {
+    flex: 0 0 auto;
+    padding: 3px 10px;
+    border: 1px solid var(--leather-ink);
+    background: transparent;
+    color: var(--leather-ink);
+    font-size: 12.5px;
+  }
+
+  .scene {
+    margin: 0;
+    font-size: 16px;
+  }
+
+  .present {
+    margin: 6px 0 0;
+    font-size: 13px;
+  }
+
+  .none,
+  .tip {
+    margin: 0;
+    font-size: 12.5px;
+    color: var(--ink-muted);
+    font-family: var(--ui);
+  }
+
+  .tip {
+    margin-top: 12px;
+  }
+
+  @media (max-width: 720px) {
+    .fab.opened {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .backdrop {
+      display: block;
+      position: fixed;
+      inset: 0;
+      z-index: 31;
+      background: rgba(0, 0, 0, 0.45);
+    }
+
+    .book {
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 32;
+      width: auto;
+      max-height: 82vh;
+      max-height: 82dvh;
+      padding: 8px 8px max(8px, env(safe-area-inset-bottom));
+      border-radius: 16px 16px 0 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fab {
+      transition: none;
+    }
+
+    .fab:hover {
+      transform: none;
+    }
+  }
 `;

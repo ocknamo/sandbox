@@ -14,6 +14,7 @@
 import { For, Show, effect, resource, signal } from "@kanabun/core";
 import { useParams } from "@kanabun/router";
 import * as api from "./api";
+import { Notebook } from "./Notebook";
 import { ItemsPanel, LogEntry, PlacePanel } from "./parts";
 import type { Entry } from "./parts";
 import * as s from "./styles";
@@ -29,6 +30,8 @@ interface Saved {
   beforeAnswer: string;
   hints: string[];
   shown: number;
+  /** Absent from a game saved before the notebook kept track of who was met. */
+  met?: api.Person[];
 }
 
 const storageKey = (id: string) => `jev-mystery:${id}`;
@@ -48,6 +51,18 @@ function save(id: string, saved: Saved) {
   } catch {
     // A full or blocked storage only costs the resume.
   }
+}
+
+/**
+ * The people already known, joined by any not seen before. The order is the
+ * order they were met in, which is the order a player remembers them in.
+ */
+function meet(known: api.Person[], people: (api.Person | undefined)[]): api.Person[] {
+  const next = [...known];
+  for (const person of people) {
+    if (person !== undefined && !next.some((p) => p.id === person.id)) next.push(person);
+  }
+  return next.length === known.length ? known : next;
 }
 
 function forget(id: string) {
@@ -70,6 +85,16 @@ export function Game() {
   const entries = signal<Entry[]>([]);
   const phase = signal<Phase>("playing");
   const draft = signal("");
+  // The accusation as written so far. It lives here rather than in the form so
+  // the notebook can write a name into it, and so going back to the
+  // questioning and returning does not throw it away.
+  const answer = signal("");
+  // Everyone the player has seen, for the notebook. The view only says who is
+  // in this room.
+  const met = signal<api.Person[]>([]);
+  // Whether a text field has focus. On a phone the keyboard is up then, and
+  // the notebook's button would sit over the field being typed into.
+  const typing = signal(false);
   const busy = signal(false);
   const error = signal("");
   // The state as it stood just before the last accusation, so a player who
@@ -84,6 +109,7 @@ export function Game() {
 
   let logEl: Element | null = null;
   let inputEl: HTMLInputElement | null = null;
+  let answerEl: HTMLTextAreaElement | null = null;
   // On a touch screen a focused field keeps the keyboard up over the reply
   // the player is waiting to read, so there the field lets go after a turn
   // instead of taking focus back.
@@ -102,6 +128,7 @@ export function Game() {
     if (start === undefined) return;
     document.title = start.title;
     draft.set("");
+    answer.set("");
     error.set("");
     playing = caseId();
     const saved = load(playing);
@@ -113,10 +140,18 @@ export function Game() {
       beforeAnswer.set(saved.beforeAnswer);
       hints.set(saved.hints);
       shown.set(saved.shown);
+      met.set(
+        saved.met ??
+          meet([], [
+            ...(saved.view.people ?? []),
+            ...saved.entries.map((entry) => (entry.kind === "turn" ? entry.speaker : undefined)),
+          ]),
+      );
       requestAnimationFrame(() => logEl?.lastElementChild?.scrollIntoView({ block: "end" }));
       return;
     }
     token.set(start.state);
+    met.set(meet([], start.view.people ?? []));
     view.set(start.view);
     // Where the case opens is described in the log as well as in the panel
     // beside it: the first thing a player reads should include the room they
@@ -145,7 +180,15 @@ export function Game() {
       beforeAnswer: beforeAnswer(),
       hints: hints(),
       shown: shown(),
+      met: met(),
     });
+  });
+
+  // A field taken off the screen with focus still in it never says it lost
+  // it, so a change of form starts from nobody typing.
+  effect(() => {
+    phase();
+    typing.set(false);
   });
 
   // The board is cleared before the refetch, so nothing is written back
@@ -171,6 +214,7 @@ export function Game() {
     try {
       const turn = await api.act(token.peek(), input);
       token.set(turn.state);
+      met.update((known) => meet(known, [...(turn.view.people ?? []), turn.speaker]));
       view.set(turn.view);
       append({
         kind: "turn",
@@ -228,6 +272,28 @@ export function Game() {
     phase.set("accusing");
   };
 
+  /**
+   * Write a name where the player is writing: into the turn field while
+   * questioning, into the accusation once everyone is gathered. It goes in at
+   * the caret, which a field keeps after losing focus to the notebook, so a
+   * name can land in the middle of a sentence already begun.
+   */
+  const writer = (): ((text: string) => void) | null => {
+    if (busy() || phase() === "closed") return null;
+    return (text: string) => {
+      const accusing = phase.peek() === "accusing";
+      const field = accusing ? answerEl : inputEl;
+      const value = accusing ? answer : draft;
+      if (field === null || !field.isConnected || field.disabled) return;
+      const current = value.peek();
+      const start = field.selectionStart ?? current.length;
+      const end = field.selectionEnd ?? start;
+      value.set(current.slice(0, start) + text + current.slice(end));
+      field.focus();
+      field.setSelectionRange(start + text.length, start + text.length);
+    };
+  };
+
   // `at` reads the current view without this function subscribing to it: the
   // board is built once and its leaves re-read what changed. Reading view()
   // here instead would rebuild the log on every turn.
@@ -267,6 +333,8 @@ export function Game() {
             <Show when={() => hints().length > 0}>{() => <Hints />}</Show>
           </div>
         </div>
+
+        <Notebook view={at} met={met} write={writer} hidden={() => touch && typing()} />
       </div>
     );
   };
@@ -295,6 +363,8 @@ export function Game() {
               inputEl = el as HTMLInputElement;
               if (!touch) inputEl.focus();
             }}
+            onFocus={() => typing.set(true)}
+            onBlur={() => typing.set(false)}
             onInput={(event: Event) => draft.set((event.target as HTMLInputElement).value)}
           />
           <button type="submit" disabled={busy}>
@@ -360,7 +430,9 @@ export function Game() {
   );
 
   const Accusation = () => {
-    const answer = signal("");
+    // The suspects as the finale names them, "名前（役）", without the role:
+    // the name is what an accusation has to get right.
+    const suspects = () => (at().suspects ?? []).map((who) => who.replace(/（[^（）]*）$/, ""));
     return (
       <div>
         <form
@@ -374,9 +446,31 @@ export function Game() {
             placeholder="誰が、どうやって、なぜ。"
             value={answer}
             disabled={busy}
-            ref={(el: Element) => (el as HTMLTextAreaElement).focus()}
+            ref={(el: Element) => {
+              answerEl = el as HTMLTextAreaElement;
+              answerEl.focus();
+            }}
+            onFocus={() => typing.set(true)}
+            onBlur={() => typing.set(false)}
             onInput={(event: Event) => answer.set((event.target as HTMLTextAreaElement).value)}
           />
+          <Show when={() => suspects().length > 0}>
+            <div class={s.names}>
+              <span>名前を入れる</span>
+              <For each={suspects}>
+                {(name: string) => (
+                  <button
+                    type="button"
+                    class="secondary"
+                    disabled={busy}
+                    onClick={() => writer()?.(name)}
+                  >
+                    {name}
+                  </button>
+                )}
+              </For>
+            </div>
+          </Show>
           <p>
             <button type="submit" disabled={busy}>
               推理を述べる
