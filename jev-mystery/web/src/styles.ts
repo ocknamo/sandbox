@@ -703,6 +703,13 @@ export const notebook = css`
     padding-bottom: 0;
   }
 
+  /* The faces are what a player knows these people by, so the notebook
+     draws them larger than the room panel does. */
+  .row .${avatar} {
+    width: 48px;
+    height: 48px;
+  }
+
   .body {
     flex: 1 1 auto;
     min-width: 0;
