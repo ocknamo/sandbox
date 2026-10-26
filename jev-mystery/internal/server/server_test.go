@@ -107,6 +107,19 @@ func TestPlayThrough(t *testing.T) {
 	}
 }
 
+// The victim is named in the opening and stands in no room, so the view
+// carries them separately, from the first screen on, for the notebook.
+func TestTheVictimIsInTheView(t *testing.T) {
+	h := serve(t, &stub{choice: "examine_ledger"})
+
+	_, start := post(t, h, "/api/new", map[string]any{"case": "yakata"})
+	view, _ := start["view"].(map[string]any)
+	victim, _ := view["victim"].(map[string]any)
+	if victim["name"] != "鷲尾 玄三郎" {
+		t.Errorf("victim %v, want 鷲尾 玄三郎", view["victim"])
+	}
+}
+
 // A room the player walks into describes itself, in the log rather than only
 // in the place panel. Without it a move reads as one line of prose and a
 // changed heading, and the player has no reason to search the new room.

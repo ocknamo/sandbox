@@ -5,18 +5,19 @@
  * The panels at the top of the board say the same things, but the log grows
  * under them and a player deep in it had to scroll all the way back up to
  * check a name or a piece of evidence. The notebook sits in the corner of the
- * screen instead, and it is also how a name gets into the input without being
+ * screen instead, and every name in it can be copied, to be pasted rather than
  * typed: a misspelt name is a missed accusation, and the player should not
  * have to remember how a name is written to say it.
  *
- * Nothing here is new information. Every person in it has been seen, every
- * item has been found; the notebook only keeps them within reach.
+ * Nothing here is new information. Every person in it has been seen or named
+ * in the opening, every item has been found; the notebook only keeps them
+ * within reach.
  */
 import { For, Show, onCleanup, signal, untrack } from "@kanabun/core";
 import type { Item, Person, View } from "./api";
 import closedImage from "./assets/notebook-closed.png";
 import openImage from "./assets/notebook-open.png";
-import { Avatar } from "./parts";
+import { Avatar, copyText } from "./parts";
 import * as s from "./styles";
 
 type Tab = "people" | "evidence" | "place";
@@ -25,11 +26,6 @@ export function Notebook(props: {
   view: () => View;
   /** Everyone the player has seen so far, in the order they were met. */
   met: () => Person[];
-  /**
-   * Writes a name into whichever field the player is writing in, or null when
-   * there is nowhere to write: after the ending, or while a turn is out.
-   */
-  write: () => ((text: string) => void) | null;
   /** Kept out of the way, e.g. while the keyboard is up on a phone. */
   hidden: () => boolean;
 }) {
@@ -69,26 +65,51 @@ export function Notebook(props: {
   document.addEventListener("keydown", onKey);
   onCleanup(() => document.removeEventListener("keydown", onKey));
 
-  /**
-   * Into the field, then out of the way: the book sits over the field it
-   * has just written into — all of it on a phone, the end of it with the
-   * submit button beside a wide page — and the player wants to read on.
-   */
-  const jot = (text: string) => {
-    const write = props.write();
-    if (write === null) return;
-    hide();
-    write(text);
-  };
-
   const here = (person: Person) => (props.view().people ?? []).some((p) => p.id === person.id);
 
-  const Jot = (p: { text: string; label: string }) => (
-    <Show when={() => props.write() !== null}>
-      <button type="button" class="jot" aria-label={p.label} onClick={() => jot(p.text)}>
-        ✎ 書き込む
+  // The victim heads the list; everyone else in the order they were met. A
+  // case that puts its victim in a room as well lists them once.
+  const victim = () => props.view().victim;
+  const others = () => props.met().filter((p) => p.id !== victim()?.id);
+
+  /**
+   * Copies a name and says so in place. The book stays open: the player may
+   * want another name, and pasting is theirs to do wherever they are writing.
+   */
+  const Copy = (p: { text: string; label: string }) => {
+    const copied = signal(false);
+    const copy = async () => {
+      await copyText(p.text);
+      copied.set(true);
+      setTimeout(() => copied.set(false), 1500);
+    };
+    return (
+      <button
+        type="button"
+        class={() => (copied() ? "copy done" : "copy")}
+        aria-label={p.label}
+        onClick={() => void copy()}
+      >
+        {() => (copied() ? "✓ コピー済み" : "コピー")}
       </button>
-    </Show>
+    );
+  };
+
+  const PersonRow = (p: { person: Person; victim?: boolean }) => (
+    <div class="row">
+      <Avatar person={p.person} />
+      <div class="body">
+        <div class="name">
+          {p.person.name}
+          {p.victim ? <span class="victim">被害者</span> : null}
+          <Show when={() => here(p.person)}>
+            <span class="here">ここにいる</span>
+          </Show>
+        </div>
+        <div class="desc">{p.person.role}</div>
+      </div>
+      <Copy text={p.person.name} label={`${p.person.name}の名前をコピー`} />
+    </div>
   );
 
   const TabButton = (p: { id: Tab; label: () => string }) => (
@@ -105,22 +126,12 @@ export function Notebook(props: {
 
   const People = () => (
     <div class="list">
-      <For each={props.met} fallback={<p class="none">まだ誰にも会っていない。</p>}>
-        {(person: Person) => (
-          <div class="row">
-            <Avatar person={person} />
-            <div class="body">
-              <div class="name">
-                {person.name}
-                <Show when={() => here(person)}>
-                  <span class="here">ここにいる</span>
-                </Show>
-              </div>
-              <div class="desc">{person.role}</div>
-            </div>
-            <Jot text={person.name} label={`${person.name}の名前を入力欄に書き込む`} />
-          </div>
-        )}
+      {() => {
+        const v = victim();
+        return v === undefined ? null : <PersonRow person={v} victim />;
+      }}
+      <For each={others} fallback={<p class="none">まだ誰にも会っていない。</p>}>
+        {(person: Person) => <PersonRow person={person} />}
       </For>
     </div>
   );
@@ -139,7 +150,7 @@ export function Notebook(props: {
               </div>
               <div class="desc">{item.description}</div>
             </div>
-            <Jot text={item.name} label={`${item.name}を入力欄に書き込む`} />
+            <Copy text={item.name} label={`${item.name}をコピー`} />
           </div>
         )}
       </For>
@@ -180,14 +191,17 @@ export function Notebook(props: {
             </button>
           </header>
           <div class="tabs" role="tablist">
-            <TabButton id="people" label={() => `人物 ${props.met().length}`} />
+            <TabButton
+              id="people"
+              label={() => `人物 ${others().length + (victim() === undefined ? 0 : 1)}`}
+            />
             <TabButton id="evidence" label={() => `証拠 ${evidence().length}`} />
             <TabButton id="place" label={() => "現在地"} />
           </div>
           <div class="page">
             {() => (tab() === "people" ? <People /> : tab() === "evidence" ? <Evidence /> : <Place />)}
-            <Show when={() => props.write() !== null && tab() !== "place"}>
-              <p class="tip">「書き込む」で、その名前を入力欄に書き込めます。</p>
+            <Show when={() => tab() !== "place"}>
+              <p class="tip">名前をコピーして、入力欄に貼り付けられます。</p>
             </Show>
           </div>
         </section>

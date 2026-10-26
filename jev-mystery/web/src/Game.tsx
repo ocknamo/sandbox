@@ -86,8 +86,7 @@ export function Game() {
   const phase = signal<Phase>("playing");
   const draft = signal("");
   // The accusation as written so far. It lives here rather than in the form so
-  // the notebook can write a name into it, and so going back to the
-  // questioning and returning does not throw it away.
+  // going back to the questioning and returning does not throw it away.
   const answer = signal("");
   // Everyone the player has seen, for the notebook. The view only says who is
   // in this room.
@@ -275,8 +274,8 @@ export function Game() {
   /**
    * Write a name where the player is writing: into the turn field while
    * questioning, into the accusation once everyone is gathered. It goes in at
-   * the caret, which a field keeps after losing focus to the notebook, so a
-   * name can land in the middle of a sentence already begun.
+   * the caret, which a field keeps after losing focus to the button pressed,
+   * so a name can land in the middle of a sentence already begun.
    */
   const writer = (): ((text: string) => void) | null => {
     if (busy() || phase() === "closed") return null;
@@ -334,7 +333,7 @@ export function Game() {
           </div>
         </div>
 
-        <Notebook view={at} met={met} write={writer} hidden={() => touch && typing()} />
+        <Notebook view={at} met={met} hidden={() => touch && typing()} />
       </div>
     );
   };

@@ -721,6 +721,7 @@ export const notebook = css`
   }
 
   .here,
+  .victim,
   .new {
     margin-left: 8px;
     padding: 0 7px;
@@ -734,18 +735,30 @@ export const notebook = css`
     color: var(--accent);
   }
 
+  .victim {
+    border: 1px solid var(--ink-muted);
+    color: var(--ink-muted);
+  }
+
   .new {
     background: var(--warn);
     color: #fff;
   }
 
-  .jot {
+  .copy {
     flex: 0 0 auto;
+    /* Wide enough for either label, so the row does not shift on a copy. */
+    min-width: 7.5em;
     padding: 3px 10px;
     border: 1px solid var(--leather-ink);
     background: transparent;
     color: var(--leather-ink);
     font-size: 12.5px;
+  }
+
+  .copy.done {
+    border-color: var(--accent);
+    color: var(--accent);
   }
 
   .scene {
