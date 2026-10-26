@@ -142,6 +142,11 @@ type view struct {
 	People   []charView `json:"people"`
 	Evidence []itemView `json:"evidence"`
 
+	// Victim is who the case is about, when it names one. They are in the
+	// opening rather than in any room, so without this the page could only
+	// list the people standing in front of the player.
+	Victim *charView `json:"victim,omitempty"`
+
 	Turn     int  `json:"turn"`
 	Finished bool `json:"finished"`
 
@@ -163,6 +168,10 @@ func (h *handlers) view(s *scenario.Scenario, st game.State) view {
 				v.People = append(v.People, person(c))
 			}
 		}
+	}
+	if c := s.Character(s.Victim); c != nil {
+		victim := person(c)
+		v.Victim = &victim
 	}
 	for _, id := range st.Evidence {
 		if e := s.Item(id); e != nil {

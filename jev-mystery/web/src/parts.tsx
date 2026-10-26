@@ -278,6 +278,26 @@ function shareURL(): string {
 }
 
 /**
+ * Put text on the clipboard. The clipboard API needs a secure origin and a
+ * recent browser; where it is missing, a hidden textarea and the old copy
+ * command still work nearly everywhere.
+ */
+export async function copyText(text: string): Promise<void> {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const area = document.createElement("textarea");
+    area.value = text;
+    area.style.position = "fixed";
+    area.style.opacity = "0";
+    document.body.appendChild(area);
+    area.select();
+    document.execCommand("copy");
+    area.remove();
+  }
+}
+
+/**
  * Two ways to take the result off the page: the device's own share sheet,
  * where there is one, and a plain copy to the clipboard, which works
  * everywhere and is what a desktop browser is left with.
@@ -294,21 +314,7 @@ function Share(props: { text: string; title: string }) {
   };
 
   const copy = async () => {
-    const all = `${props.text}\n${url}`;
-    try {
-      await navigator.clipboard.writeText(all);
-    } catch {
-      // No clipboard API (an insecure origin, an old browser): the textarea
-      // route still works nearly everywhere.
-      const area = document.createElement("textarea");
-      area.value = all;
-      area.style.position = "fixed";
-      area.style.opacity = "0";
-      document.body.appendChild(area);
-      area.select();
-      document.execCommand("copy");
-      area.remove();
-    }
+    await copyText(`${props.text}\n${url}`);
     copied.set(true);
     setTimeout(() => copied.set(false), 2000);
   };

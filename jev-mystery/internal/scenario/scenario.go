@@ -37,6 +37,12 @@ type Scenario struct {
 	Evidence   []Evidence  `json:"evidence"`
 	Actions    []Action    `json:"actions"`
 
+	// Victim is the character the case is about, by id. They are never met —
+	// they are why everyone else is here — but their name is in the opening,
+	// and the player will write it, so the notebook lists them from the start.
+	// It is optional: not every case has a body.
+	Victim string `json:"victim,omitempty"`
+
 	// Flavour is prose the case does not turn on: the rain, a photograph, a
 	// look at somebody's hands. It is matched separately from the actions and
 	// after them, so it never competes with a real action for the vote, and
@@ -462,6 +468,12 @@ func (s *Scenario) validate() error {
 	}
 	if len(s.Misses["default"]) == 0 {
 		return fmt.Errorf("scenario: misses needs a %q entry", "default")
+	}
+
+	if s.Victim != "" {
+		if _, ok := s.characters[s.Victim]; !ok {
+			return fmt.Errorf("scenario: victim %q is not a character", s.Victim)
+		}
 	}
 
 	for _, sc := range s.Scenes {

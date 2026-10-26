@@ -61,6 +61,11 @@ export interface View {
   scene: Scene;
   people?: Person[];
   evidence?: Item[];
+  /**
+   * Who the case is about, when it names one. They stand in no room, so
+   * `people` never has them; absent from a service that predates it.
+   */
+  victim?: Person;
   turn: number;
   finished: boolean;
   finale_open: boolean;

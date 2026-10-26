@@ -93,6 +93,9 @@ func TestLoadRejects(t *testing.T) {
 		"unknown evidence": func(m map[string]any) {
 			m["actions"].([]any)[0].(map[string]any)["gives_evidence"] = []any{"nothing"}
 		},
+		"victim is not a character": func(m map[string]any) {
+			m["victim"] = "watson"
+		},
 		"culprit is not a suspect": func(m map[string]any) {
 			finale(m)["culprit"] = "watson"
 		},
