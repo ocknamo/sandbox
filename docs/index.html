@@ -110,7 +110,23 @@
 // answers every origin with Access-Control-Allow-Origin: *.
 // ?api=http://localhost:8080 points it at a local `go run .` instead.
 const DEPLOYED_API = 'https://go-cloudrun-bird-329294726644.asia-northeast1.run.app';
-const API = (new URLSearchParams(location.search).get('api') || DEPLOYED_API).replace(/\/+$/, '');
+// ?api= points the page at a local `go run .` and nothing else. Any other host
+// could feed this page whatever it liked under ocknamo.github.io, an origin
+// other apps share.
+function pickApi(fallback) {
+  const raw = new URLSearchParams(location.search).get('api');
+  if (!raw) return fallback;
+  try {
+    const url = new URL(raw);
+    const local = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
+    if (local && (url.protocol === 'http:' || url.protocol === 'https:')) {
+      return (url.origin + url.pathname).replace(/\/+$/, '');
+    }
+  } catch { /* not a URL: fall through */ }
+  console.warn('Ignoring ?api= that is not a local address:', raw);
+  return fallback;
+}
+const API = pickApi(DEPLOYED_API);
 
 const photo = document.getElementById('photo');
 photo.addEventListener('error', () => {
@@ -150,7 +166,8 @@ async function load() {
     creditEl.innerHTML = '';
     creditEl.append(`${a.artist || '作者不明'} — ${a.license || 'ライセンス情報なし'} · `);
     const link = document.createElement('a');
-    link.href = a.source_page;
+    // From the API: only a web page may become a link.
+    if (/^https:\/\//i.test(a.source_page || '')) link.href = a.source_page;
     link.textContent = 'Commons のファイルページ';
     link.rel = 'noopener';
     creditEl.append(link);
