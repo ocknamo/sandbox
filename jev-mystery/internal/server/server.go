@@ -18,6 +18,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/ocknamo/sandbox/jev-mystery/internal/game"
@@ -51,6 +52,10 @@ type Options struct {
 	// front of a player: a score of 0.38 against an option the player cannot
 	// see still tells them one was nearly there.
 	Debug bool
+
+	// Limiter bounds how many turns and accusations one client may play: each
+	// is a paid API call. Nil means no limit, which is what the tests use.
+	Limiter *Limiter
 }
 
 // New returns the service handler.
@@ -304,6 +309,10 @@ func (h *handlers) act(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusConflict, "this case is closed")
 		return
 	}
+	if wait := h.opts.Limiter.Allow(clientIP(r), 1); wait > 0 {
+		tooMany(w, wait)
+		return
+	}
 
 	ctx, cancel := context.WithTimeout(r.Context(), upstreamTimeout)
 	defer cancel()
@@ -416,6 +425,10 @@ func (h *handlers) accuse(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusConflict, "there is not enough to accuse anyone yet")
 		return
 	}
+	if wait := h.opts.Limiter.Allow(clientIP(r), 1); wait > 0 {
+		tooMany(w, wait)
+		return
+	}
 
 	ctx, cancel := context.WithTimeout(r.Context(), upstreamTimeout)
 	defer cancel()
@@ -514,6 +527,12 @@ func writeJSON(w http.ResponseWriter, status int, body any) {
 		// but the log, which withLogging does not see.
 		slog.Default().Error("write response", "err", err)
 	}
+}
+
+// tooMany refuses a client over the limit, saying how long to wait.
+func tooMany(w http.ResponseWriter, wait time.Duration) {
+	w.Header().Set("Retry-After", strconv.Itoa(int((wait+time.Second-1)/time.Second)))
+	writeError(w, http.StatusTooManyRequests, "too many requests; try again later")
 }
 
 func writeError(w http.ResponseWriter, status int, message string) {

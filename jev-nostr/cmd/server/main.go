@@ -64,8 +64,10 @@ func main() {
 	}
 
 	srv := &http.Server{
-		Addr:              net.JoinHostPort("", port),
-		Handler:           server.New(s, logger),
+		Addr: net.JoinHostPort("", port),
+		// The page scores a relay's worth of posts per load (about a hundred);
+		// this allows several loads per half hour and stops a loop.
+		Handler:           server.New(s, logger, server.NewLimiter(600, 30*time.Minute)),
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 

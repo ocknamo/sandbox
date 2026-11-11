@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/ocknamo/sandbox/jev-mystery/internal/game"
 	"github.com/ocknamo/sandbox/jev-mystery/internal/jev"
@@ -48,6 +49,11 @@ func (s *stub) Ask(_ context.Context, _ any, qs map[string]jev.Question) (*jev.R
 
 func serve(t *testing.T, s *stub) http.Handler {
 	t.Helper()
+	return serveLimited(t, s, nil)
+}
+
+func serveLimited(t *testing.T, s *stub, limiter *Limiter) http.Handler {
+	t.Helper()
 	sc, err := scenario.Builtin("yakata")
 	if err != nil {
 		t.Fatal(err)
@@ -60,6 +66,7 @@ func serve(t *testing.T, s *stub) http.Handler {
 		Cases:   scenario.NewLibrary(sc),
 		Engine:  &game.Engine{Asker: s, Policy: game.DefaultPolicy()},
 		Session: codec,
+		Limiter: limiter,
 	})
 }
 
@@ -308,4 +315,22 @@ func sign(t *testing.T, st game.State) string {
 		t.Fatal(err)
 	}
 	return token
+}
+
+// Each turn is a paid call, so turns are what is counted; starting a case is not.
+func TestTurnsAreLimited(t *testing.T) {
+	h := serveLimited(t, &stub{choice: "examine_ledger"}, NewLimiter(1, 30*time.Minute))
+
+	_, start := post(t, h, "/api/new", map[string]any{"case": "yakata"})
+	token, _ := start["state"].(string)
+	if rec, _ := post(t, h, "/api/act", map[string]any{"state": token, "input": "献立帳を調べる"}); rec.Code != http.StatusOK {
+		t.Fatalf("first turn = %d", rec.Code)
+	}
+	rec, _ := post(t, h, "/api/act", map[string]any{"state": token, "input": "献立帳を調べる"})
+	if rec.Code != http.StatusTooManyRequests {
+		t.Errorf("second turn = %d, want 429", rec.Code)
+	}
+	if rec, _ := post(t, h, "/api/new", map[string]any{"case": "yakata"}); rec.Code != http.StatusOK {
+		t.Errorf("starting a case while limited = %d, want 200", rec.Code)
+	}
 }

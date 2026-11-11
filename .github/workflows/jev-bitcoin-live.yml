@@ -23,6 +23,10 @@ concurrency:
   group: jev-bitcoin-live
   cancel-in-progress: true
 
+# Nothing here writes to the repository.
+permissions:
+  contents: read
+
 jobs:
   live:
     name: Live queries

@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 	"unicode/utf8"
 
 	"github.com/ocknamo/sandbox/jev-nostr/internal/jev"
@@ -17,6 +18,10 @@ import (
 // newTestServer wires the real handler over a stub Jev endpoint, so the tests
 // exercise the whole path without a key.
 func newTestServer(t *testing.T) http.Handler {
+	return newLimitedTestServer(t, nil)
+}
+
+func newLimitedTestServer(t *testing.T, limiter *Limiter) http.Handler {
 	t.Helper()
 
 	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -45,7 +50,7 @@ func newTestServer(t *testing.T) http.Handler {
 	c.HTTPClient = upstream.Client()
 	c.Retries = 0
 
-	return New(scorer.New(c), slog.New(slog.DiscardHandler))
+	return New(scorer.New(c), slog.New(slog.DiscardHandler), limiter)
 }
 
 func post(t *testing.T, h http.Handler, path, body string) *httptest.ResponseRecorder {
@@ -221,5 +226,26 @@ func TestScoreBodyIsBounded(t *testing.T) {
 	rec := post(t, h, "/api/score", body)
 	if rec.Code != http.StatusRequestEntityTooLarge {
 		t.Errorf("status = %d, want %d", rec.Code, http.StatusRequestEntityTooLarge)
+	}
+}
+
+// The limit is counted in posts, since each post is its own paid call, and a
+// refused batch sends nothing upstream.
+func TestScoreIsLimitedPerPost(t *testing.T) {
+	h := newLimitedTestServer(t, NewLimiter(3, 30*time.Minute))
+	two := `{"posts":[{"id":"a","content":"x"},{"id":"b","content":"y"}]}`
+
+	if rec := post(t, h, "/api/score", two); rec.Code != http.StatusOK {
+		t.Fatalf("first batch = %d: %s", rec.Code, rec.Body)
+	}
+	rec := post(t, h, "/api/score", two)
+	if rec.Code != http.StatusTooManyRequests {
+		t.Fatalf("second batch = %d, want 429", rec.Code)
+	}
+	if rec.Header().Get("Retry-After") == "" {
+		t.Error("no Retry-After")
+	}
+	if rec := post(t, h, "/api/score", `{"posts":[{"id":"c","content":"z"}]}`); rec.Code != http.StatusOK {
+		t.Errorf("a batch that still fits = %d", rec.Code)
 	}
 }

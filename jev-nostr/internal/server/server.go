@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -44,8 +45,11 @@ const (
 
 // New returns the service handler. The service is API only: the page lives on
 // GitHub Pages, so the root has nothing to serve.
-func New(s *scorer.Scorer, logger *slog.Logger) http.Handler {
-	h := &handlers{scorer: s}
+//
+// limiter bounds how many posts one client may have scored: each post is a
+// paid API call. Nil means no limit, which is what the tests use.
+func New(s *scorer.Scorer, logger *slog.Logger, limiter *Limiter) http.Handler {
+	h := &handlers{scorer: s, limiter: limiter}
 	mux := http.NewServeMux()
 
 	// Not /healthz: Google Front End intercepts that exact path on *.run.app
@@ -61,7 +65,8 @@ func New(s *scorer.Scorer, logger *slog.Logger) http.Handler {
 }
 
 type handlers struct {
-	scorer *scorer.Scorer
+	scorer  *scorer.Scorer
+	limiter *Limiter
 }
 
 func (h *handlers) health(w http.ResponseWriter, r *http.Request) {
@@ -114,6 +119,11 @@ func (h *handlers) score(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
+	// Charged per post, after cleaning: what is charged is what is sent on.
+	if wait := h.limiter.Allow(clientIP(r), len(posts)); wait > 0 {
+		tooMany(w, wait)
+		return
+	}
 
 	ctx, cancel := context.WithTimeout(r.Context(), upstreamTimeout)
 	defer cancel()
@@ -157,6 +167,12 @@ func writeJSON(w http.ResponseWriter, status int, body any) {
 		// but the log, which withLogging does not see.
 		slog.Default().Error("write response", "err", err)
 	}
+}
+
+// tooMany refuses a client over the limit, saying how long to wait.
+func tooMany(w http.ResponseWriter, wait time.Duration) {
+	w.Header().Set("Retry-After", strconv.Itoa(int((wait+time.Second-1)/time.Second)))
+	writeError(w, http.StatusTooManyRequests, "too many requests; try again later")
 }
 
 func writeError(w http.ResponseWriter, status int, message string) {
