@@ -8,8 +8,27 @@
 
 const DEPLOYED_API = "https://jev-bitcoin-api-329294726644.asia-northeast1.run.app";
 
-/** The service to talk to. `?api=` points the page at a local server. */
-export const API = (new URLSearchParams(location.search).get("api") ?? DEPLOYED_API).replace(/\/+$/, "");
+/**
+ * The service to talk to. `?api=` points the page at a local server and nothing
+ * else: any other host could answer this page under ocknamo.github.io, an
+ * origin other apps share.
+ */
+export const API = pickApi(new URLSearchParams(location.search).get("api"), DEPLOYED_API);
+
+function pickApi(raw: string | null, fallback: string): string {
+  if (!raw) return fallback;
+  try {
+    const url = new URL(raw);
+    const local = ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
+    if (local && (url.protocol === "http:" || url.protocol === "https:")) {
+      return (url.origin + url.pathname).replace(/\/+$/, "");
+    }
+  } catch {
+    // Not a URL: fall back.
+  }
+  console.warn("Ignoring ?api= that is not a local address:", raw);
+  return fallback;
+}
 
 export interface CategoryRef {
   id: string;
