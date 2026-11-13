@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -22,9 +23,11 @@ type stub struct {
 	choice string
 	noul   float64
 	score  float64
+	calls  atomic.Int64 // paid calls that reached the model
 }
 
 func (s *stub) Ask(_ context.Context, _ any, qs map[string]jev.Question) (*jev.Response, error) {
+	s.calls.Add(1)
 	answers := map[string]jev.Answer{}
 	conf := 0.9
 	for key, q := range qs {
@@ -319,16 +322,44 @@ func sign(t *testing.T, st game.State) string {
 
 // Each turn is a paid call, so turns are what is counted; starting a case is not.
 func TestTurnsAreLimited(t *testing.T) {
-	h := serveLimited(t, &stub{choice: "examine_ledger"}, NewLimiter(1, 30*time.Minute))
+	s := &stub{choice: "examine_ledger", noul: 0.9, score: 4}
+	h := serveLimited(t, s, NewLimiter(2, 30*time.Minute))
 
 	_, start := post(t, h, "/api/new", map[string]any{"case": "yakata"})
 	token, _ := start["state"].(string)
+	// An empty turn makes no paid call, so it is not counted.
+	if rec, _ := post(t, h, "/api/act", map[string]any{"state": token, "input": "  "}); rec.Code != http.StatusBadRequest {
+		t.Fatalf("empty turn = %d, want 400", rec.Code)
+	}
 	if rec, _ := post(t, h, "/api/act", map[string]any{"state": token, "input": "献立帳を調べる"}); rec.Code != http.StatusOK {
 		t.Fatalf("first turn = %d", rec.Code)
 	}
-	rec, _ := post(t, h, "/api/act", map[string]any{"state": token, "input": "献立帳を調べる"})
-	if rec.Code != http.StatusTooManyRequests {
-		t.Errorf("second turn = %d, want 429", rec.Code)
+
+	// An accusation is counted like a turn: this uses the last of the two.
+	codec, _ := session.New("test key")
+	ready, err := codec.Encode(game.State{Scenario: "yakata", Scene: "hall", Evidence: []string{"meals", "pawprint", "bite"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rec, _ := post(t, h, "/api/accuse", map[string]any{"state": ready, "answer": "犯人は久瀬瑠依です。"}); rec.Code != http.StatusOK {
+		t.Fatalf("accusation = %d", rec.Code)
+	}
+
+	before := s.calls.Load()
+	for _, req := range []struct {
+		path string
+		body map[string]any
+	}{
+		{"/api/act", map[string]any{"state": token, "input": "献立帳を調べる"}},
+		{"/api/accuse", map[string]any{"state": ready, "answer": "犯人は久瀬瑠依です。"}},
+	} {
+		rec, _ := post(t, h, req.path, req.body)
+		if rec.Code != http.StatusTooManyRequests {
+			t.Errorf("%s over the limit = %d, want 429", req.path, rec.Code)
+		}
+	}
+	if got := s.calls.Load(); got != before {
+		t.Errorf("refused requests made %d paid calls", got-before)
 	}
 	if rec, _ := post(t, h, "/api/new", map[string]any{"case": "yakata"}); rec.Code != http.StatusOK {
 		t.Errorf("starting a case while limited = %d, want 200", rec.Code)

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 	"unicode/utf8"
@@ -18,13 +19,17 @@ import (
 // newTestServer wires the real handler over a stub Jev endpoint, so the tests
 // exercise the whole path without a key.
 func newTestServer(t *testing.T) http.Handler {
-	return newLimitedTestServer(t, nil)
+	h, _ := newLimitedTestServer(t, nil)
+	return h
 }
 
-func newLimitedTestServer(t *testing.T, limiter *Limiter) http.Handler {
+// The second result counts the calls that reached the (paid) upstream.
+func newLimitedTestServer(t *testing.T, limiter *Limiter) (http.Handler, *atomic.Int64) {
 	t.Helper()
 
+	calls := new(atomic.Int64)
 	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls.Add(1)
 		var req jev.Request
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			t.Errorf("upstream decode: %v", err)
@@ -50,7 +55,7 @@ func newLimitedTestServer(t *testing.T, limiter *Limiter) http.Handler {
 	c.HTTPClient = upstream.Client()
 	c.Retries = 0
 
-	return New(scorer.New(c), slog.New(slog.DiscardHandler), limiter)
+	return New(scorer.New(c), slog.New(slog.DiscardHandler), limiter), calls
 }
 
 func post(t *testing.T, h http.Handler, path, body string) *httptest.ResponseRecorder {
@@ -232,18 +237,26 @@ func TestScoreBodyIsBounded(t *testing.T) {
 // The limit is counted in posts, since each post is its own paid call, and a
 // refused batch sends nothing upstream.
 func TestScoreIsLimitedPerPost(t *testing.T) {
-	h := newLimitedTestServer(t, NewLimiter(3, 30*time.Minute))
+	h, calls := newLimitedTestServer(t, NewLimiter(3, 30*time.Minute))
 	two := `{"posts":[{"id":"a","content":"x"},{"id":"b","content":"y"}]}`
 
 	if rec := post(t, h, "/api/score", two); rec.Code != http.StatusOK {
 		t.Fatalf("first batch = %d: %s", rec.Code, rec.Body)
 	}
+	before := calls.Load()
 	rec := post(t, h, "/api/score", two)
 	if rec.Code != http.StatusTooManyRequests {
 		t.Fatalf("second batch = %d, want 429", rec.Code)
 	}
+	if got := calls.Load(); got != before {
+		t.Errorf("a refused batch made %d upstream calls", got-before)
+	}
 	if rec.Header().Get("Retry-After") == "" {
 		t.Error("no Retry-After")
+	}
+	// Cross-origin, the page can read it only if it is exposed.
+	if got := rec.Header().Get("Access-Control-Expose-Headers"); got != "Retry-After" {
+		t.Errorf("Access-Control-Expose-Headers = %q", got)
 	}
 	if rec := post(t, h, "/api/score", `{"posts":[{"id":"c","content":"z"}]}`); rec.Code != http.StatusOK {
 		t.Errorf("a batch that still fits = %d", rec.Code)

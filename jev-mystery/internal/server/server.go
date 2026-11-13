@@ -19,6 +19,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/ocknamo/sandbox/jev-mystery/internal/game"
@@ -309,6 +310,11 @@ func (h *handlers) act(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusConflict, "this case is closed")
 		return
 	}
+	// Checked before the limit, which counts paid calls: an empty turn makes none.
+	if strings.TrimSpace(req.Input) == "" {
+		writeError(w, http.StatusBadRequest, "nothing was typed")
+		return
+	}
 	if wait := h.opts.Limiter.Allow(clientIP(r), 1); wait > 0 {
 		tooMany(w, wait)
 		return
@@ -423,6 +429,10 @@ func (h *handlers) accuse(w http.ResponseWriter, r *http.Request) {
 	// The gathering is a state the player reaches, not a screen they can open.
 	if !game.FinaleOpen(s, st) {
 		writeError(w, http.StatusConflict, "there is not enough to accuse anyone yet")
+		return
+	}
+	if strings.TrimSpace(req.Answer) == "" {
+		writeError(w, http.StatusBadRequest, "nothing was written")
 		return
 	}
 	if wait := h.opts.Limiter.Allow(clientIP(r), 1); wait > 0 {

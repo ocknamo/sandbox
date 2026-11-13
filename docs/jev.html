@@ -310,6 +310,7 @@ const STRINGS = {
     scored: (n) => `${n} 件を判定済み`,
     partial: (ok, bad, err) => `${ok} 件を判定、${bad} 件は失敗（${err}）`,
     scoreFailed: (err) => `判定に失敗: ${err}`,
+    limited: (time) => `判定の上限に達したので受信を止めました。${time} 以降に再開できます`,
     relayFailed: 'リレーに接続できませんでした',
     disconnected: '切断されました',
     stopped: '停止しました',
@@ -379,6 +380,7 @@ const STRINGS = {
     scored: (n) => `${n} post${n === 1 ? '' : 's'} scored`,
     partial: (ok, bad, err) => `${ok} scored, ${bad} failed (${err})`,
     scoreFailed: (err) => `Scoring failed: ${err}`,
+    limited: (time) => `Hit the scoring limit, so stopped listening. You can start again after ${time}`,
     relayFailed: 'Could not connect to the relay',
     disconnected: 'Disconnected',
     stopped: 'Stopped',
@@ -933,6 +935,17 @@ async function sendBatch() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ posts: batch.map((p) => ({ id: p.id, content: p.content })) }),
     });
+    if (res.status === 429) {
+      // Every post past the limit would be refused too, so stop rather than
+      // keep sending, and say when starting again will work.
+      const wait = Number(res.headers.get('Retry-After')) || 60;
+      stop();
+      pending.length = 0;
+      const time = new Date(Date.now() + wait * 1000)
+        .toLocaleTimeString(uiLang, { hour: '2-digit', minute: '2-digit' });
+      setStatus('limited', [time], true);
+      return;
+    }
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
 
