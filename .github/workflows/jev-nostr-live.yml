@@ -22,6 +22,10 @@ concurrency:
   group: jev-nostr-live
   cancel-in-progress: true
 
+# Nothing here writes to the repository.
+permissions:
+  contents: read
+
 jobs:
   live:
     name: Live Jev call

@@ -217,7 +217,23 @@
 // with Access-Control-Allow-Origin: *.
 // ?api=http://localhost:8080 points it at a local `go run ./cmd/server`.
 const DEPLOYED_API = 'https://jev-nostr-api-329294726644.asia-northeast1.run.app';
-const API = (new URLSearchParams(location.search).get('api') || DEPLOYED_API).replace(/\/+$/, '');
+// ?api= points the page at a local `go run .` and nothing else. Any other host
+// could feed this page whatever it liked under ocknamo.github.io, an origin
+// other apps share.
+function pickApi(fallback) {
+  const raw = new URLSearchParams(location.search).get('api');
+  if (!raw) return fallback;
+  try {
+    const url = new URL(raw);
+    const local = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
+    if (local && (url.protocol === 'http:' || url.protocol === 'https:')) {
+      return (url.origin + url.pathname).replace(/\/+$/, '');
+    }
+  } catch { /* not a URL: fall through */ }
+  console.warn('Ignoring ?api= that is not a local address:', raw);
+  return fallback;
+}
+const API = pickApi(DEPLOYED_API);
 
 // How many posts to gather before sending a batch, and how long to wait before
 // sending a short one. The service caps a batch at 30.
@@ -294,6 +310,7 @@ const STRINGS = {
     scored: (n) => `${n} 件を判定済み`,
     partial: (ok, bad, err) => `${ok} 件を判定、${bad} 件は失敗（${err}）`,
     scoreFailed: (err) => `判定に失敗: ${err}`,
+    limited: (time) => `判定の上限に達したので受信を止めました。${time} 以降に再開できます`,
     relayFailed: 'リレーに接続できませんでした',
     disconnected: '切断されました',
     stopped: '停止しました',
@@ -363,6 +380,7 @@ const STRINGS = {
     scored: (n) => `${n} post${n === 1 ? '' : 's'} scored`,
     partial: (ok, bad, err) => `${ok} scored, ${bad} failed (${err})`,
     scoreFailed: (err) => `Scoring failed: ${err}`,
+    limited: (time) => `Hit the scoring limit, so stopped listening. You can start again after ${time}`,
     relayFailed: 'Could not connect to the relay',
     disconnected: 'Disconnected',
     stopped: 'Stopped',
@@ -580,12 +598,24 @@ function verdict(r, c) {
   return { keep: false, why: r.reason, veto: false };
 }
 
+// Built from nodes, not markup: `name` can be a topic code the API sent.
 function signalBar(name, value, max, negative) {
   const frac = Math.max(0, Math.min(1, max ? value / max : 0));
-  return `
-    <span class="name">${name}</span>
-    <span class="track"><span class="fill${negative ? ' neg' : ''}" style="width:${(frac * 100).toFixed(1)}%"></span></span>
-    <span class="num">${value.toFixed(2)}</span>`;
+  const label = document.createElement('span');
+  label.className = 'name';
+  label.textContent = name;
+  const track = document.createElement('span');
+  track.className = 'track';
+  const fill = document.createElement('span');
+  fill.className = negative ? 'fill neg' : 'fill';
+  fill.style.width = `${(frac * 100).toFixed(1)}%`;
+  track.append(fill);
+  const num = document.createElement('span');
+  num.className = 'num';
+  num.textContent = Number(value).toFixed(2);
+  const bar = document.createDocumentFragment();
+  bar.append(label, track, num);
+  return bar;
 }
 
 // topLanguages renders the distribution rather than only the winner, because a
@@ -759,12 +789,15 @@ function postCard(r, v) {
 
   const signals = document.createElement('div');
   signals.className = 'signals';
-  signals.innerHTML =
-    signalBar('insight', r.insight, 1, false) +
-    signalBar('humor', r.humor, 1, false) +
-    signalBar('relatable', r.relatable, 1, false) +
-    signalBar('promotional', r.promotional, 1, true) +
-    (r.substance == null ? '' : signalBar('substance', r.substance, r.substance_top || 4, false));
+  signals.append(
+    signalBar('insight', r.insight, 1, false),
+    signalBar('humor', r.humor, 1, false),
+    signalBar('relatable', r.relatable, 1, false),
+    signalBar('promotional', r.promotional, 1, true),
+  );
+  if (r.substance != null) {
+    signals.append(signalBar('substance', r.substance, r.substance_top || 4, false));
+  }
 
   // The radar needs at least three axes to be a shape at all. With one or two
   // selected topics the ordinary bars say it better anyway.
@@ -782,9 +815,9 @@ function postCard(r, v) {
     if (axes.length && r.topic_scores) {
       const bars = document.createElement('div');
       bars.className = 'signals';
-      bars.innerHTML = axes
-        .map((code) => signalBar(topicName(code), r.topic_scores[code] ?? 0, 1, false))
-        .join('');
+      bars.append(
+        ...axes.map((code) => signalBar(topicName(code), r.topic_scores[code] ?? 0, 1, false)),
+      );
       node.append(bars);
     }
   }
@@ -902,6 +935,17 @@ async function sendBatch() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ posts: batch.map((p) => ({ id: p.id, content: p.content })) }),
     });
+    if (res.status === 429) {
+      // Every post past the limit would be refused too, so stop rather than
+      // keep sending, and say when starting again will work.
+      const wait = Number(res.headers.get('Retry-After')) || 60;
+      stop();
+      pending.length = 0;
+      const time = new Date(Date.now() + wait * 1000)
+        .toLocaleTimeString(uiLang, { hour: '2-digit', minute: '2-digit' });
+      setStatus('limited', [time], true);
+      return;
+    }
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
 

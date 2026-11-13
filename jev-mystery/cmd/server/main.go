@@ -109,6 +109,9 @@ func main() {
 			Session: codec,
 			Logger:  logger,
 			Debug:   os.Getenv("GAME_DEBUG") == "1",
+			// A full playthrough is a few dozen turns; this is several of them
+			// per half hour, and far short of a loop left running.
+			Limiter: server.NewLimiter(150, 30*time.Minute),
 		}),
 		ReadHeaderTimeout: 10 * time.Second,
 	}

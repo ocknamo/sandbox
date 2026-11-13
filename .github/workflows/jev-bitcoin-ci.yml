@@ -21,6 +21,10 @@ on:
       - 'docs/bitcoin/**'
       - '.github/workflows/jev-bitcoin-ci.yml'
 
+# Nothing here writes to the repository.
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Build and test

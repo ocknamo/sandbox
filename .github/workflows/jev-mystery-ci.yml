@@ -17,6 +17,10 @@ on:
       - 'jev-mystery/**'
       - '.github/workflows/jev-mystery-ci.yml'
 
+# Nothing here writes to the repository.
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Build and test

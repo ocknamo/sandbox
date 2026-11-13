@@ -335,12 +335,22 @@ func (h *handlers) logger() *slog.Logger {
 	return slog.Default()
 }
 
-// clientIP is who is asking, for the rate limit. Cloud Run puts the caller
-// first in X-Forwarded-For; locally there is only the socket.
+// clientIP is who is asking, for the rate limit; locally there is only the
+// socket.
+//
+// Google's front end appends the address it saw to whatever X-Forwarded-For
+// the caller sent, so only the last entry is its own. The first is the
+// caller's to write: keyed on that, a new value per request is a new client
+// every time and the limit never applies. Behind a load balancer the last
+// entry is the balancer's, and this would have to count back from the end.
 func clientIP(r *http.Request) string {
-	if fwd := r.Header.Get("X-Forwarded-For"); fwd != "" {
-		first, _, _ := strings.Cut(fwd, ",")
-		return strings.TrimSpace(first)
+	if fwd := strings.Join(r.Header.Values("X-Forwarded-For"), ","); fwd != "" {
+		if i := strings.LastIndex(fwd, ","); i >= 0 {
+			fwd = fwd[i+1:]
+		}
+		if last := strings.TrimSpace(fwd); last != "" {
+			return last
+		}
 	}
 	host, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {

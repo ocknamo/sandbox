@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -301,5 +302,55 @@ func TestLimiterSlides(t *testing.T) {
 	}
 	if l.Allow("a") == 0 {
 		t.Error("more than the limit inside one window")
+	}
+}
+
+func TestClientIP(t *testing.T) {
+	cases := []struct {
+		name string
+		xff  []string
+		want string
+	}{
+		{"no header", nil, "192.0.2.1"},
+		{"one entry", []string{"203.0.113.9"}, "203.0.113.9"},
+		// Google appends the address it saw; whatever came before is the caller's.
+		{"caller-written entries", []string{"198.51.100.1, 198.51.100.2, 203.0.113.9"}, "203.0.113.9"},
+		{"repeated headers", []string{"198.51.100.1", "203.0.113.9"}, "203.0.113.9"},
+		{"spaces", []string{"198.51.100.1 ,  203.0.113.9 "}, "203.0.113.9"},
+		{"empty last entry", []string{"203.0.113.9,"}, "192.0.2.1"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			req := httptest.NewRequest("POST", "/api/ask", nil)
+			req.RemoteAddr = "192.0.2.1:1234"
+			for _, v := range c.xff {
+				req.Header.Add("X-Forwarded-For", v)
+			}
+			if got := clientIP(req); got != c.want {
+				t.Errorf("clientIP = %q, want %q", got, c.want)
+			}
+		})
+	}
+}
+
+// A caller who writes a new X-Forwarded-For on every request is still one
+// client: the entry Google appends is the same each time.
+func TestAskLimitIgnoresCallerForwardedFor(t *testing.T) {
+	h, _ := newServer(t, clearAnswer, NewLimiter(2, 30*time.Minute))
+	ask := func(i int, q string) int {
+		req := httptest.NewRequest("POST", "/api/ask", strings.NewReader(`{"question": "`+q+`"}`))
+		req.RemoteAddr = "192.0.2.1:1234"
+		req.Header.Set("X-Forwarded-For", fmt.Sprintf("198.51.100.%d, 203.0.113.9", i))
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, req)
+		return rec.Code
+	}
+	for i, q := range []string{"1BTCは何sat", "発行上限は？"} {
+		if code := ask(i, q); code != http.StatusOK {
+			t.Fatalf("question %d = %d, want 200", i, code)
+		}
+	}
+	if code := ask(2, "半減期は？"); code != http.StatusTooManyRequests {
+		t.Errorf("third new question with a fresh X-Forwarded-For = %d, want 429", code)
 	}
 }
